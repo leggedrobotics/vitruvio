@@ -1,0 +1,75 @@
+% main
+
+clear all
+close all
+
+%% select task and robot to be loaded
+taskSelection = 'speedyStairs';
+robotSelection = 'speedy';
+
+%% suggested removal ratio for cropping motion data to useful steady state motion
+suggestedRemovalRatioStart.universalStairs = 0.2;
+suggestedRemovalRatioEnd.universalStairs = 0.5;
+
+suggestedRemovalRatioStart.universalTrot = 0.25;
+suggestedRemovalRatioEnd.universalTrot = 0.05;
+
+suggestedRemovalRatioStart.speedyGallop = 0.3;
+suggestedRemovalRatioEnd.speedyGallop = 0.1;
+
+suggestedRemovalRatioStart.speedyStairs = 0.5;
+suggestedRemovalRatioEnd.speedyStairs = 0.2;
+
+suggestedRemovalRatioStart.massivoWalk = 0.2;
+suggestedRemovalRatioEnd.massivoWalk = 0.1;
+
+suggestedRemovalRatioStart.massivoStairs = 0.3;
+suggestedRemovalRatioEnd.massivoStairs = 0.6;
+
+suggestedRemovalRatioStart.centaurStairs = 0.3;
+suggestedRemovalRatioEnd.centaurStairs = 0.6;
+
+suggestedRemovalRatioStart.centaurWalk = 0.2;
+suggestedRemovalRatioEnd.centaurWalk = 0.1;
+
+suggestedRemovalRatioStart.miniPronk = 0.1;
+suggestedRemovalRatioEnd.miniPronk = 0.1;
+
+removalRatioStart = suggestedRemovalRatioStart.(taskSelection);
+removalRatioEnd = suggestedRemovalRatioEnd.(taskSelection);
+
+%% load motion and force data
+% universalTrot
+% universalStairs
+% speedyGallop
+% speedyStairs
+% massivoWalk
+% massivoStairs
+% centaurWalk
+% centaurStairs
+% miniPronk
+
+load(taskSelection);
+
+%% load corresponding robot parameters
+% universal
+% speedy
+% massivo
+% centaur
+% mini
+
+quadruped = getQuadrupedProperties(robotSelection);
+
+%% get the relative motion of the end effectors to the hips
+[relativeMotionHipEE, IF_hip] = getRelativeMotionEEHips(quat, quadruped, base, EE);
+
+%% get the liftoff and touchdown timings for each end effector
+[tLiftoff, tTouchdown, minStepCount] = getEELiftoffTouchdownTimings(t, EE);
+
+%% get the mean cyclic motion of the end effectors relative to the hips 
+
+[meanCyclicMotionHipEE, cyclicMotionHipEE, samplingStart, samplingEnd] = getHipEECyclicData(tLiftoff, tTouchdown, relativeMotionHipEE, EE, removalRatioStart, removalRatioEnd, dt, minStepCount);
+
+% plotMotionData(EE, relativeMotionHipEE, meanCyclicMotionHipEE, IF_hip, tLiftoff, tTouchdown, samplingStart, samplingEnd)
+
+plotMotionData;
