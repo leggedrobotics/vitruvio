@@ -4,39 +4,12 @@ clear all
 close all
 
 %% select task and robot to be loaded
-taskSelection = 'speedyStairs';
+taskSelection = 'speedyGallop';
 robotSelection = 'speedy';
 
-%% suggested removal ratio for cropping motion data to useful steady state motion
-suggestedRemovalRatioStart.universalStairs = 0.2;
-suggestedRemovalRatioEnd.universalStairs = 0.5;
+%% get suggested removal ratio for cropping motion data to useful steady state motion
 
-suggestedRemovalRatioStart.universalTrot = 0.25;
-suggestedRemovalRatioEnd.universalTrot = 0.05;
-
-suggestedRemovalRatioStart.speedyGallop = 0.3;
-suggestedRemovalRatioEnd.speedyGallop = 0.1;
-
-suggestedRemovalRatioStart.speedyStairs = 0.5;
-suggestedRemovalRatioEnd.speedyStairs = 0.2;
-
-suggestedRemovalRatioStart.massivoWalk = 0.2;
-suggestedRemovalRatioEnd.massivoWalk = 0.1;
-
-suggestedRemovalRatioStart.massivoStairs = 0.3;
-suggestedRemovalRatioEnd.massivoStairs = 0.6;
-
-suggestedRemovalRatioStart.centaurStairs = 0.3;
-suggestedRemovalRatioEnd.centaurStairs = 0.6;
-
-suggestedRemovalRatioStart.centaurWalk = 0.2;
-suggestedRemovalRatioEnd.centaurWalk = 0.1;
-
-suggestedRemovalRatioStart.miniPronk = 0.1;
-suggestedRemovalRatioEnd.miniPronk = 0.1;
-
-removalRatioStart = suggestedRemovalRatioStart.(taskSelection);
-removalRatioEnd = suggestedRemovalRatioEnd.(taskSelection);
+[removalRatioStart, removalRatioEnd] = getSuggestedRemovalRatios(taskSelection);
 
 %% load motion and force data
 % universalTrot
@@ -66,10 +39,15 @@ quadruped = getQuadrupedProperties(robotSelection);
 %% get the liftoff and touchdown timings for each end effector
 [tLiftoff, tTouchdown, minStepCount] = getEELiftoffTouchdownTimings(t, EE);
 
-%% get the mean cyclic motion of the end effectors relative to the hips 
-
+%% get the mean cyclic position and forces
 [meanCyclicMotionHipEE, cyclicMotionHipEE, samplingStart, samplingEnd] = getHipEECyclicData(tLiftoff, tTouchdown, relativeMotionHipEE, EE, removalRatioStart, removalRatioEnd, dt, minStepCount);
 
-% plotMotionData(EE, relativeMotionHipEE, meanCyclicMotionHipEE, IF_hip, tLiftoff, tTouchdown, samplingStart, samplingEnd)
-
+%% plot data
+[reachablePositionsFront reachablePositionsHind] = getRangeofMotion(quadruped);
 plotMotionData;
+
+%% get Jacobian
+q = [0.1 0.2 0.3];
+[J_P, C_HEE, r_H_HEE]  = jointToPosJac(q, quadruped);
+
+%% Inverse 

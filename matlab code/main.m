@@ -4,7 +4,7 @@ clear all
 close all
 
 %% select task and robot to be loaded
-taskSelection = 'speedyStairs';
+taskSelection = 'speedyGallop';
 robotSelection = 'speedy';
 
 %% get suggested removal ratio for cropping motion data to useful steady state motion
@@ -43,4 +43,17 @@ quadruped = getQuadrupedProperties(robotSelection);
 [meanCyclicMotionHipEE, cyclicMotionHipEE, samplingStart, samplingEnd] = getHipEECyclicData(tLiftoff, tTouchdown, relativeMotionHipEE, EE, removalRatioStart, removalRatioEnd, dt, minStepCount);
 
 %% plot data
+[reachablePositionsFront reachablePositionsHind] = getRangeofMotion(quadruped);
 plotMotionData;
+
+%% get Jacobian
+% [J_P, C_HEE, r_H_HEE]  = jointToPosJac(q, quadruped);
+
+%% Inverse kinematics
+q0 = [0 -pi/4 pi/2 0];
+% Final term is selectFrontHind. 1 = front legs, 2 = hind legs
+
+q.LF = inverseKinematics(meanCyclicMotionHipEE.LF.position, q0, quadruped, 1);
+q.LH = inverseKinematics(meanCyclicMotionHipEE.LF.position, q0, quadruped, 2);
+q.RF = inverseKinematics(meanCyclicMotionHipEE.LF.position, q0, quadruped, 1);
+q.RH = inverseKinematics(meanCyclicMotionHipEE.LF.position, q0, quadruped, 2);

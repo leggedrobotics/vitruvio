@@ -74,10 +74,10 @@ robot.speedy.nomHipPos(4,:) = [-robot.speedy.xNom, -robot.speedy.yNomHind, robot
 % fore, hind
 robot.speedy.hip(1).length = 0.05;
 robot.speedy.hip(2).length = 0.05;
-robot.speedy.thigh(1).length = 0.33234;
-robot.speedy.thigh(2).length = 0.33234;
-robot.speedy.shank(1).length = 0.3;
-robot.speedy.shank(2).length = 0.3;
+robot.speedy.thigh(1).length = 1*0.33234;
+robot.speedy.thigh(2).length = 1*0.33234;
+robot.speedy.shank(1).length = 1.6*0.3;
+robot.speedy.shank(2).length = 1.6*0.3;
 robot.speedy.foot(1).length = 0.05;
 robot.speedy.foot(2).length = 0.05;
 

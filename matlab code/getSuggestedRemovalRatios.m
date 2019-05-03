@@ -2,8 +2,8 @@
 
 function [removalRatioStart, removalRatioEnd] = getSuggestedRemovalRatios(taskSelection)
 
-suggestedRemovalRatioStart.universalStairs = 0.2;
-suggestedRemovalRatioEnd.universalStairs = 0.5;
+suggestedRemovalRatioStart.universalStairs = 0.7;
+suggestedRemovalRatioEnd.universalStairs = 0.1;
 
 suggestedRemovalRatioStart.universalTrot = 0.25;
 suggestedRemovalRatioEnd.universalTrot = 0.05;

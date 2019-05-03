@@ -159,27 +159,31 @@ axisMax = max(xMax, zMax);
 figure()
 title('Relative motion of end effectors with respect to hip attachment points')
 
-subplot(1,2,1)
-plot(relativeMotionHipEE.LF.position(:,1),relativeMotionHipEE.LF.position(:,3), 'b',  ...
-     relativeMotionHipEE.RF.position(:,1),relativeMotionHipEE.RF.position(:,3), 'g')
+subplot(2,1,1)
+plot3(relativeMotionHipEE.LF.position(:,1),relativeMotionHipEE.LF.position(:,2), relativeMotionHipEE.LF.position(:,3), 'b',  ...
+     relativeMotionHipEE.RF.position(:,1),relativeMotionHipEE.RF.position(:,2), relativeMotionHipEE.RF.position(:,3), 'g')
 grid on
 title('Front end effector motion')
 legend('LF','RF')
 xlim([xMin, xMax])
-ylim([zMin, zMax])
+% zlim([zMin, zMax])
+axis equal
 xlabel('x position [m]')
-ylabel('z position [m]')
+ylabel('y position [m]')
+zlabel('z position [m]')
 
-subplot(1,2,2)
-plot(relativeMotionHipEE.LH.position(:,1),relativeMotionHipEE.LH.position(:,3), 'r', ...
-     relativeMotionHipEE.RH.position(:,1),relativeMotionHipEE.RH.position(:,3), 'c')
+subplot(2,1,2)
+plot3(relativeMotionHipEE.LH.position(:,1), relativeMotionHipEE.LH.position(:,2), relativeMotionHipEE.LH.position(:,3), 'r', ...
+     relativeMotionHipEE.RH.position(:,1), relativeMotionHipEE.LH.position(:,2),relativeMotionHipEE.RH.position(:,3), 'c')
 grid on
 title('Hind end effector motion')
 legend('LH','RH')
 xlim([xMin, xMax])
-ylim([zMin, zMax])
+% zlim([zMin, zMax])
+axis equal
 xlabel('x position [m]')
-ylabel('z position [m]')
+ylabel('y position [m]')
+zlabel('z position [m]')
 
 %% Plot mean x vs z position of EE in cyclic motion and z forces 
 
@@ -192,7 +196,7 @@ for i = samplingStart:samplingEnd
     hold on
     plot(cyclicMotionHipEE.LF.position(:,1,i), cyclicMotionHipEE.LF.position(:,3,i), 'bo')
 end
-plot(meanCyclicMotionHipEE.LF.position(:,1),meanCyclicMotionHipEE.LF.position(:,3),'r', 'LineWidth',3)
+plot(meanCyclicMotionHipEE.LF.position(:,1), meanCyclicMotionHipEE.LF.position(:,3),'r', 'LineWidth',3)
 % plot(0,0,'o')
 axis equal
 xlabel('x position [m]')
@@ -268,6 +272,73 @@ plot(t, EE.LF.force(:,3), 'b', t, EE.LH.force(:,3), 'g', ...
  rectangle('Position',[min(tLiftoff(samplingStart,:)),-100 ,...
                        max(tLiftoff(samplingEnd,:))-min(tLiftoff(samplingStart,:))  max([max(EE.LF.force(:,3)), max(EE.LH.force(:,3)), ...
                        max(EE.RF.force(:,3)), max(EE.RH.force(:,3))])+150], 'LineWidth', 2)
+
+hold off
+
+%% Plot mean x vs z position with reachable positions
+
+
+
+% LF
+subplot(2,2,1)
+for i = samplingStart:samplingEnd
+    hold on
+    plot(cyclicMotionHipEE.LF.position(:,1,i), cyclicMotionHipEE.LF.position(:,3,i), 'bo')
+end
+plot(meanCyclicMotionHipEE.LF.position(:,1), meanCyclicMotionHipEE.LF.position(:,3),'r', 'LineWidth',3)
+plot(reachablePositionsFront(:,1),reachablePositionsFront(:,2))
+plot(0,0,'o')
+axis equal
+xlabel('x position [m]')
+ylabel('z position [m]')
+title('LF')
+
+hold off
+% LH
+subplot(2,2,2)
+for i = samplingStart:samplingEnd
+    hold on
+    plot(cyclicMotionHipEE.LH.position(:,1,i), cyclicMotionHipEE.LH.position(:,3,i), 'bo')
+end
+plot(meanCyclicMotionHipEE.LH.position(:,1),meanCyclicMotionHipEE.LH.position(:,3),'r', 'LineWidth',3)
+plot(reachablePositionsHind(:,1),reachablePositionsHind(:,2))
+plot(0,0,'o')
+axis equal
+xlabel('x position [m]')
+ylabel('z position [m]')
+title('LH')
+
+hold off
+
+% RF
+subplot(2,2,3)
+for i = samplingStart:samplingEnd
+    hold on
+    plot(cyclicMotionHipEE.RF.position(:,1,i), cyclicMotionHipEE.RF.position(:,3,i), 'bo')
+end
+plot(meanCyclicMotionHipEE.RF.position(:,1), meanCyclicMotionHipEE.RF.position(:,3),'r', 'LineWidth',3)
+plot(reachablePositionsFront(:,1),reachablePositionsFront(:,2))
+plot(0,0,'o')
+axis equal
+xlabel('x position [m]')
+ylabel('z position [m]')
+title('RF')
+
+hold off
+
+% RH
+subplot(2,2,4)
+for i = samplingStart:samplingEnd
+    hold on
+    plot(cyclicMotionHipEE.RH.position(:,1,i), cyclicMotionHipEE.RH.position(:,3,i), 'bo')
+end
+plot(meanCyclicMotionHipEE.RH.position(:,1), meanCyclicMotionHipEE.RH.position(:,3),'r', 'LineWidth',3)
+plot(reachablePositionsHind(:,1),reachablePositionsHind(:,2))
+plot(0,0,'o')
+axis equal
+xlabel('x position [m]')
+ylabel('z position [m]')
+title('RH')
 
 hold off
 

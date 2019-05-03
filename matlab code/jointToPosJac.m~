@@ -1,13 +1,13 @@
-function [J_P, C_HEE, r_H_HEE]  = jointToPosJac(q, quadruped, selectFrontHind)
+function [J_P, C_HEE, r_H_HEE]  = jointToPosJac(q, quadruped)
   % Input: vector of generalized coordinates (joint angles)
   % Output: Jacobian of the end-effector translation which maps joint
   % velocities to end-effector linear velocities in hip attachmemt frame H.
   
   % Compute the relative homogeneous transformation matrices.
-  l_hip = quadruped.hip(selectFrontHind).length;
-  l_thigh = quadruped.thigh(selectFrontHind).length;
-  l_shank = quadruped.shank(selectFrontHind).length;
-  %l_foot = quadruped.foot(selectFrontHind).length;
+  l_hip = quadruped.hip(1).length;
+  l_thigh = quadruped.thigh(1).length;
+  l_shank = quadruped.shank(1).length;
+  %l_foot = quadruped.foot.length(1);
   
   % transformation from HAA to hip attachment
   % rotation about z of hip attachment
@@ -18,17 +18,17 @@ function [J_P, C_HEE, r_H_HEE]  = jointToPosJac(q, quadruped, selectFrontHind)
 
   % transformation from HFE to HAA
   % rotation about Hy, translation along hip link
-  T_12 = [cos(q(2)), 0,  sin(q(2)),  0;
-          0,         1,  0,          0;
-         -sin(q(2)), 0,  cos(q(2)), -l_hip;
-          0,         0,  0,          1];   
+  T_12 = [cos(q(2)),   0,   sin(q(2)),   0;
+          0,   1,   0,   0;
+          -sin(q(2)),           0,              -l_hip;
+          0,           0,           0,   1];   
      
   % transformation from HFE to HAA
   % rotation about Ty, translation along thigh
-  T_23 = [cos(q(3)), 0,  sin(q(3)),  0;
-          0,         1,  0,          0;
-         -sin(q(3)), 0,  cos(q(3)), -l_thigh;
-          0,         0,  0,          1];   
+  T_23 = [cos(q(3)),  -sin(q(3)),   0,   0;
+          sin(q(3)),   cos(q(3)),   0,   0;
+          0,           0,           1   -l_thigh;
+          0,           0,           0,   1];
 
   % transformation from KFE to EE
   % rotation about Sy, translation along sh  

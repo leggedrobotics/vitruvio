@@ -14,6 +14,12 @@ hip_flexion_limit = pi/8;
 hip_extension_limit = pi/8;
 knee_extension_limit = pi/8;
 
+
+% d  offset along previous z to the common normal
+% θ angle about previous z from old x {\displaystyle x} x to new x 
+% r Assuming a revolute joint, this is the radius about previous z.
+% α angle about common normal, from old z to new z axis
+
 %% Build quadruped rigid body model using Denavit Hartenberg parameters in home config
 dhparams = [ 0            -pi/2   0              0  
     

@@ -159,27 +159,31 @@ axisMax = max(xMax, zMax);
 figure()
 title('Relative motion of end effectors with respect to hip attachment points')
 
-subplot(1,2,1)
-plot(relativeMotionHipEE.LF.position(:,1),relativeMotionHipEE.LF.position(:,3), 'b',  ...
-     relativeMotionHipEE.RF.position(:,1),relativeMotionHipEE.RF.position(:,3), 'g')
+subplot(2,1,1)
+plot3(relativeMotionHipEE.LF.position(:,1),relativeMotionHipEE.LF.position(:,2), relativeMotionHipEE.LF.position(:,3), 'b',  ...
+     relativeMotionHipEE.RF.position(:,1),relativeMotionHipEE.RF.position(:,2), relativeMotionHipEE.RF.position(:,3), 'g')
 grid on
 title('Front end effector motion')
 legend('LF','RF')
 xlim([xMin, xMax])
-ylim([zMin, zMax])
+% zlim([zMin, zMax])
+axis equal
 xlabel('x position [m]')
-ylabel('z position [m]')
+ylabel('y position [m]')
+zlabel('z position [m]')
 
-subplot(1,2,2)
-plot(relativeMotionHipEE.LH.position(:,1),relativeMotionHipEE.LH.position(:,3), 'r', ...
-     relativeMotionHipEE.RH.position(:,1),relativeMotionHipEE.RH.position(:,3), 'c')
+subplot(2,1,2)
+plot3(relativeMotionHipEE.LH.position(:,1), relativeMotionHipEE.LH.position(:,2), relativeMotionHipEE.LH.position(:,3), 'r', ...
+     relativeMotionHipEE.RH.position(:,1), relativeMotionHipEE.LH.position(:,2),relativeMotionHipEE.RH.position(:,3), 'c')
 grid on
 title('Hind end effector motion')
 legend('LH','RH')
 xlim([xMin, xMax])
-ylim([zMin, zMax])
+% zlim([zMin, zMax])
+axis equal
 xlabel('x position [m]')
-ylabel('z position [m]')
+ylabel('y position [m]')
+zlabel('z position [m]')
 
 %% Plot mean x vs z position of EE in cyclic motion and z forces 
 
@@ -192,7 +196,7 @@ for i = samplingStart:samplingEnd
     hold on
     plot(cyclicMotionHipEE.LF.position(:,1,i), cyclicMotionHipEE.LF.position(:,3,i), 'bo')
 end
-plot(meanCyclicMotionHipEE.LF.position(:,1),meanCyclicMotionHipEE.LF.position(:,3),'r', 'LineWidth',3)
+plot(meanCyclicMotionHipEE.LF.position(:,1), meanCyclicMotionHipEE.LF.position(:,3),'r', 'LineWidth',3)
 % plot(0,0,'o')
 axis equal
 xlabel('x position [m]')
@@ -254,8 +258,8 @@ plot(t, EE.LF.position(:,3), 'b', t, EE.LH.position(:,3), 'g', ...
  
                        % coordinate of bottom left point [x,y]
                        % width, height
- rectangle('Position',[min(tLiftoff(samplingStart,:)) EE.LF.position(1,3)-0.2 ,...
-                       max(tLiftoff(samplingEnd,:))-min(tLiftoff(samplingStart,:))  EE.LF.position(end,3)+0.4],...
+ rectangle('Position',[min(tLiftoff(samplingStart,:)) EE.LF.position(1,3)-0.1 ,...
+                       max(tLiftoff(samplingEnd,:))-min(tLiftoff(samplingStart,:))  max(EE.LF.position(:,3))+0.2],...
             'LineWidth', 2)
 
 subplot(4,2,[7 8])
@@ -271,6 +275,69 @@ plot(t, EE.LF.force(:,3), 'b', t, EE.LH.force(:,3), 'g', ...
 
 hold off
 
+%% Plot mean x vs z position with reachable positions
+
+
+
+% LF
+subplot(2,2,1)
+for i = samplingStart:samplingEnd
+    hold on
+    plot(cyclicMotionHipEE.LF.position(:,1,i), cyclicMotionHipEE.LF.position(:,3,i), 'bo')
+end
+plot(meanCyclicMotionHipEE.LF.position(:,1), meanCyclicMotionHipEE.LF.position(:,3),'r', 'LineWidth',3)
+plot(reachablePositions(:,1),reachablePositions(:,2))
+axis equal
+xlabel('x position [m]')
+ylabel('z position [m]')
+title('LF')
+
+hold off
+% LH
+subplot(2,2,2)
+for i = samplingStart:samplingEnd
+    hold on
+    plot(cyclicMotionHipEE.LH.position(:,1,i), cyclicMotionHipEE.LH.position(:,3,i), 'bo')
+end
+plot(meanCyclicMotionHipEE.LH.position(:,1),meanCyclicMotionHipEE.LH.position(:,3),'r', 'LineWidth',3)
+% plot(0,0,'o')
+axis equal
+xlabel('x position [m]')
+ylabel('z position [m]')
+title('LH')
+
+hold off
+
+% RF
+subplot(2,2,3)
+for i = samplingStart:samplingEnd
+    hold on
+    plot(cyclicMotionHipEE.RF.position(:,1,i), cyclicMotionHipEE.RF.position(:,3,i), 'bo')
+end
+plot(meanCyclicMotionHipEE.RF.position(:,1), meanCyclicMotionHipEE.RF.position(:,3),'r', 'LineWidth',3)
+% plot(0,0,'o')
+axis equal
+xlabel('x position [m]')
+ylabel('z position [m]')
+title('RF')
+
+hold off
+
+% RH
+subplot(2,2,4)
+for i = samplingStart:samplingEnd
+    hold on
+    plot(cyclicMotionHipEE.RH.position(:,1,i), cyclicMotionHipEE.RH.position(:,3,i), 'bo')
+end
+plot(meanCyclicMotionHipEE.RH.position(:,1), meanCyclicMotionHipEE.RH.position(:,3),'r', 'LineWidth',3)
+% plot(0,0,'o')
+axis equal
+xlabel('x position [m]')
+ylabel('z position [m]')
+title('RH')
+
+hold off
+
 %% mean forces
 
 figure()
@@ -280,18 +347,23 @@ plot(meanCyclicMotionHipEE.LF.position(:,1), meanCyclicMotionHipEE.LF.force(:,1)
      meanCyclicMotionHipEE.LH.position(:,1), meanCyclicMotionHipEE.LH.force(:,1), 'g',...
      meanCyclicMotionHipEE.RF.position(:,1), meanCyclicMotionHipEE.RF.force(:,1), 'r',...
      meanCyclicMotionHipEE.RH.position(:,1), meanCyclicMotionHipEE.RH.force(:,1), 'c')
+
 title('Average of x direction forces for sampled data')
 legend('LF','LH','RF','RH')
-xlabel('
-
+ylabel('force [N]')
+grid on
 
 % y forces
 subplot(1,3,2)
 plot(meanCyclicMotionHipEE.LF.position(:,1), meanCyclicMotionHipEE.LF.force(:,2), 'b', ...
      meanCyclicMotionHipEE.LH.position(:,1), meanCyclicMotionHipEE.LH.force(:,2), 'g', ...
      meanCyclicMotionHipEE.RF.position(:,1), meanCyclicMotionHipEE.RF.force(:,2), 'r', ...
-     meanCyclicMotionHipEE.RH.position(:,1), meanCyclicMotionHipEE.RH.force(:,2), 'c')
-
+     meanCyclicMotionHipEE.RH.position(:,1), meanCyclicMotionHipEE.RH.force(:,2), 'c')  
+ 
+title('Average of y direction forces for sampled data')
+legend('LF','LH','RF','RH')
+xlabel('Offset in x direction from end effector to hip attachment point [m]')
+grid on
 
 % z forces
 subplot(1,3,3)
@@ -299,34 +371,7 @@ plot(meanCyclicMotionHipEE.LF.position(:,1), meanCyclicMotionHipEE.LF.force(:,3)
      meanCyclicMotionHipEE.LH.position(:,1), meanCyclicMotionHipEE.LH.force(:,3), 'g', ...
      meanCyclicMotionHipEE.RF.position(:,1), meanCyclicMotionHipEE.RF.force(:,3), 'r', ...
      meanCyclicMotionHipEE.RH.position(:,1), meanCyclicMotionHipEE.RH.force(:,3), 'c')
- 
- 
-%      
-% figure()
-% subplot(3,4,1)
-% plot(meanCyclicMotionHipEE.LF.position(:,1), meanCyclicMotionHipEE.LF.force(:,1))
-% subplot(3,4,5)
-% plot(meanCyclicMotionHipEE.LF.position(:,1), meanCyclicMotionHipEE.LF.force(:,2))
-% subplot(3,4,9)
-% plot(meanCyclicMotionHipEE.LF.position(:,1), meanCyclicMotionHipEE.LF.force(:,3))
-% 
-% subplot(3,4,2)
-% plot(meanCyclicMotionHipEE.LH.position(:,1), meanCyclicMotionHipEE.LH.force(:,1))
-% subplot(3,4,6)
-% plot(meanCyclicMotionHipEE.LH.position(:,1), meanCyclicMotionHipEE.LH.force(:,2))
-% subplot(3,4,10)
-% plot(meanCyclicMotionHipEE.LH.position(:,1), meanCyclicMotionHipEE.LH.force(:,3))
-% 
-% subplot(3,4,3)
-% plot(meanCyclicMotionHipEE.RF.position(:,1), meanCyclicMotionHipEE.RF.force(:,1))
-% subplot(3,4,7)
-% plot(meanCyclicMotionHipEE.RF.position(:,1), meanCyclicMotionHipEE.RF.force(:,2))
-% subplot(3,4,11)
-% plot(meanCyclicMotionHipEE.RF.position(:,1), meanCyclicMotionHipEE.RF.force(:,3))
-% 
-% subplot(3,4,4)
-% plot(meanCyclicMotionHipEE.RH.position(:,1), meanCyclicMotionHipEE.RH.force(:,1))
-% subplot(3,4,8)
-% plot(meanCyclicMotionHipEE.RH.position(:,1), meanCyclicMotionHipEE.RH.force(:,2))
-% subplot(3,4,12)
-% plot(meanCyclicMotionHipEE.RH.position(:,1), meanCyclicMotionHipEE.RH.force(:,3))
+  
+title('Average of z direction forces for sampled data')
+legend('LF','LH','RF','RH')
+grid on
