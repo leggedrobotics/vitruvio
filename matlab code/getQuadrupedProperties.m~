@@ -286,13 +286,13 @@ end
 
 % joint angle limits
 % q1 HAA, q2 HFE, q3 KFE, q4 AFE
-robot.mini.q1.minAngle = -pi/6;
-robot.mini.q1.maxAngle = pi/2;
-robot.mini.q2.minAngle = -pi/4;
-robot.mini.q2.maxAngle = pi/4;
-robot.mini.q3.minAngle = pi/2;
-robot.mini.q3.maxAngle = -pi/2;
-robot.mini.q4.minAngle = pi/2;
-robot.mini.q4.maxAngle = -pi/2;
+robot.centaur.q1.minAngle = -pi/6;
+robot.centaur.q1.maxAngle = pi/2;
+robot.centaur.q2.minAngle = -pi/4;
+robot.centaur.q2.maxAngle = pi/4;
+robot.centaur.q3.minAngle = pi/2;
+robot.centaur.q3.maxAngle = -pi/2;
+robot.centaur.q4.minAngle = pi/2;
+robot.centaur.q4.maxAngle = -pi/2;
 
 quadruped = robot.(robotSelection);

@@ -10,6 +10,15 @@ l_hip_hind = quadruped.hip(2).length;
 l_thigh_hind = quadruped.thigh(2).length; 
 l_shank_hind = quadruped.shank(2).length; 
 
+q1_min = quadruped.q1.minAngle;
+q1_max = quadruped.q1.maxAngle;
+q2_min = quadruped.q2.minAngle;
+q2_max = quadruped.q2.maxAngle;
+q3_min = quadruped.q3.minAngle;
+q3_max = quadruped.q3.maxAngle;
+q4_min = quadruped.q4.minAngle;
+q4_max = quadruped.q4.maxAngle;
+
 q1 = 0:0.1:pi/2; % all possible HAA
 q2 = -pi/4:0.1:pi/4; % all possible HFE
 q3 = -pi/2:0.1:pi/2; % all possible KFE

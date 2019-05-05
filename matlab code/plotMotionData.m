@@ -156,10 +156,10 @@ zMax = max([max(relativeMotionHipEE.LF.position(:,3)) max(relativeMotionHipEE.LH
 axisMin = min(xMin,zMin);
 axisMax = max(xMax, zMax);
 
-figure()
+figure(4)
 title('Relative motion of end effectors with respect to hip attachment points')
 
-subplot(2,1,1)
+subplot(1,2,1)
 plot3(relativeMotionHipEE.LF.position(:,1),relativeMotionHipEE.LF.position(:,2), relativeMotionHipEE.LF.position(:,3), 'b',  ...
      relativeMotionHipEE.RF.position(:,1),relativeMotionHipEE.RF.position(:,2), relativeMotionHipEE.RF.position(:,3), 'g')
 grid on
@@ -172,7 +172,7 @@ xlabel('x position [m]')
 ylabel('y position [m]')
 zlabel('z position [m]')
 
-subplot(2,1,2)
+subplot(1,2,2)
 plot3(relativeMotionHipEE.LH.position(:,1), relativeMotionHipEE.LH.position(:,2), relativeMotionHipEE.LH.position(:,3), 'r', ...
      relativeMotionHipEE.RH.position(:,1), relativeMotionHipEE.LH.position(:,2),relativeMotionHipEE.RH.position(:,3), 'c')
 grid on
@@ -187,7 +187,7 @@ zlabel('z position [m]')
 
 %% Plot mean x vs z position of EE in cyclic motion and z forces 
 
-figure()
+figure(5)
 title('End effector motion with all gait cycles')
 
 % LF
@@ -261,6 +261,7 @@ plot(t, EE.LF.position(:,3), 'b', t, EE.LH.position(:,3), 'g', ...
  rectangle('Position',[min(tLiftoff(samplingStart,:)) EE.LF.position(1,3)-0.1 ,...
                        max(tLiftoff(samplingEnd,:))-min(tLiftoff(samplingStart,:))  max(EE.LF.position(:,3))+0.2],...
             'LineWidth', 2)
+hold off
 
 subplot(4,2,[7 8])
 plot(t, EE.LF.force(:,3), 'b', t, EE.LH.force(:,3), 'g', ...
@@ -277,9 +278,9 @@ hold off
 
 %% Plot mean x vs z position with reachable positions
 
+%LF
+figure()
 
-
-% LF
 subplot(2,2,1)
 for i = samplingStart:samplingEnd
     hold on

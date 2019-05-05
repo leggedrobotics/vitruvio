@@ -37,7 +37,7 @@
          
       end
       
-      fprintf('Inverse kinematics terminated after %d iterations.\n',it);
+%       fprintf('Inverse kinematics terminated after %d iterations.\n',it);
 %       fprintf('Position error: %e.\n',norm(dr));
       jointPositions(i,:) = q';
 

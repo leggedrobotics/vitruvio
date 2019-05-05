@@ -51,7 +51,7 @@ plotMotionData;
 
 %% Inverse kinematics
 q0 = [0 -pi/4 pi/2 0];
-% Final term is selectFrontHind. 1 = front legs, 2 = hind legs
+% Final term is selectFrontHind 1 = front legs, 2 = hind legs
 
 q.LF = inverseKinematics(meanCyclicMotionHipEE.LF.position, q0, quadruped, 1);
 q.LH = inverseKinematics(meanCyclicMotionHipEE.LF.position, q0, quadruped, 2);

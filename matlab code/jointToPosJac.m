@@ -11,10 +11,10 @@ function [J_P, C_HEE, r_H_HEE]  = jointToPosJac(q, quadruped, selectFrontHind)
   
   % transformation from HAA to hip attachment
   % rotation about z of hip attachment
-  T_H1= [cos(q(1)), -sin(q(1)), 0,  0;
-         sin(q(1)),  cos(q(1)), 0,  0;
-         0,          0,         1,  0;
-         0,          0,         0,  1];
+  T_H1= [1, 0,          0,          0;
+         0, cos(q(1)), -sin(q(1)),  0;
+         0, sin(q(1)),  cos(q(1)),  0;
+         0, 0,          0,          1];
 
   % transformation from HFE to HAA
   % rotation about Hy, translation along hip link
