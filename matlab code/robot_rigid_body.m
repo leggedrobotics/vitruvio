@@ -1,4 +1,5 @@
 %% Read in data for quadruped geometry
+function [] = getRobotRigidBodyModel(quadruped, q) 
 l_hip = 0.05;
 l_thigh = 0.25;
 l_shank = 0.2;

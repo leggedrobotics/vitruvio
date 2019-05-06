@@ -19,7 +19,7 @@
   lambda = 0.001;
   
   % Initialize error - only position because we don't have orientation data
-  [J_P, C_HEE, r_H_HEE] = jointToPosJac(q, quadruped, selectFrontHind);
+  [J_P, C_HEE, r_H_HEE, T_H1, T_12, T_23, T_34] = jointToPosJac(q, quadruped, selectFrontHind);
     
   %% Iterative inverse kinematics
   
@@ -37,7 +37,7 @@
          
       end
       
-%       fprintf('Inverse kinematics terminated after %d iterations.\n',it);
+      fprintf('Inverse kinematics terminated after %d iterations.\n',it);
 %       fprintf('Position error: %e.\n',norm(dr));
       jointPositions(i,:) = q';
 

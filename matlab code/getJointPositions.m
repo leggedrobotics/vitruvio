@@ -4,10 +4,9 @@
 % inverseKinematics
 
 % r of size length(q) x number of joints x number of legs
-% r = getJointPositions(quadruped, q, jointCount);
+function r = getJointPositions(quadruped, q, jointCount);
 
 % hip attachment at origin
-jointCount = 3;
 EE = {'LF', 'LH', 'RF', 'RH'};
 joint = {'HAA', 'HFE', 'KFE', 'EE'};
 
@@ -61,4 +60,11 @@ for i = 1:length(EE)
     r_x.(EE{i}).(joint{4}) = r_x.(EE{i}).(joint{3}) - l_shank(j)*(sin(q.(EE{i})(:,2) + q.(EE{i})(:,3)));
     r_y.(EE{i}).(joint{4}) = r_y.(EE{i}).(joint{3}) + l_shank(j)*(cos(q.(EE{i})(:,2) + q.(EE{i})(:,3))).*sin(q.(EE{i})(:,1));
     r_z.(EE{i}).(joint{4}) = r_z.(EE{i}).(joint{3}) - l_shank(j)*cos(q.(EE{i})(:,2) + q.(EE{i})(:,3)).*cos(q.(EE{i})(:,1));
+end
+
+%% save coordinates to vector r for each leg and for each joint
+for i = 1:length(EE)
+    for j =1:length(joint)
+        r.(EE{i}).(joint{j}) = [r_x.(EE{i}).(joint{j}) r_y.(EE{i}).(joint{j}) r_z.(EE{i}).(joint{j})];
+    end
 end

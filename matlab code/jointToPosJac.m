@@ -1,4 +1,4 @@
-function [J_P, C_HEE, r_H_HEE]  = jointToPosJac(q, quadruped, selectFrontHind)
+function [J_P, C_HEE, r_H_HEE, T_H1, T_12, T_23, T_34]  = jointToPosJac(q, quadruped, selectFrontHind)
   % Input: vector of generalized coordinates (joint angles)
   % Output: Jacobian of the end-effector translation which maps joint
   % velocities to end-effector linear velocities in hip attachmemt frame H.

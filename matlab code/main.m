@@ -4,8 +4,8 @@ clear all
 close all
 
 %% select task and robot to be loaded
-taskSelection = 'speedyGallop';
-robotSelection = 'speedy';
+taskSelection = 'universalTrot';
+robotSelection = 'universal';
 
 %% get suggested removal ratio for cropping motion data to useful steady state motion
 
@@ -44,16 +44,20 @@ quadruped = getQuadrupedProperties(robotSelection);
 
 %% plot data
 [reachablePositionsFront reachablePositionsHind] = getRangeofMotion(quadruped);
-plotMotionData;
+% plotMotionData;
 
 %% get Jacobian
-% [J_P, C_HEE, r_H_HEE]  = jointToPosJac(q, quadruped);
+% [J_P, C_HEE, r_H_HEE, T_H1, T_12, T_23, T_34]  = jointToPosJac(q, quadruped, jointCount);
 
-%% Inverse kinematics
-q0 = [0 -pi/4 pi/2 0];
+%% Inverse kinematics to calculate joint angles for each leg joint
+q0 = [0 -pi/4 -pi/2 0];
 % Final term is selectFrontHind 1 = front legs, 2 = hind legs
 
 q.LF = inverseKinematics(meanCyclicMotionHipEE.LF.position, q0, quadruped, 1);
-q.LH = inverseKinematics(meanCyclicMotionHipEE.LF.position, q0, quadruped, 2);
-q.RF = inverseKinematics(meanCyclicMotionHipEE.LF.position, q0, quadruped, 1);
-q.RH = inverseKinematics(meanCyclicMotionHipEE.LF.position, q0, quadruped, 2);
+q.LH = inverseKinematics(meanCyclicMotionHipEE.LH.position, q0, quadruped, 2);
+q.RF = inverseKinematics(meanCyclicMotionHipEE.RF.position, q0, quadruped, 1);
+q.RH = inverseKinematics(meanCyclicMotionHipEE.RH.position, q0, quadruped, 2);
+
+%% Forward kinematics to get joint positions based on angles q solved in IK
+jointCount = 3; % not yet able to handle 4 joints
+r = getJointPositions(quadruped, q, jointCount);
