@@ -1,6 +1,6 @@
 %% Get relative motion of end effectors to the hips
 
-
+function [relativeMotionHipEE, IF_hip, C_IBody] = getRelativeMotionEEHips(quat, quadruped, base, EE,dt)
 
 %% get hip positions
 
@@ -29,26 +29,33 @@
 % center of mass position in inertia frame. This gives the hip position in
 % inertia frame
 
-% nom_hip_pos is a vector from CoM to the hip attachment point. This is a
+% nomHipPos is a vector from CoM to the hip attachment point. This is a
 % fixed value based on the quadruped properties
 
 for i = 1:length(quat)
 C_IBody(:,:,i) = quat2rotm(quat(i,:));                                                              
-IF_hip.position.LF(i,:) = quadruped.nomHipPos(1,:)*C_IBody(:,:,i) + [base.position(i,1) base.position(i,2) base.position(i,3)];
-IF_hip.position.LH(i,:) = quadruped.nomHipPos(2,:)*C_IBody(:,:,i) + [base.position(i,1) base.position(i,2) base.position(i,3)];
-IF_hip.position.RF(i,:) = quadruped.nomHipPos(3,:)*C_IBody(:,:,i) + [base.position(i,1) base.position(i,2) base.position(i,3)];
-IF_hip.position.RH(i,:) = quadruped.nomHipPos(4,:)*C_IBody(:,:,i) + [base.position(i,1) base.position(i,2) base.position(i,3)];
+IF_hip.LF.position(i,:) = quadruped.nomHipPos(1,:)*C_IBody(:,:,i) + [base.position(i,1) base.position(i,2) base.position(i,3)];
+IF_hip.LH.position(i,:) = quadruped.nomHipPos(2,:)*C_IBody(:,:,i) + [base.position(i,1) base.position(i,2) base.position(i,3)];
+IF_hip.RF.position(i,:) = quadruped.nomHipPos(3,:)*C_IBody(:,:,i) + [base.position(i,1) base.position(i,2) base.position(i,3)];
+IF_hip.RH.position(i,:) = quadruped.nomHipPos(4,:)*C_IBody(:,:,i) + [base.position(i,1) base.position(i,2) base.position(i,3)];
 end
 
 % we have coordinates of each foot and hip in inertia frame, subtracting
 % them gives the relative position and velocity of the feet to the hips.
 % This simulates a fixed hip allowing observation of the foot position.
 
-HipEE.LF.position = EE.LF.position - IF_hip.position.LF;
-HipEE.LH.position = EE.LH.position - IF_hip.position.LH;
-HipEE.RF.position = EE.RF.position - IF_hip.position.RF;
-HipEE.RH.position = EE.RH.position - IF_hip.position.RH;
+relativeMotionHipEE.LF.position = EE.LF.position - IF_hip.LF.position;
+relativeMotionHipEE.LH.position = EE.LH.position - IF_hip.LH.position;
+relativeMotionHipEE.RF.position = EE.RF.position - IF_hip.RF.position;
+relativeMotionHipEE.RH.position = EE.RH.position - IF_hip.RH.position;
 
+% compute velocities by finite differences
+for i = 1:length(EE.LF.position)-1
+    relativeMotionHipEE.LF.velocity(i,:) = (relativeMotionHipEE.LF.position(i+1,:) - relativeMotionHipEE.LF.position(i,:))/dt;
+    relativeMotionHipEE.LH.velocity(i,:) = (relativeMotionHipEE.LH.position(i+1,:) - relativeMotionHipEE.LH.position(i,:))/dt;
+    relativeMotionHipEE.RF.velocity(i,:) = (relativeMotionHipEE.RF.position(i+1,:) - relativeMotionHipEE.RF.position(i,:))/dt;
+    relativeMotionHipEE.RH.velocity(i,:) = (relativeMotionHipEE.RH.position(i+1,:) - relativeMotionHipEE.RH.position(i,:))/dt;
+    
+    relativeMotionHipEE.LF.accel(i,:) = (relativeMotionHipEE.LF.position(i+1,:) - relativeMotionHipEE.LF.position(i,:))/dt;
 
-% comet3(ax,foot_LF.position(:,1), foot_LF.position(:,2), foot_LF.position(:,3));
-% comet3(foot_LF_bodyframe.position(:,1), foot_LF_bodyframe.position(:,2), foot_LF_bodyframe.position(:,3));
+end

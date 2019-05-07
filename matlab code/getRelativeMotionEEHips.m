@@ -1,6 +1,6 @@
 %% Get relative motion of end effectors to the hips
 
-function [relativeMotionHipEE, IF_hip] = getRelativeMotionEEHips(quat, quadruped, base, EE)
+function [relativeMotionHipEE, IF_hip, C_IBody] = getRelativeMotionEEHips(quat, quadruped, base, EE,dt)
 
 %% get hip positions
 
@@ -48,3 +48,30 @@ relativeMotionHipEE.LF.position = EE.LF.position - IF_hip.LF.position;
 relativeMotionHipEE.LH.position = EE.LH.position - IF_hip.LH.position;
 relativeMotionHipEE.RF.position = EE.RF.position - IF_hip.RF.position;
 relativeMotionHipEE.RH.position = EE.RH.position - IF_hip.RH.position;
+
+% compute velocities by finite differences
+ relativeMotionHipEE.LF.velocity(1,:) = [0 0 0];
+ relativeMotionHipEE.LH.velocity(1,:) = [0 0 0];
+ relativeMotionHipEE.RF.velocity(1,:) = [0 0 0];
+ relativeMotionHipEE.RH.velocity(1,:) = [0 0 0];
+ 
+ relativeMotionHipEE.LF.accel(1,:) = [0 0 0];
+ relativeMotionHipEE.LH.accel(1,:) = [0 0 0];
+ relativeMotionHipEE.RF.accel(1,:) = [0 0 0];
+ relativeMotionHipEE.RH.accel(1,:) = [0 0 0];
+
+ % calculate velocity by finite difference
+for i = 2:length(EE.LF.position)-1
+    relativeMotionHipEE.LF.velocity(i,:) = (relativeMotionHipEE.LF.position(i+1,:) - relativeMotionHipEE.LF.position(i,:))/dt;
+    relativeMotionHipEE.LH.velocity(i,:) = (relativeMotionHipEE.LH.position(i+1,:) - relativeMotionHipEE.LH.position(i,:))/dt;
+    relativeMotionHipEE.RF.velocity(i,:) = (relativeMotionHipEE.RF.position(i+1,:) - relativeMotionHipEE.RF.position(i,:))/dt;
+    relativeMotionHipEE.RH.velocity(i,:) = (relativeMotionHipEE.RH.position(i+1,:) - relativeMotionHipEE.RH.position(i,:))/dt;
+end
+
+% calculate acceleration by finite difference
+for i = 2:length(EE.LF.position)-2
+    relativeMotionHipEE.LF.acceleration(i,:) = (relativeMotionHipEE.LF.velocity(i+1,:) - relativeMotionHipEE.LF.velocity(i,:))/dt;
+    relativeMotionHipEE.LH.acceleration(i,:) = (relativeMotionHipEE.LH.velocity(i+1,:) - relativeMotionHipEE.LH.velocity(i,:))/dt;
+    relativeMotionHipEE.RF.acceleration(i,:) = (relativeMotionHipEE.RF.velocity(i+1,:) - relativeMotionHipEE.RF.velocity(i,:))/dt;
+    relativeMotionHipEE.RH.acceleration(i,:) = (relativeMotionHipEE.RH.velocity(i+1,:) - relativeMotionHipEE.RH.velocity(i,:))/dt;
+end

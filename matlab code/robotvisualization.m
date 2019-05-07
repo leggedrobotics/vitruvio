@@ -22,8 +22,7 @@ yNom.RH = -quadruped.yNomHind;
 
 zNom = quadruped.zNom; % equal for each hip attachment point
 
-
-EE = {'LF', 'LH', 'RF', 'RH'};
+EE_name = fieldnames(EE);
 
 
 %% Build quadruped rigid body model using 4x4 transformation matrices
@@ -35,34 +34,34 @@ for i = 1:length(q.LF);
   % transformation from HAA to hip attachment
   % rotation about z of hip attachment
   
-  T_HB.(EE{j})(:,:) = [1, 0, 0, xNom.(EE{j});
-                  0, 1, 0, yNom.(EE{j});
+  T_HB.(EE_name{j})(:,:) = [1, 0, 0, xNom.(EE_name{j});
+                  0, 1, 0, yNom.(EE_name{j});
                   0, 0, 1, zNom;
                   0, 0, 0, 1];
   
   
-  T_H1.(EE{j})(:,:,i) = [1, 0,          0,          0;
-                  0, cos(q.(EE{j})(i,1)),   -sin(q.(EE{j})(i,1)),  0;
-                  0, sin(q.(EE{j})(i,1)),    cos(q.(EE{j})(i,1)),  0;
+  T_H1.(EE_name{j})(:,:,i) = [1, 0,          0,          0;
+                  0, cos(q.(EE_name{j})(i,1)),   -sin(q.(EE_name{j})(i,1)),  0;
+                  0, sin(q.(EE_name{j})(i,1)),    cos(q.(EE_name{j})(i,1)),  0;
                   0, 0,          0,          1];
 
   % transformation from HFE to HAA
   % rotation about Hy, translation along hip link
-  T_12.(EE{j})(:,:,i) = [cos(q.(EE{j})(i,2)), 0,  sin(q.(EE{j})(i,2)),  0;
+  T_12.(EE_name{j})(:,:,i) = [cos(q.(EE_name{j})(i,2)), 0,  sin(q.(EE_name{j})(i,2)),  0;
           0,         1,  0,          0;
-         -sin(q.(EE{j})(i,2)), 0,  cos(q.(EE{j})(i,2)), -l_hip;
+         -sin(q.(EE_name{j})(i,2)), 0,  cos(q.(EE_name{j})(i,2)), -l_hip;
           0,         0,  0,          1];   
      
   % transformation from HFE to HAA
   % rotation about Ty, translation along thigh
-  T_23.(EE{j})(:,:,i) = [cos(q.(EE{j})(i,3)), 0,  sin(q.(EE{j})(i,3)),  0;
+  T_23.(EE_name{j})(:,:,i) = [cos(q.(EE_name{j})(i,3)), 0,  sin(q.(EE_name{j})(i,3)),  0;
           0,         1,  0,          0;
-         -sin(q.(EE{j})(i,3)), 0,  cos(q.(EE{j})(i,3)), -l_thigh;
+         -sin(q.(EE_name{j})(i,3)), 0,  cos(q.(EE_name{j})(i,3)), -l_thigh;
           0,         0,  0,          1];   
 
   % transformation from KFE to EE
   % rotation about Sy, translation along sh  
-  T_34.(EE{j})(:,:,i) =   [1,    0,   0,   0;
+  T_34.(EE_name{j})(:,:,i) =   [1,    0,   0,   0;
             0,    1,   0,   0;
             0,    0,   1,  -l_shank;
             0,    0,   0,   1];

@@ -8,16 +8,18 @@ function quadruped = getQuadrupedProperties(robotSelection);
 robot.universal.mass.total = 39.53; % with payload
 
 % offset from CoM to each hip
-robot.universal.xNom = 0.34;
-robot.universal.yNom = 0.19;
+robot.universal.xNom(1) = 0.34;
+robot.universal.xNom(2) = 0.34;
+robot.universal.yNom(1) = 0.19;
+robot.universal.yNom(2) = 0.19;
 robot.universal.zNom = -0.566+0.4695; % offset from CoM to hip attachment
 
 % row order:    LF LH RF RH
 % column order: x, y, z
-robot.universal.nomHipPos(1,:) = [robot.universal.xNom, robot.universal.yNom, robot.universal.zNom];
-robot.universal.nomHipPos(2,:) = [-robot.universal.xNom, robot.universal.yNom, robot.universal.zNom];
-robot.universal.nomHipPos(3,:) = [robot.universal.xNom, -robot.universal.yNom, robot.universal.zNom];
-robot.universal.nomHipPos(4,:) = [-robot.universal.xNom, -robot.universal.yNom, robot.universal.zNom];
+robot.universal.nomHipPos(1,:) = [robot.universal.xNom(1), robot.universal.yNom(1), robot.universal.zNom];
+robot.universal.nomHipPos(2,:) = [-robot.universal.xNom(2), robot.universal.yNom(2), robot.universal.zNom];
+robot.universal.nomHipPos(3,:) = [robot.universal.xNom(1), -robot.universal.yNom(1), robot.universal.zNom];
+robot.universal.nomHipPos(4,:) = [-robot.universal.xNom(2), -robot.universal.yNom(2), robot.universal.zNom];
 
 % link lengths [m]
 % fore, hind
@@ -25,8 +27,8 @@ robot.universal.hip(1).length = 0.05;
 robot.universal.hip(2).length = 0.05;
 robot.universal.thigh(1).length = 0.332;
 robot.universal.thigh(2).length = 0.332;
-robot.universal.shank(1).length = 0.332;
-robot.universal.shank(2).length = 0.332;
+robot.universal.shank(1).length = 0.7*0.332;
+robot.universal.shank(2).length = 0.7*0.332;
 robot.universal.foot(1).length = 0.05;
 robot.universal.foot(2).length = 0.05;
 
@@ -54,14 +56,14 @@ end
 
 % joint angle limits
 % q1 HAA, q2 HFE, q3 KFE, q4 AFE
-robot.universal.q1.minAngle = -pi/6;
-robot.universal.q1.maxAngle = pi/2;
-robot.universal.q2.minAngle = -pi/4;
-robot.universal.q2.maxAngle = pi/4;
-robot.universal.q3.minAngle = pi/2;
-robot.universal.q3.maxAngle = -pi/2;
-robot.universal.q4.minAngle = pi/2;
-robot.universal.q4.maxAngle = -pi/2;
+robot.universal.q1.minAngle = 0;
+robot.universal.q1.maxAngle = 2*pi;
+robot.universal.q2.minAngle = 0;
+robot.universal.q2.maxAngle = 2*pi;
+robot.universal.q3.minAngle = 0;
+robot.universal.q3.maxAngle = 2*pi;
+robot.universal.q4.minAngle = 0;
+robot.universal.q4.maxAngle = 2*pi;
 
 
 %% Speedy 
@@ -69,17 +71,18 @@ robot.universal.q4.maxAngle = -pi/2;
 robot.speedy.mass.total = 22.52;
 
 % offset from CoM to each hip
-robot.speedy.xNom = 0.31;
-robot.speedy.yNomFore = 0.1;
-robot.speedy.yNomHind = 0.14;
+robot.speedy.xNom(1) = 0.31;
+robot.speedy.xNom(2) = 0.31;
+robot.speedy.yNom(1) = 0.1; % front
+robot.speedy.yNom(2) = 0.14; % hind
 robot.speedy.zNom = -0.304 + 0.47;
 
 % row order:    LF LH RF RH
 % column order: x, y, z
-robot.speedy.nomHipPos(1,:) = [robot.speedy.xNom, robot.speedy.yNomFore, robot.speedy.zNom];
-robot.speedy.nomHipPos(2,:) = [-robot.speedy.xNom, robot.speedy.yNomHind, robot.speedy.zNom];
-robot.speedy.nomHipPos(3,:) = [robot.speedy.xNom, -robot.speedy.yNomFore, robot.speedy.zNom];
-robot.speedy.nomHipPos(4,:) = [-robot.speedy.xNom, -robot.speedy.yNomHind, robot.speedy.zNom];
+robot.speedy.nomHipPos(1,:) = [robot.speedy.xNom(1), robot.speedy.yNom(1), robot.speedy.zNom];
+robot.speedy.nomHipPos(2,:) = [-robot.speedy.xNom(2), robot.speedy.yNom(2), robot.speedy.zNom];
+robot.speedy.nomHipPos(3,:) = [robot.speedy.xNom(1), -robot.speedy.yNom(1), robot.speedy.zNom];
+robot.speedy.nomHipPos(4,:) = [-robot.speedy.xNom(2), -robot.speedy.yNom(2), robot.speedy.zNom];
 
 % link lengths [m]
 % fore, hind
@@ -118,8 +121,8 @@ robot.speedy.q1.minAngle = -pi/6;
 robot.speedy.q1.maxAngle = pi/2;
 robot.speedy.q2.minAngle = -pi/4;
 robot.speedy.q2.maxAngle = pi/4;
-robot.speedy.q3.minAngle = pi/2;
-robot.speedy.q3.maxAngle = -pi/2;
+robot.speedy.q3.minAngle = -pi/2;
+robot.speedy.q3.maxAngle = pi/2;
 robot.speedy.q4.minAngle = pi/2;
 robot.speedy.q4.maxAngle = -pi/2;
 
@@ -127,16 +130,18 @@ robot.speedy.q4.maxAngle = -pi/2;
 robot.massivo.mass.total = 80;
 
 % offset from CoM to each hip
-robot.massivo.xNom = 0.276;
-robot.massivo.yNom = 0.3;
+robot.massivo.xNom(1) = 0.276;
+robot.massivo.xNom(2) = 0.276;
+robot.massivo.yNom(1) = 0.3;
+robot.massivo.yNom(2) = 0.3;
 robot.massivo.zNom = -0.553 + 0.5043;
 
 % row order:    LF LH RF RH
 % column order: x, y, z
-robot.massivo.nomHipPos(1,:) = [robot.massivo.xNom, robot.massivo.yNom, robot.massivo.zNom];
-robot.massivo.nomHipPos(2,:) = [-robot.massivo.xNom, robot.massivo.yNom, robot.massivo.zNom];
-robot.massivo.nomHipPos(3,:) = [robot.massivo.xNom, -robot.massivo.yNom, robot.massivo.zNom];
-robot.massivo.nomHipPos(4,:) = [-robot.massivo.xNom, -robot.massivo.yNom, robot.massivo.zNom];
+robot.massivo.nomHipPos(1,:) = [robot.massivo.xNom(1), robot.massivo.yNom(1), robot.massivo.zNom];
+robot.massivo.nomHipPos(2,:) = [-robot.massivo.xNom(2), robot.massivo.yNom(2), robot.massivo.zNom];
+robot.massivo.nomHipPos(3,:) = [robot.massivo.xNom(1), -robot.massivo.yNom(1), robot.massivo.zNom];
+robot.massivo.nomHipPos(4,:) = [-robot.massivo.xNom(2), -robot.massivo.yNom(2), robot.massivo.zNom];
 
 % link lengths [m]
 % fore, hind
@@ -184,17 +189,18 @@ robot.massivo.q4.maxAngle = -pi/2;
 robot.centaur.mass.total = 80;
 
 % offset from CoM to each hip
-robot.centaur.xNomFore = 0.1451;
-robot.centaur.xNomHind = 0.407;
-robot.centaur.yNom = 0.3;
+robot.centaur.xNom(1) = 0.1451;
+robot.centaur.xNom(2) = 0.407;
+robot.centaur.yNom(1) = 0.3;
+robot.centaur.yNom(2) = 0.3;
 robot.centaur.zNom = -0.553 + 0.5043;
 
 % row order:    LF LH RF RH
 % column order: x, y, z
-robot.centaur.nomHipPos(1,:) = [robot.centaur.xNomFore, robot.centaur.yNom, robot.centaur.zNom];
-robot.centaur.nomHipPos(2,:) = [-robot.centaur.xNomHind, robot.centaur.yNom, robot.centaur.zNom];
-robot.centaur.nomHipPos(3,:) = [robot.centaur.xNomFore, -robot.centaur.yNom, robot.centaur.zNom];
-robot.centaur.nomHipPos(4,:) = [-robot.centaur.xNomHind, -robot.centaur.yNom, robot.centaur.zNom];
+robot.centaur.nomHipPos(1,:) = [robot.centaur.xNom(1), robot.centaur.yNom(1), robot.centaur.zNom];
+robot.centaur.nomHipPos(2,:) = [-robot.centaur.xNom(2), robot.centaur.yNom(2), robot.centaur.zNom];
+robot.centaur.nomHipPos(3,:) = [robot.centaur.xNom(1), -robot.centaur.yNom(1), robot.centaur.zNom];
+robot.centaur.nomHipPos(4,:) = [-robot.centaur.xNom(2), -robot.centaur.yNom(2), robot.centaur.zNom];
 
 % link lengths [m]
 % fore, hind
@@ -242,16 +248,18 @@ robot.centaur.q4.maxAngle = -pi/2;
 
 robot.mini.mass.total = 10;
 
-robot.mini.xNom = 0.18;
-robot.mini.yNom = 0.1;
+robot.mini.xNom(1) = 0.18;
+robot.mini.xNom(2) = 0.18;
+robot.mini.yNom(1) = 0.1;
+robot.mini.yNom(2) = 0.1;
 robot.mini.zNom = -0.186 + 0.198;
 
 % row order:    LF LH RF RH
 % column order: x, y, z
-robot.mini.nomHipPos(1,:) = [robot.mini.xNom, robot.mini.yNom, robot.mini.zNom];
-robot.mini.nomHipPos(2,:) = [-robot.mini.xNom, robot.mini.yNom, robot.mini.zNom];
-robot.mini.nomHipPos(3,:) = [robot.mini.xNom, -robot.mini.yNom, robot.mini.zNom];
-robot.mini.nomHipPos(4,:) = [-robot.mini.xNom, -robot.mini.yNom, robot.mini.zNom];
+robot.mini.nomHipPos(1,:) = [robot.mini.xNom(1), robot.mini.yNom(1), robot.mini.zNom];
+robot.mini.nomHipPos(2,:) = [-robot.mini.xNom(2), robot.mini.yNom(2), robot.mini.zNom];
+robot.mini.nomHipPos(3,:) = [robot.mini.xNom(1), -robot.mini.yNom(1), robot.mini.zNom];
+robot.mini.nomHipPos(4,:) = [-robot.mini.xNom(2), -robot.mini.yNom(2), robot.mini.zNom];
 
 % link lengths [m]
 % fore, hind

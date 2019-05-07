@@ -287,7 +287,7 @@ for i = samplingStart:samplingEnd
     plot(cyclicMotionHipEE.LF.position(:,1,i), cyclicMotionHipEE.LF.position(:,3,i), 'bo')
 end
 plot(meanCyclicMotionHipEE.LF.position(:,1), meanCyclicMotionHipEE.LF.position(:,3),'r', 'LineWidth',3)
-plot(reachablePositionsFront(:,1),reachablePositionsFront(:,2))
+plot(reachablePositions.LF(:,1),reachablePositions.LF(:,2))
 plot(0,0,'o')
 axis equal
 xlabel('x position [m]')
@@ -302,7 +302,7 @@ for i = samplingStart:samplingEnd
     plot(cyclicMotionHipEE.LH.position(:,1,i), cyclicMotionHipEE.LH.position(:,3,i), 'bo')
 end
 plot(meanCyclicMotionHipEE.LH.position(:,1),meanCyclicMotionHipEE.LH.position(:,3),'r', 'LineWidth',3)
-plot(reachablePositionsHind(:,1),reachablePositionsHind(:,2))
+plot(reachablePositions.LH(:,1),reachablePositions.LH(:,2))
 plot(0,0,'o')
 axis equal
 xlabel('x position [m]')
@@ -318,7 +318,7 @@ for i = samplingStart:samplingEnd
     plot(cyclicMotionHipEE.RF.position(:,1,i), cyclicMotionHipEE.RF.position(:,3,i), 'bo')
 end
 plot(meanCyclicMotionHipEE.RF.position(:,1), meanCyclicMotionHipEE.RF.position(:,3),'r', 'LineWidth',3)
-plot(reachablePositionsFront(:,1),reachablePositionsFront(:,2))
+plot(reachablePositions.LF(:,1),reachablePositions.LF(:,2))
 plot(0,0,'o')
 axis equal
 xlabel('x position [m]')
@@ -334,7 +334,7 @@ for i = samplingStart:samplingEnd
     plot(cyclicMotionHipEE.RH.position(:,1,i), cyclicMotionHipEE.RH.position(:,3,i), 'bo')
 end
 plot(meanCyclicMotionHipEE.RH.position(:,1), meanCyclicMotionHipEE.RH.position(:,3),'r', 'LineWidth',3)
-plot(reachablePositionsHind(:,1),reachablePositionsHind(:,2))
+plot(reachablePositions.LH(:,1),reachablePositions.LH(:,2))
 plot(0,0,'o')
 axis equal
 xlabel('x position [m]')

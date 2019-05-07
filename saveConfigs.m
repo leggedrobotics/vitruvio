@@ -1,5 +1,5 @@
-%% Read in data for quadruped geometry
-function [] = robotSingleLegVisualization(quadruped, q, C_IBody, EE, meanCyclicMotionHipEE, EESelection, reachablePositions) 
+%% save robot configs
+% function [] = robotSingleLegVisualization(quadruped, q, C_IBody, EE, meanCyclicMotionHipEE, EESelection, reachablePositions) 
 
 selectFrontHind = 1;
 
@@ -27,7 +27,7 @@ EE_name = fieldnames(EE);
 
 
 %% Build quadruped rigid body model using 4x4 transformation matrices
-for k = 1:1 % repeat visualization loop
+% for k = 1:3 % repeat visualization loop
 for i = 1:length(q.LF);
     for j = EESelection:EESelection % only displays for selected leg
         
@@ -77,6 +77,10 @@ for i = 1:length(q.LF);
             0,    1,   0,   0;
             0,    0,   1,  -l_shank;
             0,    0,   0,   1];
+    end
+end
+
+
 
 %% Create and assemble rigid bodies
 
@@ -141,7 +145,7 @@ jnt6 = robotics.Joint('jnt6','revolute'); % EE
 % jnt21 = robotics.Joint('jnt21','revolute'); % EE
 
 
-setFixedTransform(jnt2, T_HB.(EE_name{j})(:,:)); % update later for hip attachment position
+setFixedTransform(jnt2, T_HB.(EE_name{j})(:,:)); 
 setFixedTransform(jnt3, T_H1.(EE_name{j})(:,:,i));
 setFixedTransform(jnt4,  T_12.(EE_name{j})(:,:,i));
 setFixedTransform(jnt5, T_23.(EE_name{j})(:,:,i));
@@ -251,6 +255,10 @@ jnt5.JointAxis = [0 1 0];
 % jnt10.PositionLimits = [-hip_flexion_limit hip_flexion_limit];
 % jnt14.PositionLimits = [-hip_flexion_limit hip_flexion_limit];
 
+%% Save configuration
+for jointNumber = 1:5
+config(1,jointNumber,i) = q(;
+
 %% Add stl file to rigid body
 
 % addVisual(body3,"Mesh",thigh2_universal);
@@ -275,6 +283,3 @@ zlim([-0.8 0.2]);
 % figure(2)
 % show(robot,randConfig);
 % homeConfig = robot.homeConfiguration
-    end
-end
-end

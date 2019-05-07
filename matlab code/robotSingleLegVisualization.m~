@@ -1,5 +1,5 @@
 %% Read in data for quadruped geometry
-function [] = robotSingleLegVisualization(quadruped, q, C_IBody, EE, meanCyclicMotionHipEE, EESelection, reachablePositions) 
+% function [] = robotSingleLegVisualization(quadruped, q, C_IBody, EE, meanCyclicMotionHipEE, EESelection, reachablePositions) 
 
 selectFrontHind = 1;
 
@@ -27,7 +27,7 @@ EE_name = fieldnames(EE);
 
 
 %% Build quadruped rigid body model using 4x4 transformation matrices
-for k = 1:1 % repeat visualization loop
+for k = 1:3 % repeat visualization loop
 for i = 1:length(q.LF);
     for j = EESelection:EESelection % only displays for selected leg
         
@@ -78,6 +78,7 @@ for i = 1:length(q.LF);
             0,    0,   1,  -l_shank;
             0,    0,   0,   1];
 
+ config(    
 %% Create and assemble rigid bodies
 
 % Create a rigid body tree object to build the robot.
