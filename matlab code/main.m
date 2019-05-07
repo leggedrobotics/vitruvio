@@ -68,6 +68,11 @@ EESelection = 3;
 % robotSingleLegVisualization(quadruped, q, C_IBody, EE, meanCyclicMotionHipEE,EESelection, reachablePositions)
 
 %% get Jacobian for inverse dynamics
-selectFrontHind = 1; 
-  [J_P, C_HEE, r_H_HEE, T_H1, T_12, T_23, T_34] = jointToPosJac(q.LF, quadruped, selectFrontHind);
+% selectFrontHind = 1; 
+%   [J_P, C_HEE, r_H_HEE, T_H1, T_12, T_23, T_34] = jointToPosJac(q.LF, quadruped, selectFrontHind);
+
+  %% get joint velocities with inverse(Jacobian)* EE.velocity
+  % the joint accelerations are then computed using finite difference
+  
+  joint = getJointVelocitiesUsingJacobian(meanCyclicMotionHipEE, q, quadruped, 1, dt);
 
