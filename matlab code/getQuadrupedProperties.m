@@ -304,3 +304,4 @@ robot.mini.q4.minAngle = pi/2;
 robot.mini.q4.maxAngle = -pi/2;
 
 quadruped = robot.(robotSelection);
+quadruped.toe = 0.05; 

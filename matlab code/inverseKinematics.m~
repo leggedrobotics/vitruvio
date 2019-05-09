@@ -1,4 +1,4 @@
- function jointPositions = inverseKinematics(desiredPositionHipEE, quadruped, EEselection, taskSelection, configSelection)
+ function jointPositions = inverseKinematics(desiredPositionHipEE, q0, quadruped, EEselection)
   % Input: desired end-effector position, desired end-effector orientation (rotation matrix), 
   %        initial guess for joint angles, threshold for the stopping-criterion
   % Output: joint angles which match desired end-effector position and orientation
@@ -12,8 +12,7 @@
   max_it = 1000;
 
   %% get initial guess q0 for desired configuration
-
-  q0 = getInitialJointAnglesForDesiredConfig(taskSelection, EEselection, configSelection);
+  q0 = getInitialJointAnglesForDesiredConfig(taskSelection, EEselection);
   
   % Initialize the solution with the initial guess.
   q = q0';  
@@ -33,7 +32,7 @@
         dr = r_H_HEE_des(i,:)' - r_H_HEE;
         
       while (norm(dr)>tol && it < max_it)
-         [J_P, C_HEE, r_H_HEE] = jointToPosJac(q, quadruped, EEselection);
+         [J_P, C_HEE, r_H_HEE] = jointToPosJac(q, quadruped, selectFrontHind);
          dr = r_H_HEE_des(i,:)' - r_H_HEE;
          dq = pinv(J_P, lambda)*dr;
          q = q + 0.5*dq;

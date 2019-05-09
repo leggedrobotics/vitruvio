@@ -1,7 +1,7 @@
 %% getHipEECyclicMotion
 % collects position of EE for each timestep from liftoff to next liftoff
 % for a subset of the cycles when the motion is steady and averages the result
-function [meanCyclicMotionHipEE, cyclicMotionHipEE, meanCyclicC_IBody, samplingStart, samplingEnd] = getHipEECyclicData(tLiftoff, tTouchdown, relativeMotionHipEE, EE, removalRatioStart, removalRatioEnd, dt, minStepCount, C_IBody)
+function [meanCyclicMotionHipEE, cyclicMotionHipEE, cyclicC_IBody, samplingStart, samplingEnd] = getHipEECyclicData(tLiftoff, tTouchdown, relativeMotionHipEE, EE, removalRatioStart, removalRatioEnd, dt, minStepCount, C_IBody)
 %% Save position data for each cycle for each end effector
 
 % determine minimum number of data points from liftoff to subsequent
@@ -68,9 +68,9 @@ end
 
 %% hip rotation from world frame
 for i = 1:minStepCount-2
-    temp.rotation = C_IBody(:,:,floor(tLiftoff(i,4)/dt):floor(tLiftoff(i+1,4)/dt));
+    temp.rotation = C_IBody(:,:,floor(tLiftoff(i,4)/dt):floor(tLiftoff(i+1,4)/dt))
 
-    cyclicC_IBody(:,:,:,i) = temp.rotation(:,:,1:indexMax);
+    cyclicC_IBody(:,:,:,:) = temp.rotation(:,:,1:indexMax);
 end
 
 %% Average the position of the end effector at corresponding times for each cycle
@@ -82,8 +82,6 @@ if samplingStart == 0
     samplingStart = 1;
 end
 samplingEnd = round((1-removalRatioEnd)*(minStepCount-1));
-
-meanCyclicC_IBody = mean(cyclicC_IBody(:,:,:,samplingStart:samplingEnd),4);
 
 meanCyclicMotionHipEE.LF.position = mean(cyclicMotionHipEE.LF.position(:,:,samplingStart:samplingEnd),3);
 meanCyclicMotionHipEE.LH.position = mean(cyclicMotionHipEE.LH.position(:,:,samplingStart:samplingEnd),3);
@@ -102,8 +100,6 @@ meanCyclicMotionHipEE.RH.force = mean(cyclicMotionHipEE.RH.force(:,:,samplingSta
 
 % add new row at end of array with starting position to loop the position
 % data
-meanCyclicC_IBody(:,:,end+1) = meanCyclicC_IBody(:,:,1);
-
 meanCyclicMotionHipEE.LF.position(end+1,:) = meanCyclicMotionHipEE.LF.position(1,:);
 meanCyclicMotionHipEE.LH.position(end+1,:) = meanCyclicMotionHipEE.LH.position(1,:);
 meanCyclicMotionHipEE.RF.position(end+1,:) = meanCyclicMotionHipEE.RF.position(1,:);

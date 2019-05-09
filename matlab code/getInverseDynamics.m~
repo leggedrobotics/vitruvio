@@ -1,0 +1,13 @@
+%% getInverseDynamics
+
+function jointTorque = getInverseDynamics(joint, EE, robot)
+
+for i = 1:length(joint.LF.rotationalAcceleration(:,1))
+    jointVel = [0, joint.LF.rotationalVelocity(i,:), 0];
+    jointAccel = [0, joint.LF.rotationalAcceleration(i,:), 0];
+    wrench = [0 0 0 EE.LF.force(i,1:3)]; % this isnt the right force, need to get mean cyclic force on EE and rotate them into EE frame
+    fext = externalForce(robot,'body6',wrench);
+    
+    jointTorque(i,:) = inverseDynamics(robot,robot.homeConfiguration,jointVel,jointAccel, fext);
+end
+
