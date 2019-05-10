@@ -1,4 +1,4 @@
-%% Read in data for quadruped geometry
+% % Read in data for quadruped geometry
 function robot = robotSingleLegVisualization(quadruped, q, meanCyclicC_IBody, EE, meanCyclicMotionHipEE, EEselection, reachablePositions, numberOfLoopRepetitions) 
 
 %% get quadruped properties for selected end effector
@@ -63,9 +63,9 @@ for k = 1:numberOfLoopRepetitions % repeat visualization loop
             % transformation from HFE to HAA
             % rotation about Ty, translation along thigh
             T_23.(EEselection)(:,:,i) = [cos(q.(EEselection)(i,3)), 0,  sin(q.(EEselection)(i,3)),  0;
-                0,         1,  0,          0;
-                -sin(q.(EEselection)(i,3)), 0,  cos(q.(EEselection)(i,3)), -l_thigh;
-                0,         0,  0,          1];
+                                        0,         1,  0,          0;
+                                        -sin(q.(EEselection)(i,3)), 0,  cos(q.(EEselection)(i,3)), -l_thigh;
+                                        0,         0,  0,          1];
             
             % transformation from KFE to EE
             % rotation about Sy, translation along sh
@@ -73,13 +73,7 @@ for k = 1:numberOfLoopRepetitions % repeat visualization loop
                 0,    1,   0,   0;
                 0,    0,   1,  -l_shank;
                 0,    0,   0,   1];
-            
-            %% create robot configurations for each set of joint positions
-            
-%             config(i,:) = [ 0, q.(EEselection)(i,1), ...
-%                 q.(EEselection)(i,2), ...
-%                 q.(EEselection)(i,3), 0];
-%             
+
             %% Create and assemble rigid bodies
             
             % Create a rigid body tree object to build the robot.
@@ -143,7 +137,7 @@ for k = 1:numberOfLoopRepetitions % repeat visualization loop
             addBody(robot,body6,'body5');
             
             %% Change joint axis for hip and knee extension to y axis and hip flexion to x axis
-            %  Not necessary because we aren't using random configs?
+            % does this have any effect? 
             jnt2.JointAxis = [1 0 0];
             jnt3.JointAxis = [0 1 0];
             jnt4.JointAxis = [0 1 0];

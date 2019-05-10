@@ -4,8 +4,8 @@ clear all
 close all
 
 %% select task and robot to be loaded
-taskSelection = 'universalStairs';
-robotSelection = 'universal';
+taskSelection = 'speedyGallop';
+robotSelection = 'speedy';
 fprintf('loading data for %s \n', taskSelection);
 
 %% get suggested removal ratio for cropping motion data to useful steady state motion
@@ -52,7 +52,7 @@ reachablePositions = getRangeofMotion(quadruped);
 
 %% plot data
 fprintf('plotting data \n');
-plotMotionData;
+% plotMotionData;
 
 %% Inverse kinematics to calculate joint angles for each leg joint
 % these q0 give x config for universalStairs
@@ -60,7 +60,7 @@ plotMotionData;
 
 fprintf('getting joint angles from inverse kinematics \n');
 
-configSelection = 'X';
+configSelection = 'M';
 
 q.LF = inverseKinematics(meanCyclicMotionHipEE.LF.position, quadruped, 'LF', taskSelection, configSelection);
 q.LH = inverseKinematics(meanCyclicMotionHipEE.LH.position, quadruped, 'LH', taskSelection, configSelection);
@@ -79,21 +79,33 @@ numberOfLoopRepetitions = 1;
 
 % EEselection = 'LF';
 % robot = robotSingleLegVisualization(quadruped, q, meanCyclicC_IBody, EE, meanCyclicMotionHipEE,EEselection, reachablePositions,numberOfLoopRepetitions);
-% 
+
 % EEselection = 'RF';
 % robot = robotSingleLegVisualization(quadruped, q, meanCyclicC_IBody, EE, meanCyclicMotionHipEE,EEselection, reachablePositions,numberOfLoopRepetitions);
 % 
-EEselection = 'LH';
-robot = robotSingleLegVisualization(quadruped, q, meanCyclicC_IBody, EE, meanCyclicMotionHipEE,EEselection, reachablePositions,numberOfLoopRepetitions);
-
+% EEselection = 'LH';
+% robot = robotSingleLegVisualization(quadruped, q, meanCyclicC_IBody, EE, meanCyclicMotionHipEE,EEselection, reachablePositions,numberOfLoopRepetitions);
+% 
 % EEselection = 'RH';
 % robot = robotSingleLegVisualization(quadruped, q, meanCyclicC_IBody, EE, meanCyclicMotionHipEE,EEselection, reachablePositions,numberOfLoopRepetitions);
 
+%% build robot model with configuration method - required for inverse dynamics solver
+fprintf('creating robot rigid body model with configuration method \n');
+
+EEselection = 'LF';
+[robotConfig, config] = buildRobotRigidBodyModel(quadruped, q, EE, meanCyclicMotionHipEE, EEselection, numberOfLoopRepetitions);
+% EEselection = 'RF';
+% [robotConfig, config] = buildRobotRigidBodyModel(quadruped, q, EE, meanCyclicMotionHipEE, EEselection, numberOfLoopRepetitions);
+% EEselection = 'LH';
+% [robotConfig, config] = buildRobotRigidBodyModel(quadruped, q, EE, meanCyclicMotionHipEE, EEselection, numberOfLoopRepetitions);
+% EEselection = 'RH';
+% [robotConfig, config] = buildRobotRigidBodyModel(quadruped, q, EE, meanCyclicMotionHipEE, EEselection, numberOfLoopRepetitions);
   %% get joint velocities with inverse(Jacobian)* EE.velocity
-  % the joint accelerations are then computed using finite difference
+  
+% the joint accelerations are then computed using finite difference
 fprintf('getting joint velocities and accelerations \n');
 joint = getJointVelocitiesUsingJacobian(meanCyclicMotionHipEE, q, quadruped, 1, dt);
 
 %% get joint torques using inverse dynamics
-% fprintf('getting joint torques from inverse dynamics \n');
-% jointTorque = getInverseDynamics(joint, EE, robot);
+fprintf('getting joint torques from inverse dynamics \n');
+jointTorque = getInverseDynamics(joint, meanCyclicMotionHipEE, robotConfig, config);
