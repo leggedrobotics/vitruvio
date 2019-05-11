@@ -80,18 +80,14 @@ jnt2 = robotics.Joint('jnt2','revolute'); % HFE
 jnt3 = robotics.Joint('jnt3','revolute'); % KFE
 jnt4 = robotics.Joint('jnt4','fixed'); % coordinate system at EE 
 
-            
-body2.Mass = quadruped.hip(selectFrontHind).mass;
-body3.Mass = quadruped.thigh(selectFrontHind).mass;
-body4.Mass = quadruped.shank(selectFrontHind).mass;        
+body1.Mass = quadruped.hip(selectFrontHind).mass;         
+body2.Mass = quadruped.thigh(selectFrontHind).mass;
+body3.Mass = quadruped.shank(selectFrontHind).mass;
+body4.Mass = quadruped.toe(selectFrontHind).mass;        
             
 body1.CenterOfMass = [0.5*quadruped.hip(selectFrontHind).length, 0, 0];
 body2.CenterOfMass = [0.5*quadruped.thigh(selectFrontHind).length, 0, 0];
-body3.CenterOfMass = [0.5*quadruped.shank(selectFrontHind).length, 0, 0];
-            
-%             addVisual(body3,"Mesh",'thigh2_universal.stl')
-%             addVisual(body4, "Mesh",'shank2_universal.stl')
-%             
+body3.CenterOfMass = [0.5*quadruped.shank(selectFrontHind).length, 0, 0];   
             
 %% set joint transforms - these are only translations, the angles are specified in the configuration
          
@@ -115,23 +111,6 @@ robotConfig.Gravity = [0 0 -9.8];
             
 %% Display robot and details
             
-xlim([-0.5 0.5]);
-ylim([-0.5 0.5]);
-zlim([-0.8 0.2]);
-            
-%  
-% for i = 1:length(q.(EEselection))
-%     config = [  q.(EEselection)(i,1), ...
-%                 q.(EEselection)(i,2), ...
-%                 q.(EEselection)(i,3)];
-%     figure(10)
-%     show(robot,config)
-% 
-%     hold on
-%     plot3(meanCyclicMotionHipEE.(EEselection).position(:,1),meanCyclicMotionHipEE.(EEselection).position(:,2),meanCyclicMotionHipEE.(EEselection).position(:,3),'r', 'LineWidth', 3)
-%     title(EEselection)
-%     hold off
-% end
 
 
 for i = 1:length(q.(EEselection))
@@ -141,13 +120,20 @@ for i = 1:length(q.(EEselection))
                 q.(EEselection)(i,3)];
 end
 
-for i = 1:length(q.(EEselection))
-  
-    figure(11)
-    show(robotConfig,config(i,:))
+for j = 1: numberOfLoopRepetitions
+    for i = 1:length(q.(EEselection))
+        
+        xlim([-0.5 0.5]);
+        ylim([-0.5 0.5]);
+        zlim([-0.8 0.2]);
 
-    hold on
-    plot3(meanCyclicMotionHipEE.(EEselection).position(:,1),meanCyclicMotionHipEE.(EEselection).position(:,2),meanCyclicMotionHipEE.(EEselection).position(:,3),'r', 'LineWidth', 3)
-    title(EEselection)
-    hold off
+        figure(11)
+        show(robotConfig,config(i,:));
+
+        hold on
+        plot3(meanCyclicMotionHipEE.(EEselection).position(:,1),meanCyclicMotionHipEE.(EEselection).position(:,2),meanCyclicMotionHipEE.(EEselection).position(:,3),'r', 'LineWidth', 3)
+        title(EEselection)
+        hold off
+    end
 end
+

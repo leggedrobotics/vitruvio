@@ -1,8 +1,8 @@
 %% get joint velocities
 
-function q = getJointVelocitiesUsingJacobian(EE, meanCyclicMotionHipEE, q, quadruped, selectFrontHind, dt)
+function joint = getJointVelocitiesUsingJacobian(meanCyclicMotionHipEE, q, quadruped, selectFrontHind, dt)
 
-EE_names = fieldnames(EE);
+EE_names = {'LF', 'LH', 'RF', 'RH'};
 
 for j=1:4
 for i = 1:length(meanCyclicMotionHipEE.LF.velocity)
@@ -21,16 +21,12 @@ for i =1:length(qRotVel.LF)-1
     qRotAccel.(EE_names{j})(i,:) = (qRotVel.(EE_names{j})(i+1,:) - qRotVel.(EE_names{j})(i,:)) /dt;
 end
   
-tempq.(EE_names{j}).angle = q.(EE_names{j});
-tempq.(EE_names{j}).angVel = qRotVel.(EE_names{j});
-tempq.(EE_names{j}).angAccel = qRotAccel.(EE_names{j});
-end
+joint.(EE_names{j}).angle = q.(EE_names{j});
+joint.(EE_names{j}).rotationalVelocity = qRotVel.(EE_names{j});
+joint.(EE_names{j}).rotationalAcceleration = qRotAccel.(EE_names{j});
 
-%% save q, dq/dt, d(dq/dt) into new struct q.EE
-clear q
-for j = 1:4
-    q.(EE_names{j}).angle = tempq.(EE_names{j}).angle;
-    q.(EE_names{j}).angVel = tempq.(EE_names{j}).angVel;
-    q.(EE_names{j}).angAccel = tempq.(EE_names{j}).angAccel;
-end
+q.(EE_names{j}).angle = joint.(EE_names{j}).angle
+q.(EE_names{j}).angVel = joint.(EE_names{j}).angle
+q.(EE_names{j}).angAccel = joint.(EE_names{j}).angle
 
+end

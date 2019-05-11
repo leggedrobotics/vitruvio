@@ -69,13 +69,8 @@ for i = 1:length(jointPositions(:,1))-1
       end
 end
 
-% HAA always around zero but jumping between 0 and 2pi
-% this is kind of sloppy but seems to work
-for i = 1:length(jointPositions(:,1))
-    if jointPositions(i,1) > 6
-       jointPositions(i,1) = jointPositions(i,1) - 2*pi;
-    end
-end
+for i = 1:length(jointPositions(:,1))-1
 
-       
-       
+    % HAA always around zero
+if jointPositions(:,1) > 6
+   jointPositions

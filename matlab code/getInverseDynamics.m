@@ -1,15 +1,17 @@
 %% getInverseDynamics
 
-function jointTorque = getInverseDynamics(joint, meanCyclicMotionHipEE, robotConfig, config)
+function jointTorque = getInverseDynamics(EE, q, meanCyclicMotionHipEE, robotConfig, config)
 
-for i = 1:length(joint.LF.rotationalAcceleration(:,1))
-   jointVel = joint.LF.rotationalVelocity(i,1:3);
-   jointAccel = joint.LF.rotationalAcceleration(i,:);
+EE_names = fieldnames(EE);
 
-   wrench = [0 0 0 meanCyclicMotionHipEE.LH.force(i,1:3)]; % need to rotate this force to base frame?
-   fext = externalForce(robotConfig,'body4',wrench);
-    
-   jointTorque(i,:) = inverseDynamics(robotConfig, config(i,:), jointVel,jointAccel, fext);
- end
+for j = 1:length(EE_names)
+    for i = 1:length(q.(EE_names{j}).angAccel(:,1))
+       jointVel = q.(EE_names{j}).angVel(i,1:3);
+       jointAccel = q.(EE_names{j}).angAccel(i,:);
 
-% inverseDynamics(robot, config)
+       wrench = [0 0 0 meanCyclicMotionHipEE.(EE_names{j}).force(i,1:3)]; % need to rotate this force to base frame?
+       fext = externalForce(robotConfig,'body4',wrench);
+
+       jointTorque.(EE_names{j})(i,:) = inverseDynamics(robotConfig, config(i,:), jointVel, jointAccel); %, fext);
+    end
+end

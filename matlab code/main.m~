@@ -68,16 +68,14 @@ q.RF = inverseKinematics(meanCyclicMotionHipEE.RF.position, quadruped, 'RF', tas
 q.RH = inverseKinematics(meanCyclicMotionHipEE.RH.position, quadruped, 'RH', taskSelection, configSelection);
 
 %% Forward kinematics to get joint positions based on angles q solved in IK
-% this validates results of IK
-
 jointCount = 3; % not yet able to handle 4 joints
 fprintf('getting joint positions from forward kinematics \n');
 r = getJointPositions(quadruped, q, jointCount);
 
-%% Visualize motion of single leg with rigid body model - now using different method to generate rigid body model
+%% Visualize motion of single leg with rigid body model
 
-% fprintf('creating robot rigid body model and visualizing selected leg \n');
-% numberOfLoopRepetitions = 1;
+fprintf('creating robot rigid body model and visualizing selected leg \n');
+numberOfLoopRepetitions = 1;
 
 % EEselection = 'LF';
 % robot = robotSingleLegVisualization(quadruped, q, meanCyclicC_IBody, EE, meanCyclicMotionHipEE,EEselection, reachablePositions,numberOfLoopRepetitions);
@@ -91,7 +89,6 @@ r = getJointPositions(quadruped, q, jointCount);
 % EEselection = 'RH';
 % robot = robotSingleLegVisualization(quadruped, q, meanCyclicC_IBody, EE, meanCyclicMotionHipEE,EEselection, reachablePositions,numberOfLoopRepetitions);
 
-
 %% build robot model with configuration method - required for inverse dynamics solver
 fprintf('creating robot rigid body model with configuration method \n');
 numberOfLoopRepetitions = 1;
@@ -104,17 +101,19 @@ EEselection = 'LH';
 [robotConfig, config] = buildRobotRigidBodyModel(quadruped, q, EE, meanCyclicMotionHipEE, EEselection, numberOfLoopRepetitions);
 EEselection = 'RH';
 [robotConfig, config] = buildRobotRigidBodyModel(quadruped, q, EE, meanCyclicMotionHipEE, EEselection, numberOfLoopRepetitions);
-
-%% get joint velocities with inverse(Jacobian)* EE.velocity
+  %% get joint velocities with inverse(Jacobian)* EE.velocity
   
 % the joint accelerations are then computed using finite difference
 fprintf('getting joint velocities and accelerations \n');
-q = getJointVelocitiesUsingJacobian(EE, meanCyclicMotionHipEE, q, quadruped, 1, dt);
-% returns new struct q with angle velocity and acceleration of each joint
-
+q = getJointVelocitiesUsingJacobian(meanCyclicMotionHipEE, q, quadruped, 1, dt);
 
 %% get joint torques using inverse dynamics
-
 fprintf('getting joint torques from inverse dynamics \n');
-jointTorque = getInverseDynamics(EE, q, meanCyclicMotionHipEE, robotConfig, config);
-
+EEselection = 'LF';
+jointTorque.(EEselection) = getInverseDynamics(joint, meanCyclicMotionHipEE, robotConfig, config, EEselection);
+EEselection = 'RF';
+jointTorque.(EEselection) = getInverseDynamics(joint, meanCyclicMotionHipEE, robotConfig, config, EEselection);
+EEselection = 'LH';
+jointTorque.(EEselection) = getInverseDynamics(joint, meanCyclicMotionHipEE, robotConfig, config, EEselection);
+EEselection = 'RH';
+jointTorque.(EEselection) = getInverseDynamics(joint, meanCyclicMotionHipEE, robotConfig, config, EEselection);

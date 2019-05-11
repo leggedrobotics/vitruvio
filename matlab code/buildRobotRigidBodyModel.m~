@@ -85,9 +85,9 @@ body2.Mass = quadruped.hip(selectFrontHind).mass;
 body3.Mass = quadruped.thigh(selectFrontHind).mass;
 body4.Mass = quadruped.shank(selectFrontHind).mass;        
             
-body3.CenterOfMass = [0 0 -0.5*quadruped.hip(selectFrontHind).length];
-body4.CenterOfMass = [0 0 -0.5*quadruped.thigh(selectFrontHind).length];
-body5.CenterOfMass = [0 0 -0.5*quadruped.shank(selectFrontHind).length];
+body1.CenterOfMass = [0.5*quadruped.hip(selectFrontHind).length, 0, 0];
+body2.CenterOfMass = [0.5*quadruped.thigh(selectFrontHind).length, 0, 0];
+body3.CenterOfMass = [0.5*quadruped.shank(selectFrontHind).length, 0, 0];
             
 %             addVisual(body3,"Mesh",'thigh2_universal.stl')
 %             addVisual(body4, "Mesh",'shank2_universal.stl')
@@ -144,7 +144,7 @@ end
 for i = 1:length(q.(EEselection))
   
     figure(11)
-    show(robotConfig,config(i,:))
+    show(robotConfig,config(i,:));
 
     hold on
     plot3(meanCyclicMotionHipEE.(EEselection).position(:,1),meanCyclicMotionHipEE.(EEselection).position(:,2),meanCyclicMotionHipEE.(EEselection).position(:,3),'r', 'LineWidth', 3)

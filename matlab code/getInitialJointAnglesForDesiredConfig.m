@@ -26,5 +26,19 @@ q0.X.speedyGallop.LH = [0 -pi/4 -pi 0];
 q0.X.speedyGallop.RF = [0 -pi/4 -pi/2 0];
 q0.X.speedyGallop.RH = [0 -pi/4 -pi 0];
 
+q0.X.massivoWalk.LF = [0 -pi/4 -pi/2 0];
+q0.X.massivoWalk.LH = [0 pi/4  -pi/2 0];
+q0.X.massivoWalk.RF = [0 -pi/4 -pi/2 0];
+q0.X.massivoWalk.RH = [0 pi/4  -pi/2 0];
+
+q0.M.massivoWalk.LF = [0 -pi/4 -pi/2 0];
+q0.M.massivoWalk.LH = [0 pi/4  -pi/2 0];
+q0.M.massivoWalk.RF = [0 -pi/4 -pi/2 0];
+q0.M.massivoWalk.RH = [0 pi/4  -pi/2 0];
+
+q0.X.massivoStairs.LF = [0 -pi/4 -pi/2 0];
+q0.X.massivoStairs.LH = [0 -pi/4 -pi 0];
+q0.X.massivoStairs.RF = [0 -pi/4 -pi/2 0];
+q0.X.massivoStairs.RH = [0 -pi/4 -pi 0];
 
 q0 = q0.(configSelection).(taskSelection).(EEselection);
