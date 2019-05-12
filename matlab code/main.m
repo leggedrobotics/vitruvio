@@ -6,6 +6,10 @@ close all
 %% select task and robot to be loaded
 taskSelection = 'universalTrot';
 robotSelection = 'universal';
+configSelection = 'X';
+viewVisualization = 1; % 1 is on
+viewPlots = 1;
+
 fprintf('loading data for %s \n', taskSelection);
 
 %% get suggested removal ratio for cropping motion data to useful steady state motion
@@ -51,16 +55,16 @@ fprintf('getting range of motion dependent on link lengths and joint limits \n')
 reachablePositions = getRangeofMotion(quadruped);
 
 %% plot data
-% fprintf('plotting data \n');
-% plotMotionData;
+if viewPlots == 1
+    fprintf('plotting data \n');
+    plotMotionData;
+end
 
 %% Inverse kinematics to calculate joint angles for each leg joint
 % these q0 give x config for universalStairs
 % Final term is selectFrontHind 1 = front legs, 2 = hind legs
 
 fprintf('getting joint angles from inverse kinematics \n');
-
-configSelection = 'X';
 
 EEselection = 'LF';
 q.(EEselection).angle = inverseKinematics(meanCyclicMotionHipEE.LF.position, quadruped, EEselection, taskSelection, configSelection);
@@ -103,7 +107,6 @@ r = getJointPositions(quadruped, q, jointCount, EEselection);
 %% build robot model with configuration method - required for inverse dynamics solver
 fprintf('creating robot rigid body model with configuration method \n');
 numberOfLoopRepetitions = 1;
-viewVisualization = 0; % 1 is on
 
 EEselection = 'LF';
 [robotConfig, config] = buildRobotRigidBodyModel(quadruped, q, EE, meanCyclicMotionHipEE, EEselection, numberOfLoopRepetitions, viewVisualization);

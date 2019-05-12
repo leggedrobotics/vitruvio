@@ -122,7 +122,7 @@ end
 
 if viewVisualization == 1
     for j = 1: numberOfLoopRepetitions
-        for i = 1:length(q.(EEselection))
+        for i = 1:length(q.(EEselection).angle)
 
             xlim([-0.5 0.5]);
             ylim([-0.5 0.5]);
