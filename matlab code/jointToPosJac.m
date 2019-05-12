@@ -14,6 +14,7 @@ function [J_P, C_HEE, r_H_HEE, T_H1, T_12, T_23, T_34]  = jointToPosJac(q, quadr
   l_shank = quadruped.shank(selectFrontHind).length;
   %l_foot = quadruped.foot(selectFrontHind).length;
   
+  
   % transformation from HAA to hip attachment
   % rotation about z of hip attachment
   T_H1= [1, 0,          0,          0;

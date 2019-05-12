@@ -25,9 +25,9 @@ robot.universal.nomHipPos(4,:) = [-robot.universal.xNom(2), -robot.universal.yNo
 % fore, hind
 robot.universal.hip(1).length = 0.05;
 robot.universal.hip(2).length = 0.05;
-robot.universal.thigh(1).length = 0.332;
+robot.universal.thigh(1).length = 0.8*0.332;
 robot.universal.thigh(2).length = 0.332;
-robot.universal.shank(1).length = 0.7*0.332;
+robot.universal.shank(1).length = 1.5*0.332;
 robot.universal.shank(2).length = 0.7*0.332;
 robot.universal.foot(1).length = 0.05;
 robot.universal.foot(2).length = 0.05;

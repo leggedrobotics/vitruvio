@@ -1,32 +1,56 @@
 %% get joint velocities
 
-function joint = getJointVelocitiesUsingJacobian(meanCyclicMotionHipEE, q, quadruped, selectFrontHind, dt)
+function q = getJointVelocitiesUsingJacobian(EE, meanCyclicMotionHipEE, q, quadruped, selectFrontHind, dt, EEcount, EEselection)
 
-EE_names = {'LF', 'LH', 'RF', 'RH'};
+EE_names = fieldnames(EE);
+if EEcount == 4
+    for j=1:EEcount
+        for i = 1:length(meanCyclicMotionHipEE.LF.velocity)
+            if (EE_names{j} == 'LF') | (EE_names{j} == 'RF')
+                selectFrontHind = 1;
+            else selectFrontHind = 2;
+            end
 
-for j=1:4
-for i = 1:length(meanCyclicMotionHipEE.LF.velocity)
-    if (EE_names{j} == 'LF') | (EE_names{j} == 'RF')
-        selectFrontHind = 1;
-    else selectFrontHind = 2;
+            [J_P, C_HEE, r_H_HEE, T_H1, T_12, T_23, T_34]  = jointToPosJac(q.EEseletion(i,:), quadruped, selectFrontHind);
+            qRotVel.(EE_names{j})(i,:) = inv(J_P(1:3,1:3))* meanCyclicMotionHipEE.EEseletion.velocity(i,:)';
+        end
     end
-    
-    [J_P, C_HEE, r_H_HEE, T_H1, T_12, T_23, T_34]  = jointToPosJac(q.LF(i,:), quadruped, selectFrontHind);
-    qRotVel.(EE_names{j})(i,:) = inv(J_P(1:3,1:3))* meanCyclicMotionHipEE.LF.velocity(i,:)';
-end
+else 
+    for i = 1:length(meanCyclicMotionHipEE.(EEselection).velocity)
+            if (EE_names{j} == 'LF') | (EE_names{j} == 'RF')
+                selectFrontHind = 1;
+            else selectFrontHind = 2;
+            end
 
+            [J_P, C_HEE, r_H_HEE, T_H1, T_12, T_23, T_34]  = jointToPosJac(q.EEseletion(i,:), quadruped, selectFrontHind);
+            qRotVel.(EE_names{j})(i,:) = inv(J_P(1:3,1:3))* meanCyclicMotionHipEE.EEseletion.velocity(i,:)';
+        end
+    end
 % also possible to map accelerations to joint accel using Jacobian?
 
-for i =1:length(qRotVel.LF)-1
+for i =1:length(qRotVel.EEseletion)-1
     qRotAccel.(EE_names{j})(i,:) = (qRotVel.(EE_names{j})(i+1,:) - qRotVel.(EE_names{j})(i,:)) /dt;
 end
   
-joint.(EE_names{j}).angle = q.(EE_names{j});
-joint.(EE_names{j}).rotationalVelocity = qRotVel.(EE_names{j});
-joint.(EE_names{j}).rotationalAcceleration = qRotAccel.(EE_names{j});
+tempq.(EE_names{j}).angle = q.(EE_names{j});
+tempq.(EE_names{j}).angVel = qRotVel.(EE_names{j});
+tempq.(EE_names{j}).angAccel = qRotAccel.(EE_names{j});
+end
 
-q.(EE_names{j}).angle = joint.(EE_names{j}).angle
-q.(EE_names{j}).angVel = joint.(EE_names{j}).angle
-q.(EE_names{j}).angAccel = joint.(EE_names{j}).angle
+%% save q, dq/dt, d(dq/dt) into new struct q.EE
+clear q
+% main function calculates torques for each leg but want an option to just
+% calculate the torques for the selected leg
+if EEcount == 4
+    for j = 1:EEcount
+        q.(EE_names{j}).angle = tempq.(EE_names{j}).angle;
+        q.(EE_names{j}).angVel = tempq.(EE_names{j}).angVel;
+        q.(EE_names{j}).angAccel = tempq.(EE_names{j}).angAccel;
+    end
+else  
+    q.(EEselection).angle = tempq.(EEselection).angle;
+    q.(EEselection).angVel = tempq.(EEselection).angVel;
+    q.(EEselection).angAccel = tempq.(EEselection).angAccel;
 
 end
+

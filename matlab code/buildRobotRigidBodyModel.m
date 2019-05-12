@@ -1,7 +1,7 @@
 %% buildRobotRigidBodyModel
 
 %% Read in data for quadruped geometry
-function [robotConfig, config] = buildRobotRigidBodyModel(quadruped, q, EE, meanCyclicMotionHipEE, EEselection, numberOfLoopRepetitions) 
+function [robotConfig, config] = buildRobotRigidBodyModel(quadruped, q, EE, meanCyclicMotionHipEE, EEselection, numberOfLoopRepetitions, viewVisualization) 
 
 %% get quadruped properties for selected end effector
 EE_name = fieldnames(EE);
@@ -113,27 +113,29 @@ robotConfig.Gravity = [0 0 -9.8];
             
 
 
-for i = 1:length(q.(EEselection))
+for i = 1:length(q.(EEselection).angle)
    
-    config(i,:) = [  q.(EEselection)(i,1), ...
-                q.(EEselection)(i,2), ...
-                q.(EEselection)(i,3)];
+    config(i,:) = [q.(EEselection).angle(i,1), ...
+                q.(EEselection).angle(i,2), ...
+                q.(EEselection).angle(i,3)];
 end
 
-for j = 1: numberOfLoopRepetitions
-    for i = 1:length(q.(EEselection))
-        
-        xlim([-0.5 0.5]);
-        ylim([-0.5 0.5]);
-        zlim([-0.8 0.2]);
+if viewVisualization == 1
+    for j = 1: numberOfLoopRepetitions
+        for i = 1:length(q.(EEselection))
 
-        figure(11)
-        show(robotConfig,config(i,:));
+            xlim([-0.5 0.5]);
+            ylim([-0.5 0.5]);
+            zlim([-0.8 0.2]);
 
-        hold on
-        plot3(meanCyclicMotionHipEE.(EEselection).position(:,1),meanCyclicMotionHipEE.(EEselection).position(:,2),meanCyclicMotionHipEE.(EEselection).position(:,3),'r', 'LineWidth', 3)
-        title(EEselection)
-        hold off
+            figure(11)
+            show(robotConfig,config(i,:));
+
+            hold on
+            plot3(meanCyclicMotionHipEE.(EEselection).position(:,1),meanCyclicMotionHipEE.(EEselection).position(:,2),meanCyclicMotionHipEE.(EEselection).position(:,3),'r', 'LineWidth', 3)
+            title(EEselection)
+            hold off
+        end
     end
 end
 
