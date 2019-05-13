@@ -1,5 +1,5 @@
 
-function [linkLengths, costFnc] = evolveOptimalLeg(taskSelection, robotSelection, configSelection, EEselection)
+function [linkLengths, penaltyMin] = evolveOptimalLeg(maxGenerations, populationSize, initialLinkLengths, upperBoundMultiplier, lowerBoundMultiplier, taskSelection, robotSelection, configSelection, EEselection, removalRatioStart, removalRatioEnd, base, quat, t, EE, dt, jointCount)
 % starting quadruped properties
 quadruped = getQuadrupedProperties(robotSelection);
 
@@ -8,17 +8,13 @@ if (EEselection == 'LF') | (EEselection == 'RF')
     else selectFrontHind = 2;
 end
 
-%initial guess at link lengths in mm so the values can be integers
-initialLinkLengths(1) = round(1000*quadruped.hip(selectFrontHind).length)+2; 
-initialLinkLengths(2) = round(1000*quadruped.thigh(selectFrontHind).length);
-initialLinkLengths(3) = round(1000*quadruped.shank(selectFrontHind).length);
-
+% set initial values for link lengths
 linkLengths = initialLinkLengths;
 
 opts = optimoptions('ga');
 opts.Display = 'iter';
-opts.MaxGenerations = 10;
-opts.PopulationSize = 10;
+opts.MaxGenerations = maxGenerations;
+opts.PopulationSize = populationSize;
 % opts.InitialPopulationMatrix = repmat(p0,[5 1]); % Add copies of initial gait
 % opts.PlotFcn = @gaplotbestf; % Add progress plot of fitness function
 opts.PlotFcn = {@gaplotbestf, @gaplotbestindiv}; % Add progress plot of fitness function
@@ -27,16 +23,16 @@ opts.PlotFcn = {@gaplotbestf, @gaplotbestindiv}; % Add progress plot of fitness 
 
 %% Set bounds and constraints
 % Upper and lower angle bounds
-upperBnd = [1.5*initialLinkLengths(1), ... % Hip limits
-            1.5*initialLinkLengths(2), ... % Thigh limits
-            1.5*initialLinkLengths(3)];    % Shank limits
+upperBnd = upperBoundMultiplier*[initialLinkLengths(1), ... % Hip limits
+                                 initialLinkLengths(2), ... % Thigh limits
+                                 initialLinkLengths(3)];    % Shank limits
             
-lowerBnd = [0.5*initialLinkLengths(1), ... % Hip limits
-            0.5*initialLinkLengths(2), ... % Thigh limits
-            0.5*initialLinkLengths(3)];       % Shank limits
+lowerBnd = lowerBoundMultiplier*[initialLinkLengths(1), ... % Hip limits
+                                 initialLinkLengths(2), ... % Thigh limits
+                                 initialLinkLengths(3)];       % Shank limits
 
 %% Run optimization
-costFcn = @(linkLengths)runFastJointTorqueSim(quadruped, linkLengths, selectFrontHind, taskSelection, removalRatioStart, removalRatioEnd, base, quat, t, EE, dt, configSelection, EEselection);
+costFcn = @(linkLengths)runFastJointTorqueSim(quadruped, linkLengths, selectFrontHind, taskSelection, removalRatioStart, removalRatioEnd, base, quat, t, EE, dt, configSelection, EEselection, jointCount);
 disp(['Running optimization. Population: ' num2str(opts.PopulationSize) ...
       ', Max Generations: ' num2str(opts.MaxGenerations)])
   
