@@ -80,14 +80,14 @@ jnt2 = robotics.Joint('jnt2','revolute'); % HFE
 jnt3 = robotics.Joint('jnt3','revolute'); % KFE
 jnt4 = robotics.Joint('jnt4','fixed'); % coordinate system at EE 
 
-body1.Mass = quadruped.hip(selectFrontHind).mass;         
-body2.Mass = quadruped.thigh(selectFrontHind).mass;
-body3.Mass = quadruped.shank(selectFrontHind).mass;
-body4.Mass = quadruped.toe(selectFrontHind).mass;        
-            
-body1.CenterOfMass = [0.5*quadruped.hip(selectFrontHind).length, 0, 0];
-body2.CenterOfMass = [0.5*quadruped.thigh(selectFrontHind).length, 0, 0];
-body3.CenterOfMass = [0.5*quadruped.shank(selectFrontHind).length, 0, 0];   
+% body1.Mass = quadruped.hip(selectFrontHind).mass         
+% body2.Mass = quadruped.thigh(selectFrontHind).mass
+% body3.Mass = quadruped.shank(selectFrontHind).mass
+% body4.Mass = quadruped.toe(selectFrontHind).mass        
+%             
+% body1.CenterOfMass = [0.5*quadruped.hip(selectFrontHind).length, 0, 0];
+% body2.CenterOfMass = [0.5*quadruped.thigh(selectFrontHind).length, 0, 0];
+% body3.CenterOfMass = [0.5*quadruped.shank(selectFrontHind).length, 0, 0];   
             
 %% set joint transforms - these are only translations, the angles are specified in the configuration
          

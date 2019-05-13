@@ -1,10 +1,17 @@
 %% run simulation from beginning to joint torque 
 %  computation with only necessary steps for fast computation
 
-function jointTorque = runFastJointTorqueSim(taskSelection, removalRatioStart, removalRatioEnd, base, quat, robotSelection, t, EE, dt, configSelection, EEselection, EEcount)
+function penalty = runFastJointTorqueSim(quadruped, linkLengths, selectFrontHind, taskSelection, removalRatioStart, removalRatioEnd, base, quat, t, EE, dt, configSelection, EEselection)
 
 %% get quadruped properties 
-quadruped = getQuadrupedProperties(robotSelection);
+% also need to recalculate mass
+quadruped.hip(selectFrontHind).length = linkLengths(1)/1000;
+quadruped.thigh(selectFrontHind).length = linkLengths(2)/1000;
+quadruped.shank(selectFrontHind).length = linkLengths(3)/1000;
+
+quadruped.hip(selectFrontHind).mass =   quadruped.legDensity * pi*(quadruped.hip(selectFrontHind).radius)^2   * linkLengths(1)/1000;
+quadruped.thigh(selectFrontHind).mass = quadruped.legDensity * pi*(quadruped.thigh(selectFrontHind).radius)^2 * linkLengths(2)/1000;
+quadruped.shank(selectFrontHind).mass = quadruped.legDensity * pi*(quadruped.shank(selectFrontHind).radius)^2 * linkLengths(3)/1000;
 
 %% get the relative motion of the end effectors to the hips
 [relativeMotionHipEE, IF_hip, C_IBody] = getRelativeMotionEEHips(quat, quadruped, base, EE, dt);
@@ -33,5 +40,7 @@ viewVisualization = 0;
 
 %% get joint torques using inverse dynamics
 jointTorque.(EEselection) = getInverseDynamics(EEselection, q, meanCyclicMotionHipEE, robotConfig, config);
+
+penalty = sum(sum((abs(jointTorque.(EEselection)))));
 
 end
