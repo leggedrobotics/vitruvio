@@ -83,26 +83,26 @@ jnt4 = robotics.Joint('jnt4','fixed'); % coordinate system at EE
 body1.Mass = quadruped.hip(selectFrontHind).mass;      
 body2.Mass = quadruped.thigh(selectFrontHind).mass;
 body3.Mass = quadruped.shank(selectFrontHind).mass;
-body4.Mass = quadruped.toe(selectFrontHind).mass        
+body4.Mass = quadruped.toe(selectFrontHind).mass;        
 
 % inertia = [Ixx Iyy Izz Iyz Ixz Ixy] relative to body frame in kg/m^2
 % Update the EE values or combine with body 3
 % Needed Ixx term to have positive definite matrix
-body1.Inertia = [0.00001  1/3*body1.Mass*l_hip^2    1/3*body1.Mass*l_hip^2    0 0 0] %hip      
-body2.Inertia = [0.00001  1/3*body2.Mass*l_thigh^2    1/3*body2.Mass*l_thigh^2    0 0 0] %thigh
-body3.Inertia = [0.00001  1/3*body3.Mass*l_shank^2  1/3*body3.Mass*l_shank^2  0 0 0] %shank
-body4.Inertia = [0.00001 0.00001 0.00001 0 0 0] %EE
+body1.Inertia = [0.00001  1/3*body1.Mass*l_hip^2    1/3*body1.Mass*l_hip^2    0 0 0]; %hip      
+body2.Inertia = [0.00001  1/3*body2.Mass*l_thigh^2    1/3*body2.Mass*l_thigh^2    0 0 0]; %thigh
+body3.Inertia = [0.00001  1/3*body3.Mass*l_shank^2  1/3*body3.Mass*l_shank^2  0 0 0]; %shank
+body4.Inertia = [0.00001 0.00001 0.00001 0 0 0]; %EE
 
 % center of mass and mass terms do not affect inertia but are used 
 % to compute torque due to gravitational force?
-body1.CenterOfMass = [0.5*quadruped.hip(selectFrontHind).length   0 0]
-body2.CenterOfMass = [0.5*quadruped.thigh(selectFrontHind).length 0 0]
-body3.CenterOfMass = [0.5*quadruped.shank(selectFrontHind).length 0 0]  
-body4.CenterOfMass = [0 0 0]  
+body1.CenterOfMass = [0.5*quadruped.hip(selectFrontHind).length   0 0];
+body2.CenterOfMass = [0.5*quadruped.thigh(selectFrontHind).length 0 0];
+body3.CenterOfMass = [0.5*quadruped.shank(selectFrontHind).length 0 0]; 
+body4.CenterOfMass = [0 0 0];
 
 %% set joint transforms - these are only translations, the angles are specified in the configuration
          
-  setFixedTransform(jnt1, T_HAA)
+  setFixedTransform(jnt1, T_HAA);
   setFixedTransform(jnt2, T_HFEattachment);
   setFixedTransform(jnt3, T_HFE); % this needs to be rotation about z
   setFixedTransform(jnt4, T_KFE);            

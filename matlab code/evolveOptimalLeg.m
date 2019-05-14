@@ -23,13 +23,8 @@ opts.PlotFcn = {@gaplotbestf, @gaplotbestindiv}; % Add progress plot of fitness 
 
 %% Set bounds and constraints
 % Upper and lower angle bounds
-upperBnd = upperBoundMultiplier*[initialLinkLengths(1), ... % Hip limits
-                                 initialLinkLengths(2), ... % Thigh limits
-                                 initialLinkLengths(3)];    % Shank limits
-            
-lowerBnd = lowerBoundMultiplier*[initialLinkLengths(1), ... % Hip limits
-                                 initialLinkLengths(2), ... % Thigh limits
-                                 initialLinkLengths(3)];       % Shank limits
+upperBnd = upperBoundMultiplier*initialLinkLengths;
+lowerBnd = lowerBoundMultiplier*initialLinkLengths;
 
 %% Run optimization
 costFcn = @(linkLengths)runFastJointTorqueSim(quadruped, linkLengths, selectFrontHind, taskSelection, removalRatioStart, removalRatioEnd, base, quat, t, EE, dt, configSelection, EEselection, jointCount);

@@ -40,10 +40,10 @@ viewVisualization = 0;
 
 %% get joint velocities with inverse(Jacobian)* EE.velocity
   % the joint accelerations are then computed using finite difference
-% [q.(EEselection).angVel, q.(EEselection).angAccel] = getJointVelocitiesUsingJacobian(EE, meanCyclicMotionHipEE, q, quadruped, 1, dt, EEselection);
+[q.(EEselection).angVel, q.(EEselection).angAccel] = getJointVelocitiesUsingJacobian(EE, meanCyclicMotionHipEE, q, quadruped, 1, dt, EEselection);
 
 %% get joint torques using inverse dynamics
-% jointTorque.(EEselection) = getInverseDynamics(EEselection, q, meanCyclicMotionHipEE, robotConfig, config);
+jointTorque.(EEselection) = getInverseDynamics(EEselection, q, meanCyclicMotionHipEE, robotConfig, config);
 
   %% penalty term for ga
   % sum of abs value of joint torques  
@@ -52,7 +52,8 @@ viewVisualization = 0;
   % + error to desired EE position
   % + knee joint below end effector (ie knee in ground)
   
-%   errorPositionEE = norm(meanCyclicMotionHipEE.(EEselection).position-r.(EEselection).EE);
+  errorPositionEE = norm(meanCyclicMotionHipEE.(EEselection).position-r.(EEselection).EE);
+
 %   heightKneeAboveEE = r.(EEselection).KFE(:,3) - meanCyclicMotionHipEE.(EEselection).position(:,3);
 %   positionKneeEEPenalty = 0;
 %   
@@ -62,6 +63,8 @@ viewVisualization = 0;
 %   
   
 %   penalty = sum(sum((abs(jointTorque.(EEselection))))) + 1000*norm(q.(EEselection).angle(:,1)) + 100*errorPositionEE + 10000*positionKneeEEPenalty;
-  penalty =  10*sum(linkLengths);
+%   penalty =  10*sum(linkLengths);
+
+ penalty = sum(sum((abs(jointTorque.(EEselection))))) + 1000*norm(q.(EEselection).angle(:,1)) + 100*errorPositionEE;
 
 end

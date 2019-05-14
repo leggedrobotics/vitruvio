@@ -4,9 +4,9 @@ clear all
 close all
 
 %% select task and robot to be loaded
-taskSelection = 'universalTrot';
-robotSelection = 'universal';
-configSelection = 'X';
+taskSelection = 'speedyStairs';
+robotSelection = 'speedy';
+configSelection = 'M';
 viewVisualization = 1; % 1 is on
 viewPlots = 1;
 

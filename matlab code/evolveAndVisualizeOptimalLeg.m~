@@ -18,9 +18,9 @@ EEselection = 'LF';
 jointCount = 4; %for forward dynamics EE position computation (only works for =4)and counts EE as a joint
 
 % genetic algorithm parameters
-upperBoundMultiplier = 1.1;
-lowerBoundMultiplier = 1;
-maxGenerations = 20;
+upperBoundMultiplier = 1.8;
+lowerBoundMultiplier = 0.3;
+maxGenerations = 30;
 populationSize = 30;
 
 
@@ -45,19 +45,24 @@ quadruped = getQuadrupedProperties(robotSelection);
 
 
 %% evolve optimal link lengths
-%initial guess at link lengths in m
-% ga has precision of 4 decimal places so mm precision when we use m as
-% input unit
-initialLinkLengths(1) = quadruped.hip(selectFrontHind).length; 
-initialLinkLengths(2) = quadruped.thigh(selectFrontHind).length;
-initialLinkLengths(3) = quadruped.shank(selectFrontHind).length;
+%initial guess at link lengths in cm
+initialLinkLengths(1) = quadruped.hip(selectFrontHind).length*100; 
+initialLinkLengths(2) = quadruped.thigh(selectFrontHind).length*100;
+initialLinkLengths(3) = quadruped.shank(selectFrontHind).length*100;
 initialLinkLengths
+
+upperBnd = upperBoundMultiplier*initialLinkLengths;
+lowerBnd = lowerBoundMultiplier*initialLinkLengths;
+                              
+fprintf('upper bound on link lengths: /n%d, %d, %f', upperBnd(1), upperBnd(2), upperBnd(3))
+fprintf('lower bound on link lengths: /n%d, %f, %f', lowerBnd(1), lowerBnd(2), lowerBnd(3))
+
 
 [linkLengths, penaltyMin] = evolveOptimalLeg(maxGenerations, populationSize, initialLinkLengths, upperBoundMultiplier, lowerBoundMultiplier, taskSelection, robotSelection, configSelection, EEselection, removalRatioStart, removalRatioEnd, base, quat, t, EE, dt, jointCount)
 
-quadruped.hip(selectFrontHind).length = linkLengths(1);
-quadruped.thigh(selectFrontHind).length = linkLengths(2);
-quadruped.shank(selectFrontHind).length = linkLengths(3);
+quadruped.hip(selectFrontHind).length = linkLengths(1)/100;
+quadruped.thigh(selectFrontHind).length = linkLengths(2)/100;
+quadruped.shank(selectFrontHind).length = linkLengths(3)/100;
 
 %% visualize the optimized design
 numberOfLoopRepetitions = 3;

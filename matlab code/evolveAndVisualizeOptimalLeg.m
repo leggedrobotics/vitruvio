@@ -18,9 +18,9 @@ EEselection = 'LF';
 jointCount = 4; %for forward dynamics EE position computation (only works for =4)and counts EE as a joint
 
 % genetic algorithm parameters
-upperBoundMultiplier = 1.1;
-lowerBoundMultiplier = 1;
-maxGenerations = 20;
+upperBoundMultiplier = 1.8;
+lowerBoundMultiplier = 0.3;
+maxGenerations = 30;
 populationSize = 30;
 
 
@@ -49,7 +49,14 @@ quadruped = getQuadrupedProperties(robotSelection);
 initialLinkLengths(1) = quadruped.hip(selectFrontHind).length*100; 
 initialLinkLengths(2) = quadruped.thigh(selectFrontHind).length*100;
 initialLinkLengths(3) = quadruped.shank(selectFrontHind).length*100;
+
+disp('Dimensions given in cm')
+
 initialLinkLengths
+
+upperBnd = upperBoundMultiplier*initialLinkLengths
+lowerBnd = lowerBoundMultiplier*initialLinkLengths
+                              
 
 [linkLengths, penaltyMin] = evolveOptimalLeg(maxGenerations, populationSize, initialLinkLengths, upperBoundMultiplier, lowerBoundMultiplier, taskSelection, robotSelection, configSelection, EEselection, removalRatioStart, removalRatioEnd, base, quat, t, EE, dt, jointCount)
 
