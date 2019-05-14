@@ -52,11 +52,14 @@ jointTorque.(EEselection) = getInverseDynamics(EEselection, q, meanCyclicMotionH
   % + knee joint below end effector (ie knee in ground)
   
   errorPositionEE = norm(meanCyclicMotionHipEE.(EEselection).position-r.(EEselection).EE);
-  positionKneeEE = r.(EEselection).KFE - meanCyclicMotionHipEE.(EEselection).position(:,3);
+  heightKneeAboveEE = r.(EEselection).KFE(:,3) - meanCyclicMotionHipEE.(EEselection).position(:,3);
+  positionKneeEEPenalty = 0;
   
-  if any(positionKneeEE < 0)
-      positionKneeEEPenal
+  if any(heightKneeAboveEE < 0.015)
+      positionKneeEEPenalty = 1000;
+  end
   
-  penalty = sum(sum((abs(jointTorque.(EEselection)(15:end,:))))) + 100*norm(q.(EEselection).angle(:,1)) + 100*errorPositionEE;
+  
+  penalty = sum(sum((abs(jointTorque.(EEselection))))) + 1000*norm(q.(EEselection).angle(:,1)) + 100*errorPositionEE + 100positionKneeEEPenalty;
 
 end

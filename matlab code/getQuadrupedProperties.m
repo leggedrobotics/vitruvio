@@ -3,8 +3,9 @@
 % cannot be saved into a .mat file like the motion data
 
 function quadruped = getQuadrupedProperties(robotSelection);
-
- %% Universal
+legDensity = 258; %kg based on desired total leg mass for universal. Could be updated for other robots.
+ 
+%% Universal
 robot.universal.mass.total = 39.53; % with payload
 
 % offset from CoM to each hip
@@ -43,7 +44,7 @@ robot.universal.shank(2).radius = 0.05;
 robot.universal.foot(1).radius = 0.05;
 robot.universal.foot(2).radius = 0.05;
 
-robot.universal.legDensity = 100; %kg/m^3
+robot.universal.legDensity = legDensity; %kg/m^3
 
 %link mass [kg] based on cylindrical link with constant density
 link = {'hip','thigh' 'shank' 'foot'};
@@ -56,14 +57,14 @@ end
 
 % joint angle limits
 % q1 HAA, q2 HFE, q3 KFE, q4 AFE
-robot.universal.q1.minAngle = 0;
-robot.universal.q1.maxAngle = 2*pi;
-robot.universal.q2.minAngle = 0;
-robot.universal.q2.maxAngle = 2*pi;
-robot.universal.q3.minAngle = 0;
-robot.universal.q3.maxAngle = 2*pi;
-robot.universal.q4.minAngle = 0;
-robot.universal.q4.maxAngle = 2*pi;
+robot.universal.q1.minAngle = -pi/2;
+robot.universal.q1.maxAngle = pi/2;
+robot.universal.q2.minAngle = -pi/2;
+robot.universal.q2.maxAngle = pi/2;
+robot.universal.q3.minAngle = -pi/2;
+robot.universal.q3.maxAngle = pi/2;
+robot.universal.q4.minAngle = -pi/2;
+robot.universal.q4.maxAngle = pi/2;
 
 
 %% Speedy 
@@ -105,7 +106,7 @@ robot.speedy.shank(2).radius = 0.03;
 robot.speedy.foot(1).radius = 0.03;
 robot.speedy.foot(2).radius = 0.03;
 
-robot.speedy.legDensity = 100; %kg/m^3
+robot.speedy.legDensity = legDensity; %kg/m^3
 
 %link mass [kg] based on cylindrical link with constant density
 for i = 1:length(link)
@@ -164,7 +165,7 @@ robot.massivo.shank(2).radius = 0.03;
 robot.massivo.foot(1).radius = 0.03;
 robot.massivo.foot(2).radius = 0.03;
 
-robot.massivo.legDensity = 100; %kg/m^3
+robot.massivo.legDensity = legDensity; %kg/m^3
 
 %link mass [kg] based on cylindrical link with constant density
 for i = 1:length(link)
@@ -223,7 +224,7 @@ robot.centaur.shank(2).radius = 0.03;
 robot.centaur.foot(1).radius = 0.03;
 robot.centaur.foot(2).radius = 0.03;
 
-robot.centaur.legDensity = 100; %kg/m^3
+robot.centaur.legDensity = legDensity; %kg/m^3
 
 %link mass [kg] based on cylindrical link with constant density
 for i = 1:length(link)
@@ -282,7 +283,7 @@ robot.mini.shank(2).radius = 0.03;
 robot.mini.foot(1).radius = 0.03;
 robot.mini.foot(2).radius = 0.03;
 
-robot.mini.legDensity = 100; %kg/m^3
+robot.mini.legDensity = legDensity; %kg/m^3
 
 %link mass [kg] based on cylindrical link with constant density
 for i = 1:length(link)

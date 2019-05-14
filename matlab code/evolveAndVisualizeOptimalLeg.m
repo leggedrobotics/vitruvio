@@ -15,12 +15,12 @@ load(taskSelection);
 dt = t(2) - t(1);
 configSelection = 'X'; % unreliable
 EEselection = 'LF';
-jointCount = 4; %for forward dynamics EE position computation (only works for =4)
+jointCount = 4; %for forward dynamics EE position computation (only works for =4)and counts EE as a joint
 
 % genetic algorithm parameters
-upperBoundMultiplier = 5;
-lowerBoundMultiplier = 0.1;
-maxGenerations = 30;
+upperBoundMultiplier = 1.1;
+lowerBoundMultiplier = 1;
+maxGenerations = 20;
 populationSize = 30;
 
 
@@ -45,16 +45,17 @@ quadruped = getQuadrupedProperties(robotSelection);
 
 
 %% evolve optimal link lengths
-%initial guess at link lengths in mm so the values can be integers
-initialLinkLengths(1) = round(1000*quadruped.hip(selectFrontHind).length); 
-initialLinkLengths(2) = round(1000*quadruped.thigh(selectFrontHind).length);
-initialLinkLengths(3) = round(1000*quadruped.shank(selectFrontHind).length);
+%initial guess at link lengths in cm
+initialLinkLengths(1) = quadruped.hip(selectFrontHind).length*100; 
+initialLinkLengths(2) = quadruped.thigh(selectFrontHind).length*100;
+initialLinkLengths(3) = quadruped.shank(selectFrontHind).length*100;
+initialLinkLengths
 
 [linkLengths, penaltyMin] = evolveOptimalLeg(maxGenerations, populationSize, initialLinkLengths, upperBoundMultiplier, lowerBoundMultiplier, taskSelection, robotSelection, configSelection, EEselection, removalRatioStart, removalRatioEnd, base, quat, t, EE, dt, jointCount)
 
-quadruped.hip(selectFrontHind).length = linkLengths(1)/1000;
-quadruped.thigh(selectFrontHind).length = linkLengths(2)/1000;
-quadruped.shank(selectFrontHind).length = linkLengths(3)/1000;
+quadruped.hip(selectFrontHind).length = linkLengths(1)/100;
+quadruped.thigh(selectFrontHind).length = linkLengths(2)/100;
+quadruped.shank(selectFrontHind).length = linkLengths(3)/100;
 
 %% visualize the optimized design
 numberOfLoopRepetitions = 3;

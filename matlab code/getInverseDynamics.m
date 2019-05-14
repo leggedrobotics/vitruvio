@@ -8,6 +8,7 @@ function jointTorque = getInverseDynamics(EEselection, q, meanCyclicMotionHipEE,
         wrench = [0 0 0 meanCyclicMotionHipEE.(EEselection).force(i,1:3)]; % need to rotate this force to base frame?
         fext = externalForce(robotConfig,'body4',wrench); % apply force on body4 = end effector
 
-        jointTorque(i,:) = inverseDynamics(robotConfig, config(i,:), jointVel, jointAccel); %, fext);
+        jointTorque(i,:) = inverseDynamics(robotConfig, config(i,:), jointVel, jointAccel, fext);
+
     end
 end

@@ -8,7 +8,7 @@ if (EEselection == 'LF') | (EEselection == 'RF')
     else selectFrontHind = 2;
 end
 
-% set initial values for link lengths
+%% set initial values for link lengths
 linkLengths = initialLinkLengths;
 
 opts = optimoptions('ga');
