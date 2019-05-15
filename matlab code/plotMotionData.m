@@ -346,37 +346,52 @@ hold off
 %% mean forces
 
 figure()
-% x forces for all EEs
-subplot(1,3,1)
-plot(meanCyclicMotionHipEE.LF.position(:,1), meanCyclicMotionHipEE.LF.force(:,1), 'b', ...
-     meanCyclicMotionHipEE.LH.position(:,1), meanCyclicMotionHipEE.LH.force(:,1), 'g',...
-     meanCyclicMotionHipEE.RF.position(:,1), meanCyclicMotionHipEE.RF.force(:,1), 'r',...
-     meanCyclicMotionHipEE.RH.position(:,1), meanCyclicMotionHipEE.RH.force(:,1), 'c')
+% % x forces for all EEs
+% subplot(1,3,1)
+% plot(meanCyclicMotionHipEE.LF.position(:,1), meanCyclicMotionHipEE.LF.force(:,1), 'b', ...
+%      meanCyclicMotionHipEE.LH.position(:,1), meanCyclicMotionHipEE.LH.force(:,1), 'g',...
+%      meanCyclicMotionHipEE.RF.position(:,1), meanCyclicMotionHipEE.RF.force(:,1), 'r',...
+%      meanCyclicMotionHipEE.RH.position(:,1), meanCyclicMotionHipEE.RH.force(:,1), 'c')
+% 
+% title('Average of x direction forces for sampled data')
+% legend('LF','LH','RF','RH')
+% ylabel('force [N]')
+% grid on
+% 
+% % y forces
+% subplot(1,3,2)
+% plot(meanCyclicMotionHipEE.LF.position(:,1), meanCyclicMotionHipEE.LF.force(:,2), 'b', ...
+%      meanCyclicMotionHipEE.LH.position(:,1), meanCyclicMotionHipEE.LH.force(:,2), 'g', ...
+%      meanCyclicMotionHipEE.RF.position(:,1), meanCyclicMotionHipEE.RF.force(:,2), 'r', ...
+%      meanCyclicMotionHipEE.RH.position(:,1), meanCyclicMotionHipEE.RH.force(:,2), 'c')  
+%  
+% title('Average of y direction forces for sampled data')
+% legend('LF','LH','RF','RH')
+% xlabel('Offset in x direction from end effector to hip attachment point [m]')
+% grid on
 
-title('Average of x direction forces for sampled data')
-legend('LF','LH','RF','RH')
-ylabel('force [N]')
-grid on
-
-% y forces
-subplot(1,3,2)
-plot(meanCyclicMotionHipEE.LF.position(:,1), meanCyclicMotionHipEE.LF.force(:,2), 'b', ...
-     meanCyclicMotionHipEE.LH.position(:,1), meanCyclicMotionHipEE.LH.force(:,2), 'g', ...
-     meanCyclicMotionHipEE.RF.position(:,1), meanCyclicMotionHipEE.RF.force(:,2), 'r', ...
-     meanCyclicMotionHipEE.RH.position(:,1), meanCyclicMotionHipEE.RH.force(:,2), 'c')  
- 
-title('Average of y direction forces for sampled data')
-legend('LF','LH','RF','RH')
-xlabel('Offset in x direction from end effector to hip attachment point [m]')
-grid on
-
-% z forces
-subplot(1,3,3)
+% Z forces
+% subplot(1,3,3)
 plot(meanCyclicMotionHipEE.LF.position(:,1), meanCyclicMotionHipEE.LF.force(:,3), 'b', ...
      meanCyclicMotionHipEE.LH.position(:,1), meanCyclicMotionHipEE.LH.force(:,3), 'g', ...
      meanCyclicMotionHipEE.RF.position(:,1), meanCyclicMotionHipEE.RF.force(:,3), 'r', ...
-     meanCyclicMotionHipEE.RH.position(:,1), meanCyclicMotionHipEE.RH.force(:,3), 'c')
-  
+     meanCyclicMotionHipEE.RH.position(:,1), meanCyclicMotionHipEE.RH.force(:,3), 'c')  
+ 
 title('Average of z direction forces for sampled data')
 legend('LF','LH','RF','RH')
+xlabel('Offset in x direction from end effector to hip attachment point [m]')
+xlabel('Force [N]')
 grid on
+
+
+% % zforces
+% subplot(1,4,4)
+% plot(meanCyclicMotionHipEE.LF.position(:,1), meanCyclicMotionHipEE.LF.force(:,2), 'b', ...
+%      meanCyclicMotionHipEE.LH.position(:,1), meanCyclicMotionHipEE.LH.force(:,2), 'g', ...
+%      meanCyclicMotionHipEE.RF.position(:,1), meanCyclicMotionHipEE.RF.force(:,2), 'r', ...
+%      meanCyclicMotionHipEE.RH.position(:,1), meanCyclicMotionHipEE.RH.force(:,2), 'c')  
+%  
+% title('Average of z direction forces for sampled data')
+% legend('LF','LH','RF','RH')
+% xlabel('Offset in x direction from end effector to hip attachment point [m]')
+% grid on

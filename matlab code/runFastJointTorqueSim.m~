@@ -1,17 +1,18 @@
-%% run simulation from beginning to joint torque 
+%% run simulation from beginning to joint torque computation 
 %  computation with only necessary steps for fast computation
 
 function penalty = runFastJointTorqueSim(quadruped, linkLengths, selectFrontHind, taskSelection, removalRatioStart, removalRatioEnd, base, quat, t, EE, dt, configSelection, EEselection, jointCount)
 
 %% get quadruped properties 
-% also need to recalculate mass
-quadruped.hip(selectFrontHind).length = linkLengths(1)/1000;
-quadruped.thigh(selectFrontHind).length = linkLengths(2)/1000;
-quadruped.shank(selectFrontHind).length = linkLengths(3)/1000;
+% convert from cm to m and save lengths
+quadruped.hip(selectFrontHind).length = linkLengths(1)/100;
+quadruped.thigh(selectFrontHind).length = linkLengths(2)/100;
+quadruped.shank(selectFrontHind).length = linkLengths(3)/100;
 
-quadruped.hip(selectFrontHind).mass = quadruped.legDensity * pi*(quadruped.hip(selectFrontHind).radius)^2   * linkLengths(1)/1000;
-quadruped.thigh(selectFrontHind).mass = quadruped.legDensity * pi*(quadruped.thigh(selectFrontHind).radius)^2 * linkLengths(2)/1000;
-quadruped.shank(selectFrontHind).mass = quadruped.legDensity * pi*(quadruped.shank(selectFrontHind).radius)^2 * linkLengths(3)/1000;
+% compute mass with assumption of constant density cylinder
+quadruped.hip(selectFrontHind).mass = quadruped.legDensity * pi*(quadruped.hip(selectFrontHind).radius)^2   * linkLengths(1);
+quadruped.thigh(selectFrontHind).mass = quadruped.legDensity * pi*(quadruped.thigh(selectFrontHind).radius)^2 * linkLengths(2);
+quadruped.shank(selectFrontHind).mass = quadruped.legDensity * pi*(quadruped.shank(selectFrontHind).radius)^2 * linkLengths(3);
 
 %% get the relative motion of the end effectors to the hips
 [relativeMotionHipEE, IF_hip, C_IBody] = getRelativeMotionEEHips(quat, quadruped, base, EE, dt);
@@ -52,14 +53,18 @@ jointTorque.(EEselection) = getInverseDynamics(EEselection, q, meanCyclicMotionH
   % + knee joint below end effector (ie knee in ground)
   
   errorPositionEE = norm(meanCyclicMotionHipEE.(EEselection).position-r.(EEselection).EE);
-  heightKneeAboveEE = r.(EEselection).KFE(:,3) - meanCyclicMotionHipEE.(EEselection).position(:,3);
-  positionKneeEEPenalty = 0;
+
+%   heightKneeAboveEE = r.(EEselection).KFE(:,3) - meanCyclicMotionHipEE.(EEselection).position(:,3);
+%   positionKneeEEPenalty = 0;
+%   
+%   if any(heightKneeAboveEE < 0.15) 
+%       positionKneeEEPenalty = 1;
+%   end
+%   
   
-  if any(heightKneeAboveEE < 0.015)
-      positionKneeEEPenalty = 1000;
-  end
-  
-  
-  penalty = sum(sum((abs(jointTorque.(EEselection))))) + 1000*norm(q.(EEselection).angle(:,1)) + 100*errorPositionEE + 100positionKneeEEPenalty;
+%   penalty = sum(sum((abs(jointTorque.(EEselection))))) + 1000*norm(q.(EEselection).angle(:,1)) + 100*errorPositionEE + 10000*positionKneeEEPenalty;
+%   penalty =  10*sum(linkLengths);
+
+ penalty = sum(sum((abs(jointTorque.(EEselection))))) + 100*errorPositionEE;
 
 end

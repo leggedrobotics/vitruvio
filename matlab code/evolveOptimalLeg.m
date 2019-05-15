@@ -23,8 +23,8 @@ opts.PlotFcn = {@gaplotbestf, @gaplotbestindiv}; % Add progress plot of fitness 
 
 %% Set bounds and constraints
 % Upper and lower angle bounds
-upperBnd = upperBoundMultiplier*initialLinkLengths;
-lowerBnd = lowerBoundMultiplier*initialLinkLengths;
+upperBnd = round(upperBoundMultiplier*initialLinkLengths);
+lowerBnd = round(lowerBoundMultiplier*initialLinkLengths);
 
 %% Run optimization
 costFcn = @(linkLengths)runFastJointTorqueSim(quadruped, linkLengths, selectFrontHind, taskSelection, removalRatioStart, removalRatioEnd, base, quat, t, EE, dt, configSelection, EEselection, jointCount);
@@ -33,7 +33,7 @@ disp(['Running optimization. Population: ' num2str(opts.PopulationSize) ...
   
 %[x, feval] = ga(fun,nvars,A,b,[],[],lb,ub,nonlcon,IntCon, options)
  [linkLengths,penaltyMin] = ga(costFcn,3,[],[],[],[], ... 
-                              lowerBnd,upperBnd,[],3,opts);
+                              lowerBnd,upperBnd,[],[1,2,3],opts);
 disp(['Final reward function value: ' num2str(penaltyMin)])
 
 

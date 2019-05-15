@@ -1,15 +1,15 @@
-%% run simulation from beginning to joint torque 
+%% run simulation from beginning to joint torque computation 
 %  computation with only necessary steps for fast computation
 
 function penalty = runFastJointTorqueSim(quadruped, linkLengths, selectFrontHind, taskSelection, removalRatioStart, removalRatioEnd, base, quat, t, EE, dt, configSelection, EEselection, jointCount)
 
 %% get quadruped properties 
-% also need to recalculate mass
+% convert from cm to m and save lengths
 quadruped.hip(selectFrontHind).length = linkLengths(1)/100;
 quadruped.thigh(selectFrontHind).length = linkLengths(2)/100;
 quadruped.shank(selectFrontHind).length = linkLengths(3)/100;
 
-% fix units here
+% compute mass with assumption of constant density cylinder
 quadruped.hip(selectFrontHind).mass = quadruped.legDensity * pi*(quadruped.hip(selectFrontHind).radius)^2   * linkLengths(1);
 quadruped.thigh(selectFrontHind).mass = quadruped.legDensity * pi*(quadruped.thigh(selectFrontHind).radius)^2 * linkLengths(2);
 quadruped.shank(selectFrontHind).mass = quadruped.legDensity * pi*(quadruped.shank(selectFrontHind).radius)^2 * linkLengths(3);
@@ -65,6 +65,6 @@ jointTorque.(EEselection) = getInverseDynamics(EEselection, q, meanCyclicMotionH
 %   penalty = sum(sum((abs(jointTorque.(EEselection))))) + 1000*norm(q.(EEselection).angle(:,1)) + 100*errorPositionEE + 10000*positionKneeEEPenalty;
 %   penalty =  10*sum(linkLengths);
 
- penalty = sum(sum((abs(jointTorque.(EEselection))))) + 1000*norm(q.(EEselection).angle(:,1)) + 100*errorPositionEE;
+ penalty = sum(sum((abs(jointTorque.(EEselection))))) + 100*errorPositionEE;
 
 end

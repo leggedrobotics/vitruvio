@@ -21,7 +21,7 @@ jointCount = 4; %for forward dynamics EE position computation (only works for =4
 upperBoundMultiplier = 1.8;
 lowerBoundMultiplier = 0.3;
 maxGenerations = 30;
-populationSize = 30;
+populationSize = 10;
 
 
 if (EEselection == 'LF') | (EEselection == 'RF')
@@ -41,25 +41,18 @@ quadruped = getQuadrupedProperties(robotSelection);
 
 %% get the mean cyclic position and forces
 [meanCyclicMotionHipEE, cyclicMotionHipEE, meanCyclicC_IBody, samplingStart, samplingEnd] = getHipEECyclicData(tLiftoff, tTouchdown, relativeMotionHipEE, EE, removalRatioStart, removalRatioEnd, dt, minStepCount, C_IBody);
+                  
 
-
-
-%% evolve optimal link lengths
-%initial guess at link lengths in cm
+%% initialize link length values
+% link lengths in cm
 initialLinkLengths(1) = quadruped.hip(selectFrontHind).length*100; 
 initialLinkLengths(2) = quadruped.thigh(selectFrontHind).length*100;
 initialLinkLengths(3) = quadruped.shank(selectFrontHind).length*100;
-initialLinkLengths
 
-upperBnd = upperBoundMultiplier*initialLinkLengths;
-lowerBnd = lowerBoundMultiplier*initialLinkLengths;
-                              
-fprintf('upper bound on link lengths: /n%d, %d, %f', upperBnd(1), upperBnd(2), upperBnd(3))
-fprintf('lower bound on link lengths: /n%d, %f, %f', lowerBnd(1), lowerBnd(2), lowerBnd(3))
-
-
+%% evolve optimal link lengths by running ga
 [linkLengths, penaltyMin] = evolveOptimalLeg(maxGenerations, populationSize, initialLinkLengths, upperBoundMultiplier, lowerBoundMultiplier, taskSelection, robotSelection, configSelection, EEselection, removalRatioStart, removalRatioEnd, base, quat, t, EE, dt, jointCount)
 
+%% convert back from cm to m and save the final link lengths
 quadruped.hip(selectFrontHind).length = linkLengths(1)/100;
 quadruped.thigh(selectFrontHind).length = linkLengths(2)/100;
 quadruped.shank(selectFrontHind).length = linkLengths(3)/100;

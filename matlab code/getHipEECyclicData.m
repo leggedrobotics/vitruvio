@@ -36,7 +36,7 @@ end
 %LH
 for i = 1:minStepCount-2
     temp.position = relativeMotionHipEE.LH.position(floor(tLiftoff(i,2)/dt):floor(tLiftoff(i+1,2)/dt),:);
-    temp.velocity = relativeMotionHipEE.LH.velocity(floor(tLiftoff(i,1)/dt):floor(tLiftoff(i+1,1)/dt),:);
+    temp.velocity = relativeMotionHipEE.LH.velocity(floor(tLiftoff(i,2)/dt):floor(tLiftoff(i+1,2)/dt),:);
     temp.force = EE.LH.force(floor(tLiftoff(i,2)/dt):floor(tLiftoff(i+1,2)/dt),:);
 
     cyclicMotionHipEE.LH.position(:,:,i) = temp.position(1:indexMax,:);
@@ -47,7 +47,7 @@ end
 %RF
 for i = 1:minStepCount-2
     temp.position = relativeMotionHipEE.RF.position(floor(tLiftoff(i,3)/dt):floor(tLiftoff(i+1,3)/dt),:);
-    temp.velocity = relativeMotionHipEE.RF.velocity(floor(tLiftoff(i,1)/dt):floor(tLiftoff(i+1,1)/dt),:);
+    temp.velocity = relativeMotionHipEE.RF.velocity(floor(tLiftoff(i,3)/dt):floor(tLiftoff(i+1,3)/dt),:);
     temp.force = EE.RF.force(floor(tLiftoff(i,3)/dt):floor(tLiftoff(i+1,3)/dt),:);
 
     cyclicMotionHipEE.RF.position(:,:,i) = temp.position(1:indexMax,:);
@@ -58,7 +58,7 @@ end
 %RH
 for i = 1:minStepCount-2
     temp.position = relativeMotionHipEE.RH.position(floor(tLiftoff(i,4)/dt):floor(tLiftoff(i+1,4)/dt),:);
-    temp.velocity = relativeMotionHipEE.RH.velocity(floor(tLiftoff(i,1)/dt):floor(tLiftoff(i+1,1)/dt),:);
+    temp.velocity = relativeMotionHipEE.RH.velocity(floor(tLiftoff(i,4)/dt):floor(tLiftoff(i+1,4)/dt),:);
     temp.force = EE.RH.force(floor(tLiftoff(i,4)/dt):floor(tLiftoff(i+1,4)/dt),:);
 
     cyclicMotionHipEE.RH.position(:,:,i) = temp.position(1:indexMax,:);
