@@ -1,13 +1,13 @@
 %% get joint torques for initial link lengths
 
-taskSelection = 'universalTrot';
-robotSelection = 'universal';
-[removalRatioStart, removalRatioEnd] = getSuggestedRemovalRatios(taskSelection);
-load(taskSelection);
-dt = t(2) - t(1);
-configSelection = 'X'; % unreliable
-EEselection = 'LH';
-jointCount = 4; %for forward dynamics EE position computation (only works for =4)and counts EE as a joint
+% taskSelection = 'speedyGallop';
+% robotSelection = 'speedy';
+% [removalRatioStart, removalRatioEnd] = getSuggestedRemovalRatios(taskSelection);
+% load(taskSelection);
+% dt = t(2) - t(1);
+% configSelection = 'X'; % unreliable
+% EEselection = 'LH';
+% jointCount = 4; %for forward dynamics EE position computation (only works for =4)and counts EE as a joint
 
 
 %% get quadruped properties

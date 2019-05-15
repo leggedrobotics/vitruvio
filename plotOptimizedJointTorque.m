@@ -1,4 +1,5 @@
 %% compare actuator torques for initial and optimized design
+getInitialJointTorque;
 
 time = 0:dt:length(initialJointTorque.(EEselection))*dt-dt;
 figure()
