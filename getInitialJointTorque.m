@@ -6,7 +6,7 @@ robotSelection = 'universal';
 load(taskSelection);
 dt = t(2) - t(1);
 configSelection = 'X'; % unreliable
-EEselection = 'LF';
+EEselection = 'LH';
 jointCount = 4; %for forward dynamics EE position computation (only works for =4)and counts EE as a joint
 
 
@@ -28,5 +28,5 @@ viewVisualization = 0;
 
 initialq.(EEselection).angle = inverseKinematics(meanCyclicMotionHipEE.(EEselection).position, quadruped, EEselection, taskSelection, configSelection);
 [initialRobotConfig, config] = buildRobotRigidBodyModel(quadruped, initialq, EE, meanCyclicMotionHipEE, EEselection, numberOfLoopRepetitions, viewVisualization);
-[initialq.(EEselection).angVel, initialq.(EEselection).angAccel] = getJointVelocitiesUsingJacobian(EE, meanCyclicMotionHipEE, initialq, quadruped, 1, dt, EEselection);
+[initialq.(EEselection).angVel, initialq.(EEselection).angAccel] = getJointVelocitiesUsingJacobian(EEselection, meanCyclicMotionHipEE, initialq, quadruped, dt);
 initialJointTorque.(EEselection) = getInverseDynamics(EEselection, initialq, meanCyclicMotionHipEE, initialRobotConfig, config);

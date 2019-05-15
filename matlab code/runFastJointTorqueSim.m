@@ -40,7 +40,7 @@ viewVisualization = 0;
 
 %% get joint velocities with inverse(Jacobian)* EE.velocity
   % the joint accelerations are then computed using finite difference
-[q.(EEselection).angVel, q.(EEselection).angAccel] = getJointVelocitiesUsingJacobian(EE, meanCyclicMotionHipEE, q, quadruped, 1, dt, EEselection);
+[q.(EEselection).angVel, q.(EEselection).angAccel] = getJointVelocitiesUsingJacobian(EEselection, meanCyclicMotionHipEE, q, quadruped, dt);
 
 %% get joint torques using inverse dynamics
 jointTorque.(EEselection) = getInverseDynamics(EEselection, q, meanCyclicMotionHipEE, robotConfig, config);

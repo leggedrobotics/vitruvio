@@ -1,6 +1,6 @@
 %% compare actuator torques for initial and optimized design
 
-time = 0:dt:length(initialJointTorque.LF)*dt-dt;
+time = 0:dt:length(initialJointTorque.(EEselection))*dt-dt;
 figure()
 title('Joint torques for initial and optimized link lenghts')
 
@@ -13,7 +13,7 @@ legend ('initial leg design', 'optimized leg design')
 
 
 subplot(3,1,2)
-plot(time, initialJointTorque.(EEselection)(:,2), 'r',  ...
+plot(time, initialJointTorque.(EEselection)(:,2), 'r', ...
      time, optimizedJointTorque.(EEselection)(:,2),'b')
 ylabel('joint torque [N]');
 title('HFE') 
