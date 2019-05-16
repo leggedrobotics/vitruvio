@@ -131,7 +131,7 @@ for i = 1:length(q.(EEselection).angle)
                 q.(EEselection).angle(i,3)];
 end
 
-if viewVisualization == 1
+if viewVisualization
     for j = 1: numberOfLoopRepetitions
         for i = 1:length(q.(EEselection).angle)
 

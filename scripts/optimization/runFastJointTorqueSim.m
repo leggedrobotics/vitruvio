@@ -64,9 +64,9 @@ jointTorque.(EEselection) = getInverseDynamics(EEselection, q, meanCyclicMotionH
   
 %   penalty = sum(sum((abs(jointTorque.(EEselection))))) + 1000*norm(q.(EEselection).angle(:,1)) + 100*errorPositionEE + 10000*positionKneeEEPenalty;
 %   penalty =  10*sum(linkLengths);
-fprintf('torque penalty %d \n', (1/100)*sum(sum((abs(jointTorque.(EEselection))))))
-fprintf('position error penalty %d \n', 1000*errorPositionEE)
+% fprintf('torque penalty %d \n', (1/100)*sum(sum((abs(jointTorque.(EEselection))))))
+% fprintf('position error penalty %d \n', 1000*errorPositionEE)
 
-penalty = (1/100)*sum(sum((abs(jointTorque.(EEselection))))) + 10000*errorPositionEE;
+penalty = (1/100)*sum(sum((jointTorque.(EEselection)).^2)) + 1000*errorPositionEE;
 
 end

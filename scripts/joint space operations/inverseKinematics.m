@@ -36,7 +36,7 @@
          [J_P, C_HEE, r_H_HEE] = jointToPosJac(q, quadruped, EEselection);
          dr = r_H_HEE_des(i,:)' - r_H_HEE;
          dq = pinv(J_P, lambda)*dr;
-         q = q + 0.5*dq;
+         q = q + 0.05*dq;
          it = it+1;
          
       end
@@ -45,37 +45,38 @@
 %       fprintf('Position error: %e.\n',norm(dr));
       jointPositions(i,:) = q';
   end
-%% get smallest positive q that is equivalent to the one calculated by IK 
-     for i = 1:length(jointPositions(:,1))
-         for j = 1:length(jointPositions(1,:))
-             if jointPositions(i,j) > 0
-                  while jointPositions(i,j) > 2*pi
-                      jointPositions(i,j) = jointPositions(i,j) - 2*pi;
-                  end
-              else
-                  while jointPositions(i,j) < 0
-                      jointPositions(i,j) = jointPositions(i,j) + 2*pi;
-                  end
-             end            
-         end
-     end
-     
-% prevent jumps of about 2pi between timesteps
-for i = 1:length(jointPositions(:,1))-1
-     for j = 1:length(jointPositions(1,:))
-         if jointPositions(i,j)-jointPositions(i+1,j) > pi % step down
-             jointPositions(i+1,j) = jointPositions(i+1,j) + 2*pi; 
-         end  
-      end
-end
-
-% HAA always around zero but jumping between 0 and 2pi
-% this is kind of sloppy but seems to work
-for i = 1:length(jointPositions(:,1))
-    if jointPositions(i,1) > 6
-       jointPositions(i,1) = jointPositions(i,1) - 2*pi;
-    end
-end
-
-       
-       
+  
+% %% get smallest positive q that is equivalent to the one calculated by IK 
+%      for i = 1:length(jointPositions(:,1))
+%          for j = 1:length(jointPositions(1,:))
+%              if jointPositions(i,j) > 0
+%                   while jointPositions(i,j) > 2*pi
+%                       jointPositions(i,j) = jointPositions(i,j) - 2*pi;
+%                   end
+%               else
+%                   while jointPositions(i,j) < 0
+%                       jointPositions(i,j) = jointPositions(i,j) + 2*pi;
+%                   end
+%              end            
+%          end
+%      end
+%      
+% % prevent jumps of about 2pi between timesteps
+% for i = 1:length(jointPositions(:,1))-1
+%      for j = 1:length(jointPositions(1,:))
+%          if jointPositions(i,j)-jointPositions(i+1,j) > pi % step down
+%              jointPositions(i+1,j) = jointPositions(i+1,j) + 2*pi; 
+%          end  
+%       end
+% end
+% 
+% % HAA always around zero but jumping between 0 and 2pi
+% % this is kind of sloppy but seems to work
+% for i = 1:length(jointPositions(:,1))
+%     if jointPositions(i,1) > 6
+%        jointPositions(i,1) = jointPositions(i,1) - 2*pi;
+%     end
+% end
+% 
+%        
+%        

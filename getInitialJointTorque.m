@@ -12,7 +12,6 @@ quadruped = getQuadrupedProperties(robotSelection);
 %% get the mean cyclic position and forces
 [meanCyclicMotionHipEE, cyclicMotionHipEE, meanCyclicC_IBody, samplingStart, samplingEnd] = getHipEECyclicData(tLiftoff, tTouchdown, relativeMotionHipEE, EE, removalRatioStart, removalRatioEnd, dt, minStepCount, C_IBody);                  
 
-
 numberOfLoopRepetitions = 1;
 viewVisualization = 0;
 

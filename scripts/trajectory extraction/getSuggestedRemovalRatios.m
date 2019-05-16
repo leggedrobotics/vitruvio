@@ -1,6 +1,6 @@
-%% getSuggestedRemovalRatios
-
 function [removalRatioStart, removalRatioEnd] = getSuggestedRemovalRatios(taskSelection)
+% GETSUGGESTEDREMOVALRATIOS  Returns hardcoded ratios to crop data range.
+%   [removalRatioStart, removalRatioEnd] = GETSUGGESTEDREMOVALRATIOS(taskSelection) returns removal ratios for selected task.
 
 suggestedRemovalRatioStart.universalStairs = 0.7;
 suggestedRemovalRatioEnd.universalStairs = 0.1;
@@ -28,8 +28,6 @@ suggestedRemovalRatioEnd.centaurWalk = 0.1;
 
 suggestedRemovalRatioStart.miniPronk = 0.1;
 suggestedRemovalRatioEnd.miniPronk = 0.1;
-
-
 
 removalRatioStart = suggestedRemovalRatioStart.(taskSelection);
 removalRatioEnd = suggestedRemovalRatioEnd.(taskSelection);

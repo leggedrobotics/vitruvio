@@ -1,45 +1,6 @@
 %% Plot values
 close all;
 
-% plotMotionData(EE, relativeMotionHipEE, meanCyclicMotionHipEE, IF_hip, tLiftoff, tTouchdown, samplingStart, samplingEnd)
-
-
-%% comet plots of end effector motion wrt hip attachment points
-
-% 
-% figure()
-% hold on
-% title('Relative motion of end effector with respect to hip attachment point');
-% subplot(2,2,1)
-% title('Left front end effector');
-% ax=axes;
-% set(ax,'xlim',[x_min x_max], 'ylim',[z_min z_max]);
-% % hold (ax)
-% comet(ax,foot_LF_HipEE.position(:,1), foot_LF_HipEE.position(:,3));
-% 
-% subplot(2,2,2)
-% title('Right front end effector');
-% xlabel('x position [m]');
-% zlabel('z position [m]');
-% ax = axes;
-% comet(ax,foot_RF_HipEE.position(:,1), foot_RF_HipEE.position(:,3));
-% 
-% subplot(2,2,3)
-% title('Left hind end effector');
-% xlabel('x position [m]');
-% zlabel('z position [m]');
-% ax = axes;
-% comet(ax,foot_LH_HipEE.position(:,1), foot_LH_HipEE.position(:,3));
-% 
-% subplot(2,2,4)
-% title('Right hind end effector');
-% xlabel('x position [m]');
-% zlabel('z position [m]');
-% ax = axes;
-% comet(ax,foot_RH_HipEE.position(:,1), foot_RH_HipEE.position(:,3));
-% hold off
-
-
 %% base position and velocity
 figure();
 subplot(5,2,1);
@@ -277,7 +238,6 @@ plot(t, EE.LF.force(:,3), 'b', t, EE.LH.force(:,3), 'g', ...
 hold off
 
 %% Plot mean x vs z position with reachable positions
-
 %LF
 figure()
 

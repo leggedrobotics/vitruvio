@@ -7,12 +7,12 @@
 % this function calls evolveOptimalLeg which runs the simulation
 % runFastJointTorqueSim for each set of link lengths 
 
-clear all 
+clear 
 close all
 
 % select task and robot, configuration and end effector which is to be optimized
-taskSelection = 'massivoWalk';
-robotSelection = 'massivo';
+taskSelection = 'speedyGallop';
+robotSelection = 'speedy';
 [removalRatioStart, removalRatioEnd] = getSuggestedRemovalRatios(taskSelection);
 load(taskSelection);
 dt = t(2) - t(1);
@@ -22,9 +22,9 @@ jointCount = 4; %for forward dynamics EE position computation (only works for =4
 
 % genetic algorithm parameters
 upperBoundMultiplier = 3.3;
-lowerBoundMultiplier = 0.3;
-maxGenerations = 15;
-populationSize = 15;
+lowerBoundMultiplier = 0.7;
+maxGenerations = 20;
+populationSize = 20;
 
 
 if (EEselection == 'LF') | (EEselection == 'RF')
@@ -50,17 +50,6 @@ quadruped = getQuadrupedProperties(robotSelection);
 initialLinkLengths(1) = quadruped.hip(selectFrontHind).length*100; 
 initialLinkLengths(2) = quadruped.thigh(selectFrontHind).length*100;
 initialLinkLengths(3) = quadruped.shank(selectFrontHind).length*100;
-
-%% compute joint torques for initial leg parameters
-
-% numberOfLoopRepetitions = 1;
-% viewVisualization = 0;
-% 
-% initialq.(EEselection).angle = inverseKinematics(meanCyclicMotionHipEE.LF.position, quadruped, EEselection, taskSelection, configSelection);
-% [initialRobotConfig, config] = buildRobotRigidBodyModel(quadruped, initialq, EE, meanCyclicMotionHipEE, EEselection, numberOfLoopRepetitions, viewVisualization);
-% [initialq.(EEselection).angVel, initialq.(EEselection).angAccel] = getJointVelocitiesUsingJacobian(EE, meanCyclicMotionHipEE, initialq, quadruped, 1, dt, EEselection);
-% initialJointTorque.(EEselection) = getInverseDynamics(EEselection, initialq, meanCyclicMotionHipEE, initialRobotConfig, config);
-
 
 %% print statement
 disp('Dimensions given in cm')

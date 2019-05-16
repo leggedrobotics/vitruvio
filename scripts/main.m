@@ -1,61 +1,47 @@
 % main
 
-clear all
-close all
+clear;
+close all;
 
-%% select task and robot to be loaded
-taskSelection = 'universalTrot';
+%% Load task
+% Select task and robot to be loaded
+taskSelection = 'universalTrot'; % universalTrot, universalStairs, speedyGallop, speedyStairs, massivoWalk, massivoStairs, centaurWalk, centaurStairs, miniPronk
 robotSelection = 'universal';
 configSelection = 'M';
-viewVisualization = 1; % 1 is on
-viewPlots = 1;
+viewVisualization = true; 
+viewPlots = true;
 
-fprintf('loading data for %s \n', taskSelection);
+fprintf('Loading data for %s.\n', taskSelection);
 
-%% get suggested removal ratio for cropping motion data to useful steady state motion
-
+% Get suggested removal ratio for cropping motion data to useful steady state motion
 [removalRatioStart, removalRatioEnd] = getSuggestedRemovalRatios(taskSelection);
 
-%% load motion and force data
-% universalTrot
-% universalStairs
-% speedyGallop
-% speedyStairs
-% massivoWalk
-% massivoStairs
-% centaurWalk
-% centaurStairs
-% miniPronk
-
+% Load motion and force data from .mat file
 load(taskSelection);
 
-%% load corresponding robot parameters
-% universal
-% speedy
-% massivo
-% centaur
-% mini
-fprintf('getting quadruped properties \n');
+%% Load corresponding robot parameters
+fprintf('Getting quadruped properties.\n');
 quadruped = getQuadrupedProperties(robotSelection);
-%% get the relative motion of the end effectors to the hips
+
+%% Get the relative motion of the end effectors to the hips
 fprintf('getting motion of end effectors relative to hip attachment points \n');
 [relativeMotionHipEE, IF_hip, C_IBody] = getRelativeMotionEEHips(quat, quadruped, base, EE, dt);
 
-%% get the liftoff and touchdown timings for each end effector
+%% Get the liftoff and touchdown timings for each end effector
 dt = t(2) - t(1);
 fprintf('getting end effector liftoff and touchdown timings \n');
 [tLiftoff, tTouchdown, minStepCount] = getEELiftoffTouchdownTimings(t, EE);
 
-%% get the mean cyclic position and forces
+%% Get the mean cyclic position and forces
 fprintf('getting average relative motion of end effectors for one step \n');
 [meanCyclicMotionHipEE, cyclicMotionHipEE, meanCyclicC_IBody, samplingStart, samplingEnd] = getHipEECyclicData(tLiftoff, tTouchdown, relativeMotionHipEE, EE, removalRatioStart, removalRatioEnd, dt, minStepCount, C_IBody);
 
-%% get reachable positions for plot
+%% Get reachable positions for plot
 fprintf('getting range of motion dependent on link lengths and joint limits \n');
 reachablePositions = getRangeofMotion(quadruped);
 
-%% plot data
-if viewPlots == 1
+%% Plot data
+if viewPlots
     fprintf('plotting data \n');
     plotMotionData;
 end
@@ -117,7 +103,7 @@ EEselection = 'LH';
 EEselection = 'RH';
 [robotConfig, config] = buildRobotRigidBodyModel(quadruped, q, EE, meanCyclicMotionHipEE, EEselection, numberOfLoopRepetitions, viewVisualization);
 
-%% get joint velocities with inverse(Jacobian)* EE.velocity
+%% Get joint velocities with inverse(Jacobian)* EE.velocity
   
 % the joint accelerations are then computed using finite difference
 % seems to be a bug here for EE != LF 
@@ -132,7 +118,7 @@ EEselection = 'LH';
 EEselection = 'RH';
 [q.(EEselection).angVel, q.(EEselection).angAccel] = getJointVelocitiesUsingJacobian(EEselection, meanCyclicMotionHipEE, q, quadruped, dt);
 
-%% get joint torques using inverse dynamics
+%% Get joint torques using inverse dynamics
 
 fprintf('getting joint torques from inverse dynamics \n');
 EEselection = 'LF';
