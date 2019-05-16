@@ -11,20 +11,20 @@ clear all
 close all
 
 % select task and robot, configuration and end effector which is to be optimized
-taskSelection = 'speedyGallop';
-robotSelection = 'speedy';
+taskSelection = 'massivoWalk';
+robotSelection = 'massivo';
 [removalRatioStart, removalRatioEnd] = getSuggestedRemovalRatios(taskSelection);
 load(taskSelection);
 dt = t(2) - t(1);
 configSelection = 'X'; % unreliable
-EEselection = 'LH';
+EEselection = 'RH';
 jointCount = 4; %for forward dynamics EE position computation (only works for =4)and counts EE as a joint
 
 % genetic algorithm parameters
 upperBoundMultiplier = 3.3;
 lowerBoundMultiplier = 0.3;
-maxGenerations = 10;
-populationSize = 10;
+maxGenerations = 15;
+populationSize = 15;
 
 
 if (EEselection == 'LF') | (EEselection == 'RF')
@@ -80,9 +80,12 @@ quadruped.shank(selectFrontHind).length = linkLengths(3)/100;
 numberOfLoopRepetitions = 3;
 viewVisualization = 1;
 
-q.(EEselection).angle = inverseKinematics(meanCyclicMotionHipEE.LF.position, quadruped, EEselection, taskSelection, configSelection);
+q.(EEselection).angle = inverseKinematics(meanCyclicMotionHipEE.(EEselection).position, quadruped, EEselection, taskSelection, configSelection);
 [robotConfig, config] = buildRobotRigidBodyModel(quadruped, q, EE, meanCyclicMotionHipEE, EEselection, numberOfLoopRepetitions, viewVisualization);
 
 %% get joint torques of optimal design
 [q.(EEselection).angVel, q.(EEselection).angAccel] = getJointVelocitiesUsingJacobian(EEselection, meanCyclicMotionHipEE, q, quadruped, dt);
 optimizedJointTorque.(EEselection) = getInverseDynamics(EEselection, q, meanCyclicMotionHipEE, robotConfig, config);
+
+%% plot joint torque over time for initial and optimized designs
+plotOptimizedJointTorque;

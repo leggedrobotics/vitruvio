@@ -1,4 +1,4 @@
-%% get joint torque and position, vel, accel for initial link lengths
+%% get joint torque and posi for initial link lengths
 
 %% get quadruped properties
 quadruped = getQuadrupedProperties(robotSelection);

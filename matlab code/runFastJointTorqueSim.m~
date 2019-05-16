@@ -40,7 +40,7 @@ viewVisualization = 0;
 
 %% get joint velocities with inverse(Jacobian)* EE.velocity
   % the joint accelerations are then computed using finite difference
-[q.(EEselection).angVel, q.(EEselection).angAccel] = getJointVelocitiesUsingJacobian(EE, meanCyclicMotionHipEE, q, quadruped, 1, dt, EEselection);
+[q.(EEselection).angVel, q.(EEselection).angAccel] = getJointVelocitiesUsingJacobian(EEselection, meanCyclicMotionHipEE, q, quadruped, dt);
 
 %% get joint torques using inverse dynamics
 jointTorque.(EEselection) = getInverseDynamics(EEselection, q, meanCyclicMotionHipEE, robotConfig, config);
@@ -64,7 +64,9 @@ jointTorque.(EEselection) = getInverseDynamics(EEselection, q, meanCyclicMotionH
   
 %   penalty = sum(sum((abs(jointTorque.(EEselection))))) + 1000*norm(q.(EEselection).angle(:,1)) + 100*errorPositionEE + 10000*positionKneeEEPenalty;
 %   penalty =  10*sum(linkLengths);
+fprintf('torque penalty %d \n', (1/100)*sum(sum((abs(jointTorque.(EEselection))))))
+fprintf('position error penalty %d \n', 1000*errorPositionEE)
 
- penalty = sum(sum((abs(jointTorque.(EEselection))))) + 100*errorPositionEE;
+penalty = (1/100)*sum(sum((abs(jointTorque.(EEselection))))) + 10000*errorPositionEE;
 
 end
