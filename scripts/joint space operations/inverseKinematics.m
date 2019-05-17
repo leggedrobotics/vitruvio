@@ -7,18 +7,14 @@
   tol = 0.0001;
   it = 0;
   r_H_HEE_des = desiredPositionHipEE;
- 
   % Set the maximum number of iterations.
   max_it = 1000;
 
-  %% get initial guess q0 for desired configuration
-
+  %% Get initial guess q0 for desired configuration
   q0 = getInitialJointAnglesForDesiredConfig(taskSelection, EEselection, configSelection);
-  
   % Initialize the solution with the initial guess.
   q = q0';  
   jointPositions = zeros(length(desiredPositionHipEE(:,1)),4);
-
   % Damping factor.
   lambda = 0.001;
   
@@ -45,7 +41,9 @@
 %       fprintf('Position error: %e.\n',norm(dr));
       jointPositions(i,:) = q';
   end
-  
+
+ % this bit seems to be unecessary after updating 0.5dq to 0.05dq but still
+ % requires tesing before I delete it
 % %% get smallest positive q that is equivalent to the one calculated by IK 
 %      for i = 1:length(jointPositions(:,1))
 %          for j = 1:length(jointPositions(1,:))

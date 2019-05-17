@@ -4,12 +4,9 @@ function [relativeMotionHipEE, IF_hip, C_IBody] = getRelativeMotionEEHips(quat, 
 
 %% get hip positions
 
-%load quaternion for each time step into q. These describe rotations of the
-%center of mass in the inertial frame
-
-%quat =  [orientation w, orientation x, orientation y, orientation z]
-% take negative of rotation angles because now we are rotating back from
-% body frame to inertial frame?
+% Load quaternion for each time step into q. These describe rotations of the
+% center of mass in the inertial frame
+% quat =  [orientation w, orientation x, orientation y, orientation z]
 
 %% Convert quaternion to rotation matrix and get hip positions in world frame
 % R = quat2rotm(Q) converts a plotunit quaternion, Q, into an orthonormal
@@ -33,23 +30,22 @@ function [relativeMotionHipEE, IF_hip, C_IBody] = getRelativeMotionEEHips(quat, 
 % fixed value based on the quadruped properties
 
 for i = 1:length(quat)
-C_IBody(:,:,i) = quat2rotm(quat(i,:));                                                              
-IF_hip.LF.position(i,:) = quadruped.nomHipPos(1,:)*C_IBody(:,:,i) + [base.position(i,1) base.position(i,2) base.position(i,3)];
-IF_hip.LH.position(i,:) = quadruped.nomHipPos(2,:)*C_IBody(:,:,i) + [base.position(i,1) base.position(i,2) base.position(i,3)];
-IF_hip.RF.position(i,:) = quadruped.nomHipPos(3,:)*C_IBody(:,:,i) + [base.position(i,1) base.position(i,2) base.position(i,3)];
-IF_hip.RH.position(i,:) = quadruped.nomHipPos(4,:)*C_IBody(:,:,i) + [base.position(i,1) base.position(i,2) base.position(i,3)];
+    C_IBody(:,:,i) = quat2rotm(quat(i,:));                                                              
+    IF_hip.LF.position(i,:) = quadruped.nomHipPos(1,:)*C_IBody(:,:,i) + [base.position(i,1) base.position(i,2) base.position(i,3)];
+    IF_hip.LH.position(i,:) = quadruped.nomHipPos(2,:)*C_IBody(:,:,i) + [base.position(i,1) base.position(i,2) base.position(i,3)];
+    IF_hip.RF.position(i,:) = quadruped.nomHipPos(3,:)*C_IBody(:,:,i) + [base.position(i,1) base.position(i,2) base.position(i,3)];
+    IF_hip.RH.position(i,:) = quadruped.nomHipPos(4,:)*C_IBody(:,:,i) + [base.position(i,1) base.position(i,2) base.position(i,3)];
 end
 
 % we have coordinates of each foot and hip in inertia frame, subtracting
 % them gives the relative position and velocity of the feet to the hips.
 % This simulates a fixed hip allowing observation of the foot position.
+ relativeMotionHipEE.LF.position = EE.LF.position - IF_hip.LF.position;
+ relativeMotionHipEE.LH.position = EE.LH.position - IF_hip.LH.position;
+ relativeMotionHipEE.RF.position = EE.RF.position - IF_hip.RF.position;
+ relativeMotionHipEE.RH.position = EE.RH.position - IF_hip.RH.position;
 
-relativeMotionHipEE.LF.position = EE.LF.position - IF_hip.LF.position;
-relativeMotionHipEE.LH.position = EE.LH.position - IF_hip.LH.position;
-relativeMotionHipEE.RF.position = EE.RF.position - IF_hip.RF.position;
-relativeMotionHipEE.RH.position = EE.RH.position - IF_hip.RH.position;
-
-% compute velocities by finite differences
+% start from rest
  relativeMotionHipEE.LF.velocity(1,:) = [0 0 0];
  relativeMotionHipEE.LH.velocity(1,:) = [0 0 0];
  relativeMotionHipEE.RF.velocity(1,:) = [0 0 0];
