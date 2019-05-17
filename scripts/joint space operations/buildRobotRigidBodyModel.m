@@ -1,13 +1,9 @@
 %% buildRobotRigidBodyModel
 
 %% Read in data for quadruped geometry
-function [robotConfig, config] = buildRobotRigidBodyModel(quadruped, q, EE, meanCyclicMotionHipEE, EEselection, numberOfLoopRepetitions, viewVisualization) 
+function robot = buildRobotRigidBodyModel(quadruped, Leg, meanCyclicMotionHipEE, EEselection, numberOfLoopRepetitions, viewVisualization) 
 
-%% get quadruped properties for selected end effector
-EE_name = fieldnames(EE);
-
-%% Build quadruped rigid body model using 4x4 transformation matrices
-  
+%% get quadruped properties for selected end effector  
 if (EEselection == 'LF') | (EEselection == 'RF')
     selectFrontHind = 1;
     else selectFrontHind = 2;
@@ -32,44 +28,34 @@ yNom.RH = -quadruped.yNom(2);
 
 zNom = quadruped.zNom; % equal for each hip attachment point
 
-% create array of end effector names, user input of end effector selection
-% chooses the end effector from this array
-EE_name = fieldnames(EE)';
-
 %% Build quadruped rigid body model 
-% using transforms to align joints with z axis then configurations 
-% to specify rotation angle about z axis
-
 % rotations to align z axis with rotational axis of joint and translations
 % along length of link
+
+T_HAA =           [0, 0, 1, 0;
+                   0, 1, 0, 0;
+                  -1, 0, 0, 0;
+                   0, 0, 0, 1];
 
 T_HFEattachment = [1,  0, 0, l_hip;
                    0,  0, 1, 0;
                    0, -1, 0, 0;
                    0,  0, 0, 1];
 
-T_HAA = [0, 0, 1, 0;
-         0, 1, 0, 0;
-        -1, 0, 0, 0;
-         0, 0, 0, 1];
+T_HFE =           [1, 0, 0, l_thigh;
+                   0  1, 0, 0;
+                   0, 0, 1, 0;
+                   0, 0, 0, 1];
 
-T_HFE = [1, 0, 0, l_thigh;
-         0  1, 0, 0;
-         0, 0, 1, 0;
-         0, 0, 0, 1];
-
-T_KFE = [1, 0, 0, l_shank;
-         0, 1, 0, 0;
-         0, 0, 1, 0;
-         0, 0, 0, 1];
+T_KFE =           [1, 0, 0, l_shank;
+                   0, 1, 0, 0;
+                   0, 0, 1, 0;
+                   0, 0, 0, 1];
                    
 %% Create and assemble rigid bodies
-
 % Create a rigid body tree object to build the robot.
-robotConfig = robotics.RigidBodyTree('DataFormat', 'row');
-
- %% Define bodies and joints
-
+robot = robotics.RigidBodyTree('DataFormat', 'row');
+% Create bodies and joints 
 body1 = robotics.RigidBody('body1');
 body2 = robotics.RigidBody('body2');
 body3 = robotics.RigidBody('body3');
@@ -86,61 +72,54 @@ body3.Mass = quadruped.shank(selectFrontHind).mass;
 body4.Mass = quadruped.toe(selectFrontHind).mass;        
 
 % inertia = [Ixx Iyy Izz Iyz Ixz Ixy] relative to body frame in kg/m^2
-% Update the EE values or combine with body 3
-% Needed Ixx term to have positive definite matrix
-body1.Inertia = [0.00001  1/3*body1.Mass*l_hip^2    1/3*body1.Mass*l_hip^2    0 0 0]; %hip      
-body2.Inertia = [0.00001  1/3*body2.Mass*l_thigh^2    1/3*body2.Mass*l_thigh^2    0 0 0]; %thigh
-body3.Inertia = [0.00001  1/3*body3.Mass*l_shank^2  1/3*body3.Mass*l_shank^2  0 0 0]; %shank
-body4.Inertia = [0.00001 0.00001 0.00001 0 0 0]; %EE
+% note that body3.Inertia encompasses shank and end effector inertia terms
+body1.Inertia = [0.000001  1/3*body1.Mass*l_hip^2                             1/3*body1.Mass*l_hip^2                             0 0 0]; %hip      
+body2.Inertia = [0.000001  1/3*body2.Mass*l_thigh^2                           1/3*body2.Mass*l_thigh^2                           0 0 0]; %thigh
+body3.Inertia = [0.000001  1/3*body3.Mass*l_shank^2+1/2*body4.Mass*l_shank^2  1/3*body3.Mass*l_shank^2+1/2*body4.Mass*l_shank^2  0 0 0]; %shank
+body4.Inertia = [0.000001  0.000001                                           0.000001                                           0 0 0]; %EE
 
 % center of mass and mass terms do not affect inertia but are used 
-% to compute torque due to gravitational force?
+% to compute torque due to gravitational force
 body1.CenterOfMass = [0.5*quadruped.hip(selectFrontHind).length   0 0];
 body2.CenterOfMass = [0.5*quadruped.thigh(selectFrontHind).length 0 0];
 body3.CenterOfMass = [0.5*quadruped.shank(selectFrontHind).length 0 0]; 
 body4.CenterOfMass = [0 0 0];
 
-%% set joint transforms - these are only translations, the angles are specified in the configuration
-         
-  setFixedTransform(jnt1, T_HAA);
-  setFixedTransform(jnt2, T_HFEattachment);
-  setFixedTransform(jnt3, T_HFE); % this needs to be rotation about z
-  setFixedTransform(jnt4, T_KFE);            
+%% set joint transforms - these are only translations, the joint positions are specified in the config array   
+setFixedTransform(jnt1, T_HAA);
+setFixedTransform(jnt2, T_HFEattachment);
+setFixedTransform(jnt3, T_HFE);
+setFixedTransform(jnt4, T_KFE);            
 
-  body1.Joint = jnt1;
-  body2.Joint = jnt2;
-  body3.Joint = jnt3;
-  body4.Joint = jnt4;
+body1.Joint = jnt1;
+body2.Joint = jnt2;
+body3.Joint = jnt3;
+body4.Joint = jnt4;
 
 %% specify connections between bodies
-addBody(robotConfig,body1,'base');
-addBody(robotConfig,body2,'body1');
-addBody(robotConfig,body3,'body2');
-addBody(robotConfig,body4,'body3');
+addBody(robot, body1,'base');
+addBody(robot, body2,'body1');
+addBody(robot, body3,'body2');
+addBody(robot, body4,'body3');
 
-robotConfig.Gravity = [0 0 -9.8];
+robot.Gravity = [0 0 -9.8];
             
-%% Display robot and details
-            
-
-
-for i = 1:length(q.(EEselection).angle)
-   
-    config(i,:) = [q.(EEselection).angle(i,1), ...
-                q.(EEselection).angle(i,2), ...
-                q.(EEselection).angle(i,3)];
+%% Display robot 
+for i = 1:length(Leg.(EEselection).q)
+    config(i,:) = [Leg.(EEselection).q(i,1), ...
+                   Leg.(EEselection).q(i,2), ...
+                   Leg.(EEselection).q(i,3)];
 end
 
 if viewVisualization
     for j = 1: numberOfLoopRepetitions
-        for i = 1:length(q.(EEselection).angle)
-
+        for i = 1:length(Leg.(EEselection).q)
             xlim([-0.5 0.5]);
             ylim([-0.5 0.5]);
             zlim([-0.8 0.2]);
 
             figure(11)
-            show(robotConfig,config(i,:));
+            show(robot,config(i,:));
 
             hold on
             plot3(meanCyclicMotionHipEE.(EEselection).position(:,1),meanCyclicMotionHipEE.(EEselection).position(:,2),meanCyclicMotionHipEE.(EEselection).position(:,3),'r', 'LineWidth', 3)

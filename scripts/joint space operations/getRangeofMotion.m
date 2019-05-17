@@ -1,5 +1,3 @@
-%% compute range of motion of EE
-
 function [reachablePositions] = getRangeofMotion(quadruped)
 
 l_hip(1) = quadruped.hip(1).length;
@@ -26,12 +24,8 @@ q4 = q4_min:0.1:q4_max;
 
 [THETA2,THETA3] = meshgrid(q2,q3); % generate a grid of theta1 and theta2 values
 
-% front legs
-
 X_front =  l_thigh(1) * sin(THETA2) + l_shank(1) * sin(THETA2 + THETA3); % compute x coordinates
 Z_front = -l_hip(1) + -l_thigh(1) * cos(THETA2) - l_shank(1) * cos(THETA2 + THETA3); % compute z coordinates
-
-% hind legs
 X_hind =  l_thigh(2) * sin(THETA2) + l_shank(2) * sin(THETA2 + THETA3); % compute x coordinates
 Z_hind = -l_hip(2) + -l_thigh(2) * cos(THETA2) - l_shank(2) * cos(THETA2 + THETA3); % compute z coordinates
 

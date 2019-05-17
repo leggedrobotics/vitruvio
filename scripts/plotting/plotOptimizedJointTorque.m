@@ -1,64 +1,60 @@
-%plots joint torque and velocity for initial and optimized link lengths
-function [] = plotOptimizedJointTorque(jointTorque, jointTorqueOpt, EEselection, dt, q, qOpt)
-time = 0:dt:length(jointTorque.(EEselection))*dt-dt;
-
+function [] = plotOptimizedJointTorque(Leg, EEselection, dt)
 %% joint torque plots
-figure()
-title('Joint torques for initial and optimized link lenghts')
+time = 0:dt:length(Leg.(EEselection).jointTorque)*dt-dt;
 
+figure()
 subplot(3,1,1)
-plot(time, jointTorque.(EEselection)(:,1), 'r', ...
-     time, jointTorqueOpt.(EEselection)(:,1),'b')
-ylabel('joint torque [N]');
-title('HAA') 
-legend ('initial leg design', 'optimized leg design')
-grid on
+    plot(time, Leg.(EEselection).jointTorque(:,1), 'r', ...
+         time, Leg.(EEselection).jointTorqueOpt(:,1),'b')
+    ylabel('joint torque \tau [N]');
+    title({EEselection,'HAA torque'})
+    legend ('initial leg design', 'optimized leg design')
+    grid on
 
 subplot(3,1,2)
-plot(time, jointTorque.(EEselection)(:,2), 'r', ...
-     time, jointTorqueOpt.(EEselection)(:,2),'b')
-ylabel('joint torque [N]');
-title('HFE') 
-legend ('initial leg design', 'optimized leg design')
-grid on
+    plot(time, Leg.(EEselection).jointTorque(:,2), 'r', ...
+         time, Leg.(EEselection).jointTorqueOpt(:,2),'b')
+    ylabel('joint torque \tau [N]');
+    title('HFE torque')
+    legend ('initial leg design', 'optimized leg design')
+    grid on
 
 subplot(3,1,3)
-plot(time, jointTorque.(EEselection)(:,3), 'r', ...
-     time, jointTorqueOpt.(EEselection)(:,3),'b')
-xlabel('time [s]');
-ylabel('joint torque [N]')
-title('KFE') 
-legend ('initial leg design', 'optimized leg design')
-grid on
+    plot(time, Leg.(EEselection).jointTorque(:,3), 'r', ...
+         time, Leg.(EEselection).jointTorqueOpt(:,3),'b')
+    xlabel('time [s]');
+    ylabel('joint torque \tau [N]')
+    title('KFE torque')
+    legend ('initial leg design', 'optimized leg design')
+    grid on
 
 %% joint velocity plots
-% for joint torques we lose one time step due to taking finite difference
-% for acceleration
+% for joint torques we had one time step less due to taking finite difference
+% for acceleration computation
 time = [time time(end)+dt];
-figure()
-title('Joint velocity for initial and optimized link lenghts')
 
+figure()
 subplot(3,1,1)
-plot(time, q.(EEselection).angVel(:,1), 'r', ...
-     time, qOpt.(EEselection).angVel(:,1),'b')
-ylabel('joint velocity [rad/s]');
-title('HAA') 
-legend ('initial leg design', 'optimized leg design')
-grid on
+    plot(time, Leg.(EEselection).qdot(:,1), 'r', ...
+         time, Leg.(EEselection).qdotOpt(:,1),'b')
+    ylabel('joint velocity $\dot{q}$ [rad/s]','interpreter','latex');
+    title({EEselection,'HAA velocity'})
+    legend ('initial leg design', 'optimized leg design')
+    grid on
 
 subplot(3,1,2)
-plot(time, q.(EEselection).angVel(:,2), 'r', ...
-     time, qOpt.(EEselection).angVel(:,2),'b')
-ylabel('joint velocity [rad/s]');
-title('HFE') 
-legend ('initial leg design', 'optimized leg design')
-grid on
+    plot(time, Leg.(EEselection).qdot(:,2), 'r', ...
+         time, Leg.(EEselection).qdotOpt(:,2),'b')
+    ylabel('joint velocity $\dot{q}$ [rad/s]','interpreter','latex');
+    title('HFE velocity')
+    legend ('initial leg design', 'optimized leg design')
+    grid on
 
 subplot(3,1,3)
-plot(time, q.(EEselection).angVel(:,3), 'r', ...
-     time, qOpt.(EEselection).angVel(:,3),'b')
-xlabel('time [s]');
-ylabel('joint velocity [rad/s]')
-title('KFE') 
-legend ('initial leg design', 'optimized leg design')
-grid on
+    plot(time, Leg.(EEselection).qdot(:,3), 'r', ...
+         time, Leg.(EEselection).qdotOpt(:,3),'b')
+    xlabel('time [s]');
+    ylabel('joint velocity $\dot{q}$ [rad/s]','interpreter','latex')
+    title('KFE velocity')
+    legend ('initial leg design', 'optimized leg design')
+    grid on

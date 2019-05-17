@@ -1,16 +1,28 @@
 clear;
 close all;
 
+%% Toggle visualization and optimization functions
+% trajectory data and initial leg design
+viewVisualization = false; 
+numberOfLoopRepetitions = 1;
+viewTrajectoryPlots = false;
+
+% optimization
+runOptimization = true;
+viewOptimizationVisualization = false;
+viewOptimizedLegPlot = true;
+optimizeLF = true; 
+optimizeLH = false; 
+optimizeRF = false; 
+optimizeRH = false;
+
 %% Load task
 % Select task and robot to be loaded
 taskSelection = 'universalTrot'; % universalTrot, universalStairs, speedyGallop, speedyStairs, massivoWalk, massivoStairs, centaurWalk, centaurStairs, miniPronk
 robotSelection = 'universal';
 configSelection = 'M';
-viewVisualization = false; 
-viewPlots = false;
-runOptimization = true;
-
-fprintf('Loading data for %s.\n', taskSelection);
+EEnames = ['LF'; 'RF'; 'LH'; 'RH'];
+fprintf('Loading data for task %s.\n', taskSelection);
 
 % Get suggested removal ratio for cropping motion data to useful steady state motion
 [removalRatioStart, removalRatioEnd] = getSuggestedRemovalRatios(taskSelection);
@@ -19,145 +31,117 @@ fprintf('Loading data for %s.\n', taskSelection);
 load(taskSelection);
 
 %% Load corresponding robot parameters
-fprintf('Getting quadruped properties.\n');
+fprintf('Loading quadruped properties for %s.\n', robotSelection);
 quadruped = getQuadrupedProperties(robotSelection);
 
 %% Get the relative motion of the end effectors to the hips
-fprintf('getting motion of end effectors relative to hip attachment points \n');
+fprintf('Computing motion of end effectors relative to hip attachment points \n');
 [relativeMotionHipEE, IF_hip, C_IBody] = getRelativeMotionEEHips(quat, quadruped, base, EE, dt);
 
 %% Get the liftoff and touchdown timings for each end effector
 dt = t(2) - t(1);
-fprintf('getting end effector liftoff and touchdown timings \n');
+fprintf('Computing end effector liftoff and touchdown timings \n');
 [tLiftoff, tTouchdown, minStepCount] = getEELiftoffTouchdownTimings(t, EE);
 
-%% Get the mean cyclic position and forces
-fprintf('getting average relative motion of end effectors for one step \n');
+%% Get the mean cyclic position and forces for each end effector
+fprintf('Computing average relative motion of end effectors over one step \n');
 [meanCyclicMotionHipEE, cyclicMotionHipEE, meanCyclicC_IBody, samplingStart, samplingEnd] = getHipEECyclicData(tLiftoff, tTouchdown, relativeMotionHipEE, EE, removalRatioStart, removalRatioEnd, dt, minStepCount, C_IBody);
 
-%% Get reachable positions for plot
-fprintf('getting range of motion dependent on link lengths and joint limits \n');
+%% Get reachable positions for link lengths and joint limits
+fprintf('Computing range of motion dependent on link lengths and joint limits \n');
 reachablePositions = getRangeofMotion(quadruped);
 
-%% Plot data
-if viewPlots
-    fprintf('plotting data \n');
+%% Plot trajectory data
+if viewTrajectoryPlots
+    fprintf('Plotting data \n');
     plotMotionData;
 end
 
 %% Inverse kinematics to calculate joint angles for each leg joint
-fprintf('getting joint angles from inverse kinematics \n');
+fprintf('Computing joint angles using inverse kinematics \n');
+for i = 1:4
+    EEselection = EEnames(i,:);
+    Leg.(EEselection).q = inverseKinematics(meanCyclicMotionHipEE, quadruped, EEselection, taskSelection, configSelection);
+end
 
-EEselection = 'LF';
-q.(EEselection).angle = inverseKinematics(meanCyclicMotionHipEE.(EEselection).position, quadruped, EEselection, taskSelection, configSelection);
-
-EEselection = 'LH';
-q.(EEselection).angle = inverseKinematics(meanCyclicMotionHipEE.(EEselection).position, quadruped, EEselection, taskSelection, configSelection);
-
-EEselection = 'RF';
-q.(EEselection).angle = inverseKinematics(meanCyclicMotionHipEE.(EEselection).position, quadruped, EEselection, taskSelection, configSelection);
-
-EEselection = 'RH';
-q.(EEselection).angle = inverseKinematics(meanCyclicMotionHipEE.(EEselection).position, quadruped, EEselection, taskSelection, configSelection);
-
-%% Forward kinematics to get joint positions based on angles q solved in IK
-% this validates results of IK
-
+%% Forward kinematics to get joint positions relative to hip attachment point
+fprintf('Computing joint positions relative to the hip attachment point using forward kinematics \n');
 jointCount = 4; % [HAA HFE KFE EE] not yet able to handle AFE joint
-fprintf('getting joint positions from forward kinematics \n');
+for i = 1:4
+    EEselection = EEnames(i,:);
+    Leg.(EEselection).r = getJointPositions(quadruped, Leg, jointCount, EEselection);
+end
 
-EEselection = 'LF';
-r.(EEselection) = getJointPositions(quadruped, q, jointCount, EEselection);
-
-EEselection = 'LH';
-r.(EEselection) = getJointPositions(quadruped, q, jointCount, EEselection);
-
-EEselection = 'RF';
-r.(EEselection) = getJointPositions(quadruped, q, jointCount, EEselection);
-
-EEselection = 'RH';
-r.(EEselection) = getJointPositions(quadruped, q, jointCount, EEselection);
-%% Build robot model with configuration method - required for inverse dynamics solver
-fprintf('creating robot rigid body model with configuration method \n');
-numberOfLoopRepetitions = 1;
-
-EEselection = 'LF';
-[robotConfig, config] = buildRobotRigidBodyModel(quadruped, q, EE, meanCyclicMotionHipEE, EEselection, numberOfLoopRepetitions, viewVisualization);
-
-EEselection = 'LH';
-[robotConfig, config] = buildRobotRigidBodyModel(quadruped, q, EE, meanCyclicMotionHipEE, EEselection, numberOfLoopRepetitions, viewVisualization);
-
-EEselection = 'RF';
-[robotConfig, config] = buildRobotRigidBodyModel(quadruped, q, EE, meanCyclicMotionHipEE, EEselection, numberOfLoopRepetitions, viewVisualization);
-
-EEselection = 'RH';
-[robotConfig, config] = buildRobotRigidBodyModel(quadruped, q, EE, meanCyclicMotionHipEE, EEselection, numberOfLoopRepetitions, viewVisualization);
+%% Build robot rigid body model
+fprintf('Creating robot rigid body model \n');
+for i = 1:4
+    EEselection = EEnames(i,:);
+    Leg.(EEselection).rigidBodyModel = buildRobotRigidBodyModel(quadruped, Leg, meanCyclicMotionHipEE, EEselection, numberOfLoopRepetitions, viewVisualization);
+end
 
 %% Get joint velocities with inverse(Jacobian)* EE.velocity
 % the joint accelerations are then computed using finite difference
-fprintf('getting joint velocities and accelerations \n');
-
-EEselection = 'LF';
-[q.(EEselection).angVel, q.(EEselection).angAccel] = getJointVelocitiesUsingJacobian(EEselection, meanCyclicMotionHipEE, q, quadruped, dt);
-
-EEselection = 'LH';
-[q.(EEselection).angVel, q.(EEselection).angAccel] = getJointVelocitiesUsingJacobian(EEselection, meanCyclicMotionHipEE, q, quadruped, dt);
-
-EEselection = 'RF';
-[q.(EEselection).angVel, q.(EEselection).angAccel] = getJointVelocitiesUsingJacobian(EEselection, meanCyclicMotionHipEE, q, quadruped, dt);
-
-EEselection = 'RH';
-[q.(EEselection).angVel, q.(EEselection).angAccel] = getJointVelocitiesUsingJacobian(EEselection, meanCyclicMotionHipEE, q, quadruped, dt);
+fprintf('Computing joint velocities and accelerations \n');
+for i = 1:4
+    EEselection = EEnames(i,:);
+    [Leg.(EEselection).qdot, Leg.(EEselection).qdotdot] = getJointVelocitiesUsingJacobian(EEselection, meanCyclicMotionHipEE, Leg, quadruped, dt);
+end
 
 %% Get joint torques using inverse dynamics
-fprintf('getting joint torques from inverse dynamics \n');
+fprintf('Computing joint torques using inverse dynamics \n');
+for i = 1:4
+    EEselection = EEnames(i,:);
+    Leg.(EEselection).jointTorque = getInverseDynamics(EEselection, Leg, meanCyclicMotionHipEE);
+end
 
-EEselection = 'LF';
-jointTorque.(EEselection) = getInverseDynamics(EEselection, q, meanCyclicMotionHipEE, robotConfig, config);
+%% Optimize selected legs
+if runOptimization
+    % Set optimization properties
+    optimizationProperties.upperBoundMultiplier = 3.3;
+    optimizationProperties.lowerBoundMultiplier = 0.7;
+    optimizationProperties.maxGenerations = 10;
+    optimizationProperties.populationSize = 10;
+    optimizationProperties.viewVisualization = viewOptimizationVisualization;
+    optimizationProperties.displayBestCurrentLinkLengths = false;
 
-EEselection = 'LH';
-jointTorque.(EEselection) = getInverseDynamics(EEselection, q, meanCyclicMotionHipEE, robotConfig, config);
-
-EEselection = 'RF';
-jointTorque.(EEselection) = getInverseDynamics(EEselection, q, meanCyclicMotionHipEE, robotConfig, config);
-
-EEselection = 'RH';
-jointTorque.(EEselection) = getInverseDynamics(EEselection, q, meanCyclicMotionHipEE, robotConfig, config);
-
-%% Optimize selected leg
-% set optimization properties
-upperBoundMultiplier = 3.3;
-lowerBoundMultiplier = 0.7;
-maxGenerations = 10;
-populationSize = 10;
-viewOptimizedLegPlot = true;
-viewVisualization = false;
-
-
-% select leg to be optimized
-EEselection = 'RF';
-[jointTorqueOpt.(EEselection), qOpt.(EEselection).angVel, qOpt.(EEselection).angAccel] = evolveAndVisualizeOptimalLeg(viewVisualization, upperBoundMultiplier, lowerBoundMultiplier, maxGenerations, populationSize, EEselection, meanCyclicMotionHipEE, quadruped, jointCount, configSelection, dt, taskSelection, EE);
-
-% EEselection = 'LH';
-% [jointTorqueOpt.(EEselection), qOpt.(EEselection).angVel, qOpt.(EEselection).angAccel] = evolveAndVisualizeOptimalLeg(viewVisualization, upperBoundMultiplier, lowerBoundMultiplier, maxGenerations, populationSize, EEselection, meanCyclicMotionHipEE, quadruped, jointCount, configSelection, dt, taskSelection, EE);
-% 
-% EEselection = 'RF';
-% [jointTorqueOpt.(EEselection), qOpt.(EEselection).angVel, qOpt.(EEselection).angAccel] = evolveAndVisualizeOptimalLeg(viewVisualization, upperBoundMultiplier, lowerBoundMultiplier, maxGenerations, populationSize, EEselection, meanCyclicMotionHipEE, quadruped, jointCount, configSelection, dt, taskSelection, EE);
-% 
-% EEselection = 'RH';
-% [jointTorqueOpt.(EEselection), qOpt.(EEselection).angVel, qOpt.(EEselection).angAccel] = evolveAndVisualizeOptimalLeg(viewVisualization, upperBoundMultiplier, lowerBoundMultiplier, maxGenerations, populationSize, EEselection, meanCyclicMotionHipEE, quadruped, jointCount, configSelection, dt, taskSelection, EE);
-
+    if optimizeLF
+        EEselection = 'LF';
+        fprintf('\nInitiating optimization of link lengths for %s\n', EEselection);
+        [Leg.(EEselection).jointTorqueOpt, Leg.(EEselection).qdotOpt, Leg.(EEselection).qdotdotOpt] = evolveAndVisualizeOptimalLeg(optimizationProperties, EEselection, meanCyclicMotionHipEE, quadruped, jointCount, configSelection, dt, taskSelection, EE);
+    end 
+    if optimizeLH
+        EEselection = 'LH';
+        fprintf('\nInitiating optimization of link lengths for %s\n', EEselection);
+        [Leg.(EEselection).jointTorqueOpt, Leg.(EEselection).qdotOpt, Leg.(EEselection).qdotdotOpt] = evolveAndVisualizeOptimalLeg(optimizationProperties, EEselection, meanCyclicMotionHipEE, quadruped, jointCount, configSelection, dt, taskSelection, EE);
+    end
+    if optimizeRF
+        EEselection = 'RF';
+        fprintf('\nInitiating optimization of link lengths for %s\n', EEselection);
+        [Leg.(EEselection).jointTorqueOpt, Leg.(EEselection).qdotOpt, Leg.(EEselection).qdotdotOpt] = evolveAndVisualizeOptimalLeg(optimizationProperties, EEselection, meanCyclicMotionHipEE, quadruped, jointCount, configSelection, dt, taskSelection, EE);
+    end
+    if optimizeRH
+        EEselection = 'RH';
+        fprintf('\nInitiating optimization of link lengths for %s\n', EEselection);
+        [Leg.(EEselection).jointTorqueOpt, Leg.(EEselection).qdotOpt, Leg.(EEselection).qdotdotOpt] = evolveAndVisualizeOptimalLeg(optimizationProperties, EEselection, meanCyclicMotionHipEE, quadruped, jointCount, configSelection, dt, taskSelection, EE);
+    end  
+end
 %% plot joint torque and speed for initial and optimized design
 if viewOptimizedLegPlot
-    EEselection = 'RF';
-    plotOptimizedJointTorque(jointTorque, jointTorqueOpt, EEselection, dt, q, qOpt)
-    
-%     EEselection = 'LH';
-%     plotOptimizedJointTorque(jointTorque, jointTorqueOpt, EEselection, dt, q, qOpt)
-%     
-%     EEselection = 'RF';
-%     plotOptimizedJointTorque(jointTorque, jointTorqueOpt, EEselection, dt, q, qOpt)
-%     
-%     EEselection = 'RH';
-%     plotOptimizedJointTorque(jointTorque, jointTorqueOpt, EEselection, dt, q, qOpt)
+    fprintf('Plotting joint data for initial and optimized leg designs \n');
+    if optimizeLF
+        EEselection = 'LF';
+        plotOptimizedJointTorque(Leg, EEselection, dt)
+    end
+    if optimizeLH
+        EEselection = 'LH';
+        plotOptimizedJointTorque(Leg, EEselection, dt)
+    end
+    if optimizeRF
+        EEselection = 'RF';
+        plotOptimizedJointTorque(Leg, EEselection, dt)
+    end
+    if optimizeRH
+        EEselection = 'RH';
+        plotOptimizedJointTorque(Leg, EEselection, dt)
+    end
 end
