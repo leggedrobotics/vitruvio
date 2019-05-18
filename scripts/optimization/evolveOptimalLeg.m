@@ -1,4 +1,3 @@
-
 function [linkLengths, penaltyMin] = evolveOptimalLeg(optimizationProperties, initialLinkLengths, taskSelection, quadruped, configSelection, EEselection, EE, dt, jointCount, meanCyclicMotionHipEE)
 if (EEselection == 'LF') | (EEselection == 'RF')
          selectFrontHind = 1;
@@ -22,7 +21,7 @@ upperBnd = round(optimizationProperties.upperBoundMultiplier*initialLinkLengths)
 lowerBnd = round(optimizationProperties.lowerBoundMultiplier*initialLinkLengths);
 
 %% Run optimization
-costFcn = @(linkLengths)runFastJointTorqueSim(quadruped, linkLengths, selectFrontHind, taskSelection, EE, dt, configSelection, EEselection, jointCount, meanCyclicMotionHipEE);
+costFcn = @(linkLengths)runFastJointTorqueSim(optimizationProperties, quadruped, linkLengths, selectFrontHind, taskSelection, EE, dt, configSelection, EEselection, jointCount, meanCyclicMotionHipEE);
 disp(['Running optimization. Population: ' num2str(opts.PopulationSize) ...
       ', Max Generations: ' num2str(opts.MaxGenerations)])
   

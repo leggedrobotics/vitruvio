@@ -2,25 +2,40 @@ clear;
 close all;
 
 %% Toggle visualization and optimization functions
-% trajectory data and initial leg design
+% Toggle trajectory data plots and initial leg design visualization 
 viewVisualization = false; 
 numberOfLoopRepetitions = 1;
 viewTrajectoryPlots = false;
 
-% optimization
+% Toggle optimization and set optimization properties
 runOptimization = true;
-viewOptimizationVisualization = false;
 viewOptimizedLegPlot = true;
 optimizeLF = true; 
 optimizeLH = false; 
 optimizeRF = false; 
 optimizeRH = false;
+optimizationProperties.viewVisualization = true;
+optimizationProperties.displayBestCurrentLinkLengths = false; %display chart while running ga
+optimizationProperties.upperBoundMultiplier = 3.3;
+optimizationProperties.lowerBoundMultiplier = 0.2;
+optimizationProperties.maxGenerations = 20;
+optimizationProperties.populationSize = 20;
+optimizationProperties.penaltyWeight.totalTorque = 0;
+optimizationProperties.penaltyWeight.totalqdot = 0;
+optimizationProperties.penaltyWeight.totalPower = 0;
+optimizationProperties.penaltyWeight.maxTorque = 20;
+optimizationProperties.penaltyWeight.maxqdotPower = 0;
+optimizationProperties.penaltyWeight.maxPower = 0;
+optimizationProperties.penaltyWeight.trackingError = 100;
 
+
+    
 %% Load task
 % Select task and robot to be loaded
 taskSelection = 'universalTrot'; % universalTrot, universalStairs, speedyGallop, speedyStairs, massivoWalk, massivoStairs, centaurWalk, centaurStairs, miniPronk
-robotSelection = 'universal';
-configSelection = 'M';
+robotSelection = 'universal'; %universal, speedy, mini, massivo, centaur
+configSelection = 'M'; % X, M
+
 EEnames = ['LF'; 'RF'; 'LH'; 'RH'];
 fprintf('Loading data for task %s.\n', taskSelection);
 
@@ -96,14 +111,6 @@ end
 
 %% Optimize selected legs
 if runOptimization
-    % Set optimization properties
-    optimizationProperties.upperBoundMultiplier = 3.3;
-    optimizationProperties.lowerBoundMultiplier = 0.7;
-    optimizationProperties.maxGenerations = 10;
-    optimizationProperties.populationSize = 10;
-    optimizationProperties.viewVisualization = viewOptimizationVisualization;
-    optimizationProperties.displayBestCurrentLinkLengths = false;
-
     if optimizeLF
         EEselection = 'LF';
         fprintf('\nInitiating optimization of link lengths for %s\n', EEselection);

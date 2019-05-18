@@ -1,4 +1,4 @@
-function penalty = runFastJointTorqueSim(quadruped, linkLengths, selectFrontHind, taskSelection, EE, dt, configSelection, EEselection, jointCount, meanCyclicMotionHipEE)
+function penalty = runFastJointTorqueSim(optimizationProperties, quadruped, linkLengths, selectFrontHind, taskSelection, EE, dt, configSelection, EEselection, jointCount, meanCyclicMotionHipEE)
 %% Get quadruped properties 
 % Convert from cm to m and save lengths
 quadruped.hip(selectFrontHind).length = linkLengths(1)/100;
@@ -29,6 +29,28 @@ tempLeg.(EEselection).rigidBodyModel = buildRobotRigidBodyModel(quadruped, tempL
 tempLeg.(EEselection).jointTorque = getInverseDynamics(EEselection, tempLeg, meanCyclicMotionHipEE);
 
 %% Penalty term for ga
-errorPositionEE = norm(meanCyclicMotionHipEE.(EEselection).position-tempLeg.(EEselection).r.EE);
-penalty = (1/100)*sum(sum(abs(tempLeg.(EEselection).q(1:end-1,1:3) .* tempLeg.(EEselection).jointTorque))) + 0*(1/100)*sum(sum((tempLeg.(EEselection).qdot).^2)) + 0*(1/100)*sum(sum((tempLeg.(EEselection).jointTorque).^2)) + 1000*errorPositionEE;
+W_totalTorque   = optimizationProperties.penaltyWeight.totalTorque;
+W_totalqdot     = optimizationProperties.penaltyWeight.totalqdot;
+W_totalPower    = optimizationProperties.penaltyWeight.totalPower;
+W_maxTorque     = optimizationProperties.penaltyWeight.maxTorque;
+W_maxqdot       = optimizationProperties.penaltyWeight.maxqdotPower;
+W_maxPower      = optimizationProperties.penaltyWeight.maxPower;
+W_trackingError = optimizationProperties.penaltyWeight.trackingError;
+
+totalTorque   = sum(sum((tempLeg.(EEselection).jointTorque).^2));
+totalqdot     = sum(sum((tempLeg.(EEselection).qdot).^2));
+totalPower    = sum(sum(abs((tempLeg.(EEselection).jointTorque .* tempLeg.(EEselection).qdot(1:end-1,:)))));
+maxTorque     = max(max(tempLeg.(EEselection).jointTorque));
+maxqdot       = max(max(tempLeg.(EEselection).qdot));
+maxPower      = max(max(abs((tempLeg.(EEselection).jointTorque).*(tempLeg.(EEselection).qdot(1:end-1,:)))));
+trackingError = norm(meanCyclicMotionHipEE.(EEselection).position-tempLeg.(EEselection).r.EE);
+
+penalty = W_totalTorque * totalTorque + ...
+          W_totalqdot * totalqdot     + ...
+          W_totalPower * totalPower   + ...
+          W_maxTorque * maxTorque     + ...
+          W_maxqdot * maxqdot         + ...
+          W_maxPower * maxPower       + ...
+          W_trackingError * trackingError;
+
 end
