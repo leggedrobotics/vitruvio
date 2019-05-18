@@ -6,12 +6,15 @@ function robot = buildRobotRigidBodyModel(quadruped, Leg, meanCyclicMotionHipEE,
 %% get quadruped properties for selected end effector  
 if (EEselection == 'LF') | (EEselection == 'RF')
     selectFrontHind = 1;
+    hipOffsetDirection = 1;
     else selectFrontHind = 2;
+         hipOffsetDirection = -1;
 end
 
 l_hip = quadruped.hip(selectFrontHind).length;
 l_thigh = quadruped.thigh(selectFrontHind).length;
 l_shank = quadruped.shank(selectFrontHind).length;
+
 
 % hip attachment points
 xNom.LF = quadruped.xNom(1);
@@ -37,9 +40,9 @@ T_HAA =           [0, 0, 1, 0;
                   -1, 0, 0, 0;
                    0, 0, 0, 1];
 
-T_HFEattachment = [1,  0, 0, l_hip;
+T_HFEattachment = [1,  0, 0, 0;
                    0,  0, 1, 0;
-                   0, -1, 0, 0;
+                   0, -1, 0, hipOffsetDirection*l_hip;
                    0,  0, 0, 1];
 
 T_HFE =           [1, 0, 0, l_thigh;
@@ -122,7 +125,9 @@ if viewVisualization
             show(robot,config(i,:));
 
             hold on
-            plot3(meanCyclicMotionHipEE.(EEselection).position(:,1),meanCyclicMotionHipEE.(EEselection).position(:,2),meanCyclicMotionHipEE.(EEselection).position(:,3),'r', 'LineWidth', 3)
+            plot3(meanCyclicMotionHipEE.(EEselection).position(:,1), ...
+                  meanCyclicMotionHipEE.(EEselection).position(:,2), ...
+                  meanCyclicMotionHipEE.(EEselection).position(:,3),'r', 'LineWidth', 3)
             title(EEselection)
             hold off
         end

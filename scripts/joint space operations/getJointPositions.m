@@ -1,9 +1,5 @@
-%% getJointPositions
-
-% get joint positions based on link lengths and angles obtained from
-% inverseKinematics
-
-% r of size length(q) x number of joints x number of legs
+% get joint positions relative to hip attachment point based on link lengths 
+% and angles obtained from inverseKinematics
 function r = getJointPositions(quadruped, Leg, jointCount, EEselection);
 
 % hip attachment at origin
@@ -29,20 +25,22 @@ l_shank(2) = quadruped.shank(2).length;
 %% calculate position of HFE
     if (EEselection == 'LF') | (EEselection == 'RF') 
         selectFrontHind = 1; 
+        hipOffsetDirection = 1;
     else selectFrontHind = 2; 
+         hipOffsetDirection = -1;
     end
     
-    r_x.(joint{2}) = r_x.(joint{1});
-    r_y.(joint{2}) = r_y.(joint{1}) + l_hip(selectFrontHind)*sin(Leg.(EEselection).q(:,1));
-    r_z.(joint{2}) = r_z.(joint{1}) - l_hip(selectFrontHind)*cos(Leg.(EEselection).q(:,1));
+    r_x.(joint{2}) = r_x.(joint{1}) + hipOffsetDirection*l_hip(selectFrontHind);
+    r_y.(joint{2}) = r_y.(joint{1});
+    r_z.(joint{2}) = r_z.(joint{1});
 
 %% for each leg calculate position of KFE
-    r_x.(joint{3}) = r_x.(joint{2}) - l_thigh(selectFrontHind)*sin(Leg.(EEselection).q(:,2));
+    r_x.(joint{3}) = r_x.(joint{2}) + l_thigh(selectFrontHind)*sin(Leg.(EEselection).q(:,2));
     r_y.(joint{3}) = r_y.(joint{2}) + l_thigh(selectFrontHind)*cos(Leg.(EEselection).q(:,2)).*sin(Leg.(EEselection).q(:,1));
     r_z.(joint{3}) = r_z.(joint{2}) - l_thigh(selectFrontHind)*cos(Leg.(EEselection).q(:,2)).*cos(Leg.(EEselection).q(:,1));
 
 %% for each leg calculate position of AFE / EE
-    r_x.(joint{4}) = r_x.(joint{3}) - l_shank(selectFrontHind)*(sin(Leg.(EEselection).q(:,2) + Leg.(EEselection).q(:,3)));
+    r_x.(joint{4}) = r_x.(joint{3}) + l_shank(selectFrontHind)*(sin(Leg.(EEselection).q(:,2) + Leg.(EEselection).q(:,3)));
     r_y.(joint{4}) = r_y.(joint{3}) + l_shank(selectFrontHind)*(cos(Leg.(EEselection).q(:,2) + Leg.(EEselection).q(:,3))).*sin(Leg.(EEselection).q(:,1));
     r_z.(joint{4}) = r_z.(joint{3}) - l_shank(selectFrontHind)*cos(Leg.(EEselection).q(:,2) + Leg.(EEselection).q(:,3)).*cos(Leg.(EEselection).q(:,1));
 

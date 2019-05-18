@@ -5,7 +5,9 @@ function [J_P, C_HEE, r_H_HEE, T_H1, T_12, T_23, T_34]  = jointToPosJac(q, quadr
   
   if (EEselection == 'LF') | (EEselection == 'RF')
     selectFrontHind = 1;
+    hipOffsetDirection = 1;
     else selectFrontHind = 2;
+         hipOffsetDirection = -1;
   end
   
   % Compute the relative homogeneous transformation matrices.
@@ -23,9 +25,9 @@ function [J_P, C_HEE, r_H_HEE, T_H1, T_12, T_23, T_34]  = jointToPosJac(q, quadr
 
   % transformation from HFE to HAA
   % rotation about Hy, translation along hip link
-  T_12 = [cos(q(2)), 0,  sin(q(2)),  0;
+  T_12 = [cos(q(2)), 0,  sin(q(2)),  hipOffsetDirection*l_hip;
           0,         1,  0,          0;
-         -sin(q(2)), 0,  cos(q(2)), -l_hip;
+         -sin(q(2)), 0,  cos(q(2)),  0;
           0,         0,  0,          1];   
      
   % transformation from HFE to HAA
@@ -36,7 +38,7 @@ function [J_P, C_HEE, r_H_HEE, T_H1, T_12, T_23, T_34]  = jointToPosJac(q, quadr
           0,         0,  0,          1];   
 
   % transformation from KFE to EE
-  % rotation about Sy, translation along sh  
+  % translation along shank 
   T_34 =   [1,    0,   0,   0;
             0,    1,   0,   0;
             0,    0,   1,  -l_shank;

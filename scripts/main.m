@@ -13,27 +13,25 @@ viewOptimizedLegPlot = true;
 optimizeLF = true; 
 optimizeLH = false; 
 optimizeRF = false; 
-optimizeRH = false;
+optimizeRH = true;
 optimizationProperties.viewVisualization = true;
-optimizationProperties.displayBestCurrentLinkLengths = false; %display chart while running ga
-optimizationProperties.upperBoundMultiplier = 3.3;
-optimizationProperties.lowerBoundMultiplier = 0.2;
-optimizationProperties.maxGenerations = 20;
-optimizationProperties.populationSize = 20;
+optimizationProperties.displayBestCurrentLinkLengths = false; % display chart while running ga
+optimizationProperties.upperBoundMultiplier = [3.3, 3, 3]; % [hip thigh shank]
+optimizationProperties.lowerBoundMultiplier = [1, 0.5, 0.5]; % [hip thigh shank]
+optimizationProperties.maxGenerations = 10;
+optimizationProperties.populationSize = 10;
 optimizationProperties.penaltyWeight.totalTorque = 0;
 optimizationProperties.penaltyWeight.totalqdot = 0;
 optimizationProperties.penaltyWeight.totalPower = 0;
 optimizationProperties.penaltyWeight.maxTorque = 20;
 optimizationProperties.penaltyWeight.maxqdotPower = 0;
 optimizationProperties.penaltyWeight.maxPower = 0;
-optimizationProperties.penaltyWeight.trackingError = 100;
-
-
+optimizationProperties.penaltyWeight.trackingError = 1000;
     
 %% Load task
 % Select task and robot to be loaded
-taskSelection = 'universalTrot'; % universalTrot, universalStairs, speedyGallop, speedyStairs, massivoWalk, massivoStairs, centaurWalk, centaurStairs, miniPronk
-robotSelection = 'universal'; %universal, speedy, mini, massivo, centaur
+taskSelection = 'speedyStairs'; % universalTrot, universalStairs, speedyGallop, speedyStairs, massivoWalk, massivoStairs, centaurWalk, centaurStairs, miniPronk
+robotSelection = 'speedy'; %universal, speedy, mini, massivo, centaur
 configSelection = 'M'; % X, M
 
 EEnames = ['LF'; 'RF'; 'LH'; 'RH'];
@@ -131,24 +129,24 @@ if runOptimization
         fprintf('\nInitiating optimization of link lengths for %s\n', EEselection);
         [Leg.(EEselection).jointTorqueOpt, Leg.(EEselection).qdotOpt, Leg.(EEselection).qdotdotOpt] = evolveAndVisualizeOptimalLeg(optimizationProperties, EEselection, meanCyclicMotionHipEE, quadruped, jointCount, configSelection, dt, taskSelection, EE);
     end  
-end
 %% plot joint torque and speed for initial and optimized design
-if viewOptimizedLegPlot
-    fprintf('Plotting joint data for initial and optimized leg designs \n');
-    if optimizeLF
-        EEselection = 'LF';
-        plotOptimizedJointTorque(Leg, EEselection, dt)
-    end
-    if optimizeLH
-        EEselection = 'LH';
-        plotOptimizedJointTorque(Leg, EEselection, dt)
-    end
-    if optimizeRF
-        EEselection = 'RF';
-        plotOptimizedJointTorque(Leg, EEselection, dt)
-    end
-    if optimizeRH
-        EEselection = 'RH';
-        plotOptimizedJointTorque(Leg, EEselection, dt)
+    if viewOptimizedLegPlot
+        fprintf('Plotting joint data for initial and optimized leg designs \n');
+        if optimizeLF
+            EEselection = 'LF';
+            plotOptimizedJointTorque(Leg, EEselection, dt)
+        end
+        if optimizeLH
+            EEselection = 'LH';
+            plotOptimizedJointTorque(Leg, EEselection, dt)
+        end
+        if optimizeRF
+            EEselection = 'RF';
+            plotOptimizedJointTorque(Leg, EEselection, dt)
+        end
+        if optimizeRH
+            EEselection = 'RH';
+            plotOptimizedJointTorque(Leg, EEselection, dt)
+        end
     end
 end

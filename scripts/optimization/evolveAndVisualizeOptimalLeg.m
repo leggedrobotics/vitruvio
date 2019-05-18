@@ -19,8 +19,8 @@ initialLinkLengths(2) = quadruped.thigh(selectFrontHind).length*100;
 initialLinkLengths(3) = quadruped.shank(selectFrontHind).length*100;
 
 %% print statement
-upperBnd = round(optimizationProperties.upperBoundMultiplier*initialLinkLengths)/100;
-lowerBnd = round(optimizationProperties.lowerBoundMultiplier*initialLinkLengths)/100;
+upperBnd = round(optimizationProperties.upperBoundMultiplier.*initialLinkLengths)/100;
+lowerBnd = round(optimizationProperties.lowerBoundMultiplier.*initialLinkLengths)/100;
 fprintf('\nLower bound on link lengths [m]: %3.3f, %3.3f, %3.3f \n', lowerBnd);
 fprintf('Upper bound on link lengths [m]: %3.3f, %3.3f, %3.3f \n\n', upperBnd);
     

@@ -30,6 +30,6 @@ function jointPositions = inverseKinematics(meanCyclicMotionHipEE, quadruped, EE
          q = q + 0.05*dq; % keep update size small to prevent overshooting angle
          it = it+1;    
       end   
-      %fprintf('Inverse kinematics terminated after %d iterations.\n',it);
+%       fprintf('Inverse kinematics terminated after %d iterations.\n',it);
       jointPositions(i,:) = q';
   end     

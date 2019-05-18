@@ -17,8 +17,8 @@ if optimizationProperties.displayBestCurrentLinkLengths
 end
 %% Set bounds and constraints
 % Upper and lower angle bounds
-upperBnd = round(optimizationProperties.upperBoundMultiplier*initialLinkLengths);
-lowerBnd = round(optimizationProperties.lowerBoundMultiplier*initialLinkLengths);
+upperBnd = round(optimizationProperties.upperBoundMultiplier.*initialLinkLengths);
+lowerBnd = round(optimizationProperties.lowerBoundMultiplier.*initialLinkLengths);
 
 %% Run optimization
 costFcn = @(linkLengths)runFastJointTorqueSim(optimizationProperties, quadruped, linkLengths, selectFrontHind, taskSelection, EE, dt, configSelection, EEselection, jointCount, meanCyclicMotionHipEE);
