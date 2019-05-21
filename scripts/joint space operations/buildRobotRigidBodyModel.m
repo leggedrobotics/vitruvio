@@ -59,11 +59,13 @@ T_KFE =           [1, 0, 0, l_shank;
 % Create a rigid body tree object to build the robot.
 robot = robotics.RigidBodyTree('DataFormat', 'row');
 % Create bodies and joints 
+body0 = robotics.RigidBody('body0');
 body1 = robotics.RigidBody('body1');
 body2 = robotics.RigidBody('body2');
 body3 = robotics.RigidBody('body3');
 body4 = robotics.RigidBody('body4');
 
+jnt0 = robotics.Joint('jnt0','revolute'); % body rotation about y in inertial frame
 jnt1 = robotics.Joint('jnt1','revolute'); % HAA
 jnt2 = robotics.Joint('jnt2','revolute'); % HFE
 jnt3 = robotics.Joint('jnt3','revolute'); % KFE
@@ -89,18 +91,21 @@ body3.CenterOfMass = [0.5*quadruped.shank(selectFrontHind).length 0 0];
 body4.CenterOfMass = [0 0 0];
 
 %% set joint transforms - these are only translations, the joint positions are specified in the config array   
+setFixedTransform(jnt0, eye(4));
 setFixedTransform(jnt1, T_HAA);
 setFixedTransform(jnt2, T_HFEattachment);
 setFixedTransform(jnt3, T_HFE);
 setFixedTransform(jnt4, T_KFE);            
 
+body0.Joint = jnt0;
 body1.Joint = jnt1;
 body2.Joint = jnt2;
 body3.Joint = jnt3;
 body4.Joint = jnt4;
 
 %% specify connections between bodies
-addBody(robot, body1,'base');
+addBody(robot, body0,'base');
+addBody(robot, body1,'body0');
 addBody(robot, body2,'body1');
 addBody(robot, body3,'body2');
 addBody(robot, body4,'body3');
@@ -109,7 +114,8 @@ robot.Gravity = [0 0 -9.8];
             
 %% Display robot 
 for i = 1:length(Leg.(EEselection).q)
-    config(i,:) = [Leg.(EEselection).q(i,1), ...
+    config(i,:) = [0, ...
+                   Leg.(EEselection).q(i,1), ...
                    Leg.(EEselection).q(i,2), ...
                    Leg.(EEselection).q(i,3)];
 end
@@ -117,9 +123,10 @@ end
 if viewVisualization
     for j = 1: numberOfLoopRepetitions
         for i = 1:length(Leg.(EEselection).q)
-            xlim([-0.5 0.5]);
-            ylim([-0.5 0.5]);
-            zlim([-0.8 0.2]);
+            xlim([-0.9 0.9]);
+            ylim([-0.9 0.9]);
+            zlim([-1.2 0.6]);
+set(groot,'defaultfigureposition',[100 100 1200 1000])
 
             figure(11)
             show(robot,config(i,:));

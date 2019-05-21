@@ -1,7 +1,7 @@
 %% getHipEECyclicMotion
 % collects position of EE for each timestep from liftoff to next liftoff
 % for a subset of the cycles when the motion is steady and averages the result
-function [meanCyclicMotionHipEE, cyclicMotionHipEE, meanCyclicC_IBody, samplingStart, samplingEnd] = getHipEECyclicData(tLiftoff, tTouchdown, relativeMotionHipEE, EE, removalRatioStart, removalRatioEnd, dt, minStepCount, C_IBody)
+function [meanEuler, meanCyclicMotionHipEE, cyclicMotionHipEE, meanCyclicC_IBody, samplingStart, samplingEnd] = getHipEECyclicData(quadruped, tLiftoff, relativeMotionHipEE, EE, removalRatioStart, removalRatioEnd, dt, minStepCount, C_IBody)
 %% Save position data for each cycle for each end effector
 
 % determine minimum number of data points from liftoff to subsequent
@@ -85,6 +85,8 @@ samplingEnd = round((1-removalRatioEnd)*(minStepCount-1));
 
 meanCyclicC_IBody = mean(cyclicC_IBody(:,:,:,samplingStart:samplingEnd),4);
 
+% shift in x direction by hip length so that the motion is centered on the
+% HFE joint
 meanCyclicMotionHipEE.LF.position = mean(cyclicMotionHipEE.LF.position(:,:,samplingStart:samplingEnd),3);
 meanCyclicMotionHipEE.LH.position = mean(cyclicMotionHipEE.LH.position(:,:,samplingStart:samplingEnd),3);
 meanCyclicMotionHipEE.RF.position = mean(cyclicMotionHipEE.RF.position(:,:,samplingStart:samplingEnd),3);
@@ -119,3 +121,6 @@ meanCyclicMotionHipEE.LF.force(end+1,:) = zeros(1,4);
 meanCyclicMotionHipEE.LH.force(end+1,:) = zeros(1,4);
 meanCyclicMotionHipEE.RF.force(end+1,:) = zeros(1,4);
 meanCyclicMotionHipEE.RH.force(end+1,:) = zeros(1,4);
+
+% mean cyclic euler angles for body rotation
+meanEuler = rotm2eul(meanCyclicC_IBody, 'ZYX');

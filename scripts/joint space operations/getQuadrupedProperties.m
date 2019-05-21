@@ -4,7 +4,68 @@
 
 function quadruped = getQuadrupedProperties(robotSelection);
 legDensity = 258; %kg based on desired total leg mass for universal. Could be updated for other robots.
- 
+
+%% ANYmal
+robot.anymal.mass.total = 29.5; 
+
+% offset from CoM to each hip
+robot.anymal.xNom(1) = 0.34;
+robot.anymal.xNom(2) = 0.34;
+robot.anymal.yNom(1) = 0.19;
+robot.anymal.yNom(2) = 0.19;
+robot.anymal.zNom = 0; % offset from CoM to hip attachment in z direction
+
+% row order:    LF LH RF RH
+% column order: x, y, z
+robot.anymal.nomHipPos(1,:) = [ robot.anymal.xNom(1),  robot.anymal.yNom(1), robot.anymal.zNom];
+robot.anymal.nomHipPos(2,:) = [-robot.anymal.xNom(2),  robot.anymal.yNom(2), robot.anymal.zNom];
+robot.anymal.nomHipPos(3,:) = [ robot.anymal.xNom(1), -robot.anymal.yNom(1), robot.anymal.zNom];
+robot.anymal.nomHipPos(4,:) = [-robot.anymal.xNom(2), -robot.anymal.yNom(2), robot.anymal.zNom];
+
+% link lengths [m]
+% fore, hind
+robot.anymal.hip(1).length = 0.14;
+robot.anymal.hip(2).length = 0.14;
+robot.anymal.thigh(1).length = 0.25;
+robot.anymal.thigh(2).length = 0.25;
+robot.anymal.shank(1).length = 0.333;
+robot.anymal.shank(2).length = 0.333;
+robot.anymal.foot(1).length = 0;
+robot.anymal.foot(2).length = 0;
+
+% link radius [m]
+% update these values
+robot.anymal.hip(1).radius = 0.05;
+robot.anymal.hip(2).radius = 0.05;
+robot.anymal.thigh(1).radius = 0.05;
+robot.anymal.thigh(2).radius = 0.05;
+robot.anymal.shank(1).radius = 0.05;
+robot.anymal.shank(2).radius = 0.05;
+robot.anymal.foot(1).radius = 0.05;
+robot.anymal.foot(2).radius = 0.05;
+
+robot.anymal.legDensity = legDensity; %kg/m^3
+
+%link mass [kg] and inertia [kg.m^2] based on cylindrical link with constant density
+link = {'hip','thigh' 'shank' 'foot'};
+for i = 1:length(link)
+    for j = 1:2
+        robot.anymal.(link{i})(j).mass = pi()*robot.anymal.(link{i})(j).radius^2*robot.anymal.(link{i})(j).length*robot.anymal.legDensity;
+        robot.anymal.(link{i})(j).inertia = (1/3)*robot.anymal.(link{i})(j).mass*robot.anymal.(link{i})(j).length^2;
+    end
+end
+
+% joint angle limits
+% q1 HAA, q2 HFE, q3 KFE, q4 AFE
+robot.anymal.q1.minAngle = -pi/2;
+robot.anymal.q1.maxAngle = pi/2;
+robot.anymal.q2.minAngle = -pi/2;
+robot.anymal.q2.maxAngle = pi/2;
+robot.anymal.q3.minAngle = -pi/2;
+robot.anymal.q3.maxAngle = pi/2;
+robot.anymal.q4.minAngle = -pi/2;
+robot.anymal.q4.maxAngle = pi/2;
+
 %% Universal
 robot.universal.mass.total = 39.53; % with payload
 
@@ -66,7 +127,6 @@ robot.universal.q3.maxAngle = pi/2;
 robot.universal.q4.minAngle = -pi/2;
 robot.universal.q4.maxAngle = pi/2;
 
-
 %% Speedy 
 
 robot.speedy.mass.total = 22.52;
@@ -87,12 +147,12 @@ robot.speedy.nomHipPos(4,:) = [-robot.speedy.xNom(2), -robot.speedy.yNom(2), rob
 
 % link lengths [m]
 % fore, hind
-robot.speedy.hip(1).length = 0.05;
-robot.speedy.hip(2).length = 0.05;
-robot.speedy.thigh(1).length = 1*0.33234;
-robot.speedy.thigh(2).length = 1*0.33234;
-robot.speedy.shank(1).length = 1.6*0.3;
-robot.speedy.shank(2).length = 1.6*0.3;
+robot.speedy.hip(1).length = 0.15;
+robot.speedy.hip(2).length = 0.15;
+robot.speedy.thigh(1).length = 0.45;
+robot.speedy.thigh(2).length = 0.45;
+robot.speedy.shank(1).length = 0.45;
+robot.speedy.shank(2).length = 0.45;
 robot.speedy.foot(1).length = 0.05;
 robot.speedy.foot(2).length = 0.05;
 

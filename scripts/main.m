@@ -3,34 +3,34 @@ close all;
 
 %% Toggle visualization and optimization functions
 % Toggle trajectory data plots and initial leg design visualization 
-viewVisualization = false; 
+viewVisualization = true; 
 numberOfLoopRepetitions = 1;
 viewTrajectoryPlots = false;
 
 % Toggle optimization and set optimization properties
-runOptimization = true;
+runOptimization = false;
 viewOptimizedLegPlot = true;
 optimizeLF = true; 
 optimizeLH = false; 
 optimizeRF = false; 
-optimizeRH = true;
+optimizeRH = false;
 optimizationProperties.viewVisualization = true;
 optimizationProperties.displayBestCurrentLinkLengths = false; % display chart while running ga
-optimizationProperties.upperBoundMultiplier = [3.3, 3, 3]; % [hip thigh shank]
+optimizationProperties.upperBoundMultiplier = [1, 3, 3]; % [hip thigh shank]
 optimizationProperties.lowerBoundMultiplier = [1, 0.5, 0.5]; % [hip thigh shank]
 optimizationProperties.maxGenerations = 10;
 optimizationProperties.populationSize = 10;
-optimizationProperties.penaltyWeight.totalTorque = 0;
+optimizationProperties.penaltyWeight.totalTorque = 50;
 optimizationProperties.penaltyWeight.totalqdot = 0;
 optimizationProperties.penaltyWeight.totalPower = 0;
-optimizationProperties.penaltyWeight.maxTorque = 20;
+optimizationProperties.penaltyWeight.maxTorque = 0;
 optimizationProperties.penaltyWeight.maxqdotPower = 0;
 optimizationProperties.penaltyWeight.maxPower = 0;
 optimizationProperties.penaltyWeight.trackingError = 1000;
     
 %% Load task
 % Select task and robot to be loaded
-taskSelection = 'speedyStairs'; % universalTrot, universalStairs, speedyGallop, speedyStairs, massivoWalk, massivoStairs, centaurWalk, centaurStairs, miniPronk
+taskSelection = 'speedyGallop'; % universalTrot, universalStairs, speedyGallop, speedyStairs, massivoWalk, massivoStairs, centaurWalk, centaurStairs, miniPronk
 robotSelection = 'speedy'; %universal, speedy, mini, massivo, centaur
 configSelection = 'M'; % X, M
 
@@ -46,6 +46,9 @@ load(taskSelection);
 %% Load corresponding robot parameters
 fprintf('Loading quadruped properties for %s.\n', robotSelection);
 quadruped = getQuadrupedProperties(robotSelection);
+quadruped.thigh(1).length = 0.35; 
+quadruped.shank(1).length = 0.52;
+
 
 %% Get the relative motion of the end effectors to the hips
 fprintf('Computing motion of end effectors relative to hip attachment points \n');
@@ -58,7 +61,7 @@ fprintf('Computing end effector liftoff and touchdown timings \n');
 
 %% Get the mean cyclic position and forces for each end effector
 fprintf('Computing average relative motion of end effectors over one step \n');
-[meanCyclicMotionHipEE, cyclicMotionHipEE, meanCyclicC_IBody, samplingStart, samplingEnd] = getHipEECyclicData(tLiftoff, tTouchdown, relativeMotionHipEE, EE, removalRatioStart, removalRatioEnd, dt, minStepCount, C_IBody);
+[meanEuler, meanCyclicMotionHipEE, cyclicMotionHipEE, meanCyclicC_IBody, samplingStart, samplingEnd] = getHipEECyclicData(quadruped, tLiftoff, relativeMotionHipEE, EE, removalRatioStart, removalRatioEnd, dt, minStepCount, C_IBody);
 
 %% Get reachable positions for link lengths and joint limits
 fprintf('Computing range of motion dependent on link lengths and joint limits \n');

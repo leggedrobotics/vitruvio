@@ -1,5 +1,6 @@
 %% Plot values
 close all;
+set(gcf,'color','w');
 
 %% base position and velocity
 figure();
