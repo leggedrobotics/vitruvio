@@ -1,7 +1,7 @@
 %% getHipEECyclicMotion
 % collects position of EE for each timestep from liftoff to next liftoff
 % for a subset of the cycles when the motion is steady and averages the result
-function [meanEuler, meanCyclicMotionHipEE, cyclicMotionHipEE, meanCyclicC_IBody, samplingStart, samplingEnd] = getHipEECyclicData(quadruped, tLiftoff, relativeMotionHipEE, EE, removalRatioStart, removalRatioEnd, dt, minStepCount, C_IBody)
+function [meanCyclicMotionHipEE, cyclicMotionHipEE, meanCyclicC_IBody, samplingStart, samplingEnd] = getHipEECyclicData(quadruped, tLiftoff, relativeMotionHipEE, EE, removalRatioStart, removalRatioEnd, dt, minStepCount, C_IBody)
 %% Save position data for each cycle for each end effector
 
 % determine minimum number of data points from liftoff to subsequent
@@ -21,7 +21,8 @@ indexMax = min(tempMin);
 
 %LF
 % use minStepCount-2 because some tasks had different sized arrays of data
-% in the last couple steps likely due to violation of constraints in towr 
+% in the last couple steps likely due to violation of constraints in towr
+% this way we can neglect those last couple steps
 
 for i = 1:minStepCount-2
     temp.position = relativeMotionHipEE.LF.position(floor(tLiftoff(i,1)/dt):floor(tLiftoff(i+1,1)/dt),:);
@@ -124,3 +125,4 @@ meanCyclicMotionHipEE.RH.force(end+1,:) = zeros(1,4);
 
 % mean cyclic euler angles for body rotation
 meanEuler = rotm2eul(meanCyclicC_IBody, 'ZYX');
+meanCyclicMotionHipEE.body.eulerAngles = meanEuler;

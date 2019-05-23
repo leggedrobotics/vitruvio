@@ -9,7 +9,8 @@ for i = 1:length(meanCyclicMotionHipEE.(EEselection).velocity)
     end
     
     q_ = Leg.(EEselection).q(i,:);
-    [J_P, C_HEE, r_H_HEE, T_H1, T_12, T_23, T_34]  = jointToPosJac(q_, quadruped, selectFrontHind);
+    rotBodyY = meanCyclicMotionHipEE.body.eulerAngles(i,2);
+    J_P  = jointToPosJac(rotBodyY, q_, quadruped, selectFrontHind);
     
     % bug in velocity accel torque coming from mean Cyclic Motion Hip. EE
     qdot(i,:) = inv(J_P(1:3,1:3))* meanCyclicMotionHipEE.(EEselection).velocity(i,:)';

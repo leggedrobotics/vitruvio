@@ -87,10 +87,10 @@ robot.universal.nomHipPos(4,:) = [-robot.universal.xNom(2), -robot.universal.yNo
 % fore, hind
 robot.universal.hip(1).length = 0.05;
 robot.universal.hip(2).length = 0.05;
-robot.universal.thigh(1).length = 0.8*0.332;
-robot.universal.thigh(2).length = 0.332;
-robot.universal.shank(1).length = 1.5*0.332;
-robot.universal.shank(2).length = 0.7*0.332;
+robot.universal.thigh(1).length = 0.4;
+robot.universal.thigh(2).length = 0.4;
+robot.universal.shank(1).length = 0.4;
+robot.universal.shank(2).length = 0.4;
 robot.universal.foot(1).length = 0.05;
 robot.universal.foot(2).length = 0.05;
 
@@ -365,5 +365,5 @@ robot.mini.q4.minAngle = pi/2;
 robot.mini.q4.maxAngle = -pi/2;
 
 quadruped = robot.(robotSelection);
-quadruped.toe(1).mass = 0.05; 
-quadruped.toe(2).mass = 0.05; 
+quadruped.toe(1).mass = 0.2; 
+quadruped.toe(2).mass = 0.2; 

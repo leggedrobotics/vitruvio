@@ -1,7 +1,5 @@
-%% buildRobotRigidBodyModel
-
 %% Read in data for quadruped geometry
-function robot = buildRobotRigidBodyModel(quadruped, Leg, meanCyclicMotionHipEE, EEselection, numberOfLoopRepetitions, viewVisualization) 
+function robot = buildRobotRigidBodyModel(linkCount, quadruped, Leg, meanCyclicMotionHipEE, EEselection, numberOfLoopRepetitions, viewVisualization) 
 
 %% get quadruped properties for selected end effector  
 if (EEselection == 'LF') | (EEselection == 'RF')
@@ -14,7 +12,6 @@ end
 l_hip = quadruped.hip(selectFrontHind).length;
 l_thigh = quadruped.thigh(selectFrontHind).length;
 l_shank = quadruped.shank(selectFrontHind).length;
-
 
 % hip attachment points
 xNom.LF = quadruped.xNom(1);
@@ -35,21 +32,32 @@ zNom = quadruped.zNom; % equal for each hip attachment point
 % rotations to align z axis with rotational axis of joint and translations
 % along length of link
 
+% rotation about x by -pi/2 to align z with inertial y. Rotation about this
+% z gives the angle of attack of the base 
+T_body =             [1, 0, 0, 0;
+                      0, 0, 1, 0;
+                      0, -1, 0, 0;
+                      0, 0, 0, 1];
+               
+% rotation about y by pi/2
 T_HAA =           [0, 0, 1, 0;
                    0, 1, 0, 0;
                   -1, 0, 0, 0;
                    0, 0, 0, 1];
 
-T_HFEattachment = [1,  0, 0, 0;
-                   0,  0, 1, 0;
-                   0, -1, 0, hipOffsetDirection*l_hip;
+% rotation about y by -pi/2 and hip attachment to HFE translation
+T_HFEattachment = [0,  0, -1, 0;
+                   0,  1, 0, 0;
+                   1,  0, 0, hipOffsetDirection*l_hip;
                    0,  0, 0, 1];
 
+% HFE to KFE translation
 T_HFE =           [1, 0, 0, l_thigh;
                    0  1, 0, 0;
                    0, 0, 1, 0;
                    0, 0, 0, 1];
 
+% KFE to EE translation
 T_KFE =           [1, 0, 0, l_shank;
                    0, 1, 0, 0;
                    0, 0, 1, 0;
@@ -71,6 +79,7 @@ jnt2 = robotics.Joint('jnt2','revolute'); % HFE
 jnt3 = robotics.Joint('jnt3','revolute'); % KFE
 jnt4 = robotics.Joint('jnt4','fixed'); % coordinate system at EE 
 
+body0.Mass = 0;      
 body1.Mass = quadruped.hip(selectFrontHind).mass;      
 body2.Mass = quadruped.thigh(selectFrontHind).mass;
 body3.Mass = quadruped.shank(selectFrontHind).mass;
@@ -78,6 +87,7 @@ body4.Mass = quadruped.toe(selectFrontHind).mass;
 
 % inertia = [Ixx Iyy Izz Iyz Ixz Ixy] relative to body frame in kg/m^2
 % note that body3.Inertia encompasses shank and end effector inertia terms
+body0.Inertia = [0 0 0 0 0 0]; %hip      
 body1.Inertia = [0.000001  1/3*body1.Mass*l_hip^2                             1/3*body1.Mass*l_hip^2                             0 0 0]; %hip      
 body2.Inertia = [0.000001  1/3*body2.Mass*l_thigh^2                           1/3*body2.Mass*l_thigh^2                           0 0 0]; %thigh
 body3.Inertia = [0.000001  1/3*body3.Mass*l_shank^2+1/2*body4.Mass*l_shank^2  1/3*body3.Mass*l_shank^2+1/2*body4.Mass*l_shank^2  0 0 0]; %shank
@@ -90,8 +100,9 @@ body2.CenterOfMass = [0.5*quadruped.thigh(selectFrontHind).length 0 0];
 body3.CenterOfMass = [0.5*quadruped.shank(selectFrontHind).length 0 0]; 
 body4.CenterOfMass = [0 0 0];
 
-%% set joint transforms - these are only translations, the joint positions are specified in the config array   
-setFixedTransform(jnt0, eye(4));
+% set joint transforms - these are only translations and rotations to align rotation
+% z with joint rotation axis. The joint positions are specified in the config array.   
+setFixedTransform(jnt0, T_body);
 setFixedTransform(jnt1, T_HAA);
 setFixedTransform(jnt2, T_HFEattachment);
 setFixedTransform(jnt3, T_HFE);
@@ -114,19 +125,19 @@ robot.Gravity = [0 0 -9.8];
             
 %% Display robot 
 for i = 1:length(Leg.(EEselection).q)
-    config(i,:) = [0, ...
-                   Leg.(EEselection).q(i,1), ...
-                   Leg.(EEselection).q(i,2), ...
-                   Leg.(EEselection).q(i,3)];
+    config(i,:) = [-meanCyclicMotionHipEE.body.eulerAngles(i,2), ... %body rotation about inertial y
+                   Leg.(EEselection).q(i,1), ... % HAA
+                   Leg.(EEselection).q(i,2), ... % HFE
+                   Leg.(EEselection).q(i,3)]; % KFE
 end
-
+% config(:,4) = 0;
 if viewVisualization
     for j = 1: numberOfLoopRepetitions
         for i = 1:length(Leg.(EEselection).q)
             xlim([-0.9 0.9]);
             ylim([-0.9 0.9]);
             zlim([-1.2 0.6]);
-set(groot,'defaultfigureposition',[100 100 1200 1000])
+% set(groot,'defaultfigureposition',[100 100 1200 1000])
 
             figure(11)
             show(robot,config(i,:));
