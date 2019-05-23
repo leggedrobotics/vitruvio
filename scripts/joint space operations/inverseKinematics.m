@@ -1,4 +1,4 @@
-function jointPositions = inverseKinematics(meanCyclicMotionHipEE, quadruped, EEselection, taskSelection, configSelection);
+function jointPositions = inverseKinematics(linkCount, meanCyclicMotionHipEE, quadruped, EEselection, taskSelection, configSelection);
 
  % Input: desired end-effector position, quadruped properties
  %        initial guess for joint angles, threshold for the stopping-criterion

@@ -45,7 +45,7 @@ tempLeg.(EEselection).q = inverseKinematics(linkCount, meanCyclicMotionHipEE, qu
 tempLeg.(EEselection).rigidBodyModel = buildRobotRigidBodyModel(linkCount, quadruped, tempLeg, meanCyclicMotionHipEE, EEselection, numberOfLoopRepetitions, viewVisualization);
 
 %% get joint torques of optimal design
-[tempLeg.(EEselection).qdot, tempLeg.(EEselection).qdotdot] = getJointVelocitiesUsingJacobian(EEselection, meanCyclicMotionHipEE, tempLeg, quadruped, dt);
+[tempLeg.(EEselection).qdot, tempLeg.(EEselection).qdotdot] = getJointVelocitiesUsingJacobian(linkCount, EEselection, meanCyclicMotionHipEE, tempLeg, quadruped, dt);
 tempLeg.(EEselection).jointTorque = inverseDynamics(EEselection, tempLeg, meanCyclicMotionHipEE);
 
 qOpt = tempLeg.(EEselection).q;

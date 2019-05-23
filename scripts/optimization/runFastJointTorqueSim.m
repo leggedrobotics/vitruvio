@@ -26,7 +26,7 @@ tempLeg.(EEselection).rigidBodyModel = buildRobotRigidBodyModel(linkCount, quadr
 
 %% Get joint velocities with inverse(Jacobian)* EE.velocity
 % The joint accelerations are then computed using finite difference
-[tempLeg.(EEselection).qdot, tempLeg.(EEselection).qdotdot] = getJointVelocitiesUsingJacobian(EEselection, meanCyclicMotionHipEE, tempLeg, quadruped, dt);
+[tempLeg.(EEselection).qdot, tempLeg.(EEselection).qdotdot] = getJointVelocitiesUsingJacobian(linkCount, EEselection, meanCyclicMotionHipEE, tempLeg, quadruped, dt);
 
 %% Get joint torques using inverse dynamics
 tempLeg.(EEselection).jointTorque = inverseDynamics(EEselection, tempLeg, meanCyclicMotionHipEE);
