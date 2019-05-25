@@ -1,18 +1,18 @@
 %% getHipEECyclicMotion
 % collects position of EE for each timestep from liftoff to next liftoff
 % for a subset of the cycles when the motion is steady and averages the result
-function [meanCyclicMotionHipEE, cyclicMotionHipEE, meanCyclicC_IBody, samplingStart, samplingEnd] = getHipEECyclicData(quadruped, tLiftoff, relativeMotionHipEE, EE, removalRatioStart, removalRatioEnd, dt, minStepCount, C_IBody)
+function [meanCyclicMotionHipEE, cyclicMotionHipEE, meanCyclicC_IBody, samplingStart, samplingEnd, meanTouchdownIndex] = getHipEECyclicData(quadruped, tLiftoff, relativeMotionHipEE, EE, removalRatioStart, removalRatioEnd, dt, minStepCount, C_IBody, EEnames)
 %% Save position data for each cycle for each end effector
 
 % determine minimum number of data points from liftoff to subsequent
 % liftoff. The data for the cyclical motion will then be stored only up to
 % this index number
 
-for i = 1:length(tLiftoff(:,1))-2
-    temp1 = length(relativeMotionHipEE.LF.position(floor(tLiftoff(i,1)/dt):floor(tLiftoff(i+1,1)/dt)));
-    temp2 = length(relativeMotionHipEE.LH.position(floor(tLiftoff(i,2)/dt):floor(tLiftoff(i+1,2)/dt)));
-    temp3 = length(relativeMotionHipEE.RF.position(floor(tLiftoff(i,3)/dt):floor(tLiftoff(i+1,3)/dt)));
-    temp4 = length(relativeMotionHipEE.RH.position(floor(tLiftoff(i,4)/dt):floor(tLiftoff(i+1,4)/dt)));
+for i = 1:length(tLiftoff.LF)-2
+    temp1 = length(relativeMotionHipEE.LF.position(floor(tLiftoff.LF(i)/dt):floor(tLiftoff.LF(i+1)/dt)));
+    temp2 = length(relativeMotionHipEE.LH.position(floor(tLiftoff.LH(i)/dt):floor(tLiftoff.LH(i+1)/dt)));
+    temp3 = length(relativeMotionHipEE.RF.position(floor(tLiftoff.RF(i)/dt):floor(tLiftoff.RF(i+1)/dt)));
+    temp4 = length(relativeMotionHipEE.RH.position(floor(tLiftoff.RH(i)/dt):floor(tLiftoff.RH(i+1)/dt)));
     tempMin(i) = min([temp1, temp2, temp3, temp4]);
 end
 indexMax = min(tempMin);
@@ -23,54 +23,22 @@ indexMax = min(tempMin);
 % use minStepCount-2 because some tasks had different sized arrays of data
 % in the last couple steps likely due to violation of constraints in towr
 % this way we can neglect those last couple steps
+for i = 1:4
+    EEselection = EEnames(i,:);
+    for i = 1:minStepCount-2
+        temp.position = relativeMotionHipEE.(EEselection).position(floor(tLiftoff.(EEselection)(i)/dt):floor(tLiftoff.(EEselection)(i+1)/dt),:);
+        temp.velocity = relativeMotionHipEE.(EEselection).velocity(floor(tLiftoff.(EEselection)(i)/dt):floor(tLiftoff.(EEselection)(i+1)/dt),:);
+        temp.force = EE.(EEselection).force(floor(tLiftoff.(EEselection)(i)/dt):floor(tLiftoff.(EEselection)(i+1)/dt),:);
 
-for i = 1:minStepCount-2
-    temp.position = relativeMotionHipEE.LF.position(floor(tLiftoff(i,1)/dt):floor(tLiftoff(i+1,1)/dt),:);
-    temp.velocity = relativeMotionHipEE.LF.velocity(floor(tLiftoff(i,1)/dt):floor(tLiftoff(i+1,1)/dt),:);
-    temp.force = EE.LF.force(floor(tLiftoff(i,1)/dt):floor(tLiftoff(i+1,1)/dt),:);
-
-    cyclicMotionHipEE.LF.position(:,:,i) = temp.position(1:indexMax,:);
-    cyclicMotionHipEE.LF.velocity(:,:,i) = temp.velocity(1:indexMax,:);
-    cyclicMotionHipEE.LF.force(:,:,i) = temp.force(1:indexMax,:);
-end
-
-%LH
-for i = 1:minStepCount-2
-    temp.position = relativeMotionHipEE.LH.position(floor(tLiftoff(i,2)/dt):floor(tLiftoff(i+1,2)/dt),:);
-    temp.velocity = relativeMotionHipEE.LH.velocity(floor(tLiftoff(i,2)/dt):floor(tLiftoff(i+1,2)/dt),:);
-    temp.force = EE.LH.force(floor(tLiftoff(i,2)/dt):floor(tLiftoff(i+1,2)/dt),:);
-
-    cyclicMotionHipEE.LH.position(:,:,i) = temp.position(1:indexMax,:);
-    cyclicMotionHipEE.LH.velocity(:,:,i) = temp.velocity(1:indexMax,:);
-    cyclicMotionHipEE.LH.force(:,:,i) = temp.force(1:indexMax,:);
-end
-
-%RF
-for i = 1:minStepCount-2
-    temp.position = relativeMotionHipEE.RF.position(floor(tLiftoff(i,3)/dt):floor(tLiftoff(i+1,3)/dt),:);
-    temp.velocity = relativeMotionHipEE.RF.velocity(floor(tLiftoff(i,3)/dt):floor(tLiftoff(i+1,3)/dt),:);
-    temp.force = EE.RF.force(floor(tLiftoff(i,3)/dt):floor(tLiftoff(i+1,3)/dt),:);
-
-    cyclicMotionHipEE.RF.position(:,:,i) = temp.position(1:indexMax,:);
-    cyclicMotionHipEE.RF.velocity(:,:,i) = temp.velocity(1:indexMax,:);
-    cyclicMotionHipEE.RF.force(:,:,i) = temp.force(1:indexMax,:);
-end
-
-%RH
-for i = 1:minStepCount-2
-    temp.position = relativeMotionHipEE.RH.position(floor(tLiftoff(i,4)/dt):floor(tLiftoff(i+1,4)/dt),:);
-    temp.velocity = relativeMotionHipEE.RH.velocity(floor(tLiftoff(i,4)/dt):floor(tLiftoff(i+1,4)/dt),:);
-    temp.force = EE.RH.force(floor(tLiftoff(i,4)/dt):floor(tLiftoff(i+1,4)/dt),:);
-
-    cyclicMotionHipEE.RH.position(:,:,i) = temp.position(1:indexMax,:);
-    cyclicMotionHipEE.RH.velocity(:,:,i) = temp.velocity(1:indexMax,:);
-    cyclicMotionHipEE.RH.force(:,:,i) = temp.force(1:indexMax,:);
+        cyclicMotionHipEE.(EEselection).position(:,:,i) = temp.position(1:indexMax,:);
+        cyclicMotionHipEE.(EEselection).velocity(:,:,i) = temp.velocity(1:indexMax,:);
+        cyclicMotionHipEE.(EEselection).force(:,:,i) = temp.force(1:indexMax,:);
+    end
 end
 
 %% hip rotation from world frame
 for i = 1:minStepCount-2
-    temp.rotation = C_IBody(:,:,floor(tLiftoff(i,4)/dt):floor(tLiftoff(i+1,4)/dt));
-
+    temp.rotation = C_IBody(:,:,floor(tLiftoff.LF(i)/dt):floor(tLiftoff.LF(i+1)/dt));
     cyclicC_IBody(:,:,:,i) = temp.rotation(:,:,1:indexMax);
 end
 
@@ -86,42 +54,29 @@ samplingEnd = round((1-removalRatioEnd)*(minStepCount-1));
 
 meanCyclicC_IBody = mean(cyclicC_IBody(:,:,:,samplingStart:samplingEnd),4);
 
-% shift in x direction by hip length so that the motion is centered on the
-% HFE joint
-meanCyclicMotionHipEE.LF.position = mean(cyclicMotionHipEE.LF.position(:,:,samplingStart:samplingEnd),3);
-meanCyclicMotionHipEE.LH.position = mean(cyclicMotionHipEE.LH.position(:,:,samplingStart:samplingEnd),3);
-meanCyclicMotionHipEE.RF.position = mean(cyclicMotionHipEE.RF.position(:,:,samplingStart:samplingEnd),3);
-meanCyclicMotionHipEE.RH.position = mean(cyclicMotionHipEE.RH.position(:,:,samplingStart:samplingEnd),3);
-
-meanCyclicMotionHipEE.LF.velocity = mean(cyclicMotionHipEE.LF.velocity(:,:,samplingStart:samplingEnd),3);
-meanCyclicMotionHipEE.LH.velocity = mean(cyclicMotionHipEE.LH.velocity(:,:,samplingStart:samplingEnd),3);
-meanCyclicMotionHipEE.RF.velocity = mean(cyclicMotionHipEE.RF.velocity(:,:,samplingStart:samplingEnd),3);
-meanCyclicMotionHipEE.RH.velocity = mean(cyclicMotionHipEE.RH.velocity(:,:,samplingStart:samplingEnd),3);
-
-meanCyclicMotionHipEE.LF.force = mean(cyclicMotionHipEE.LF.force(:,:,samplingStart:samplingEnd),3);
-meanCyclicMotionHipEE.LH.force = mean(cyclicMotionHipEE.LH.force(:,:,samplingStart:samplingEnd),3);
-meanCyclicMotionHipEE.RF.force = mean(cyclicMotionHipEE.RF.force(:,:,samplingStart:samplingEnd),3);
-meanCyclicMotionHipEE.RH.force = mean(cyclicMotionHipEE.RH.force(:,:,samplingStart:samplingEnd),3);
-
-% add new row at end of array with starting position to loop the position
-% data
+% average of corresponding points in each cycle
+for i = 1:4
+    EEselection = EEnames(i,:);
+    meanCyclicMotionHipEE.(EEselection).position = mean(cyclicMotionHipEE.(EEselection).position(:,:,samplingStart:samplingEnd),3);
+    meanCyclicMotionHipEE.(EEselection).velocity = mean(cyclicMotionHipEE.(EEselection).velocity(:,:,samplingStart:samplingEnd),3);
+    meanCyclicMotionHipEE.(EEselection).force = mean(cyclicMotionHipEE.(EEselection).force(:,:,samplingStart:samplingEnd),3);
+    % add new row at end of array with starting position to loop the position,
+    % velocity and force data
+    meanCyclicMotionHipEE.(EEselection).position(end+1,:) = meanCyclicMotionHipEE.(EEselection).position(1,:);
+    meanCyclicMotionHipEE.(EEselection).velocity(end+1,:) = meanCyclicMotionHipEE.(EEselection).velocity(1,:);
+    meanCyclicMotionHipEE.(EEselection).force(end+1,:) = meanCyclicMotionHipEE.(EEselection).force(1,:);
+end
 meanCyclicC_IBody(:,:,end+1) = meanCyclicC_IBody(:,:,1);
 
-meanCyclicMotionHipEE.LF.position(end+1,:) = meanCyclicMotionHipEE.LF.position(1,:);
-meanCyclicMotionHipEE.LH.position(end+1,:) = meanCyclicMotionHipEE.LH.position(1,:);
-meanCyclicMotionHipEE.RF.position(end+1,:) = meanCyclicMotionHipEE.RF.position(1,:);
-meanCyclicMotionHipEE.RH.position(end+1,:) = meanCyclicMotionHipEE.RH.position(1,:);
-
-meanCyclicMotionHipEE.LF.velocity(end+1,:) = meanCyclicMotionHipEE.LF.velocity(1,:);
-meanCyclicMotionHipEE.LH.velocity(end+1,:) = meanCyclicMotionHipEE.LH.velocity(1,:);
-meanCyclicMotionHipEE.RF.velocity(end+1,:) = meanCyclicMotionHipEE.RF.velocity(1,:);
-meanCyclicMotionHipEE.RH.velocity(end+1,:) = meanCyclicMotionHipEE.RH.velocity(1,:);
-
-% set the final terms to zero indicating lift off of end effector
-meanCyclicMotionHipEE.LF.force(end+1,:) = zeros(1,4);
-meanCyclicMotionHipEE.LH.force(end+1,:) = zeros(1,4);
-meanCyclicMotionHipEE.RF.force(end+1,:) = zeros(1,4);
-meanCyclicMotionHipEE.RH.force(end+1,:) = zeros(1,4);
+% mean touchdown index (used for graphing). The liftoff always is index 1
+for j = 1:4
+    EEselection = EEnames(j,:);
+    for i=2:length(meanCyclicMotionHipEE.(EEselection).force(:,3))
+        if(meanCyclicMotionHipEE.(EEselection).force(i-1,3) ==0 ) && (meanCyclicMotionHipEE.(EEselection).force(i,3) ~= 0)
+            meanTouchdownIndex.(EEselection) = i;
+        end
+    end
+end
 
 % mean cyclic euler angles for body rotation
 meanEuler = rotm2eul(meanCyclicC_IBody, 'ZYX');

@@ -12,6 +12,9 @@ end
 l_hip = quadruped.hip(selectFrontHind).length;
 l_thigh = quadruped.thigh(selectFrontHind).length;
 l_shank = quadruped.shank(selectFrontHind).length;
+l_foot = quadruped.foot(selectFrontHind).length;
+l_phalanges = quadruped.phalanges(selectFrontHind).length;
+
 
 % hip attachment points
 xNom.LF = quadruped.xNom(1);
@@ -62,7 +65,21 @@ T_KFE =           [1, 0, 0, l_shank;
                    0, 1, 0, 0;
                    0, 0, 1, 0;
                    0, 0, 0, 1];
-                   
+
+if (linkCount == 3) | (linkCount ==4)
+    
+    T_AFE =           [1, 0, 0, l_foot;
+                       0, 1, 0, 0;
+                       0, 0, 1, 0;
+                       0, 0, 0, 1];
+end
+if (linkCount ==4)
+
+    T_DFE =           [1, 0, 0, l_phalanges;
+                       0, 1, 0, 0;
+                       0, 0, 1, 0;
+                       0, 0, 0, 1];
+end
 %% Create and assemble rigid bodies
 % Create a rigid body tree object to build the robot.
 robot = robotics.RigidBodyTree('DataFormat', 'row');
@@ -72,18 +89,42 @@ body1 = robotics.RigidBody('body1');
 body2 = robotics.RigidBody('body2');
 body3 = robotics.RigidBody('body3');
 body4 = robotics.RigidBody('body4');
+if (linkCount == 3) | (linkCount == 4)
+       body5 = robotics.RigidBody('body5');
+end
+if (linkCount == 4)
+       body6 = robotics.RigidBody('body6');
+end
 
 jnt0 = robotics.Joint('jnt0','revolute'); % body rotation about y in inertial frame
 jnt1 = robotics.Joint('jnt1','revolute'); % HAA
 jnt2 = robotics.Joint('jnt2','revolute'); % HFE
 jnt3 = robotics.Joint('jnt3','revolute'); % KFE
 jnt4 = robotics.Joint('jnt4','fixed'); % coordinate system at EE 
+if (linkCount == 3)
+       jnt4 = robotics.Joint('jnt4','revolute'); % AFE
+       jnt5 = robotics.Joint('jnt5','fixed'); % EE
+end
+if (linkCount == 4)
+       jnt4 = robotics.Joint('jnt4','revolute'); % AFE
+       jnt5 = robotics.Joint('jnt5','revolute'); % DFE
+       jnt6 = robotics.Joint('jnt6','fixed'); % EE
+end
 
 body0.Mass = 0;      
 body1.Mass = quadruped.hip(selectFrontHind).mass;      
 body2.Mass = quadruped.thigh(selectFrontHind).mass;
 body3.Mass = quadruped.shank(selectFrontHind).mass;
-body4.Mass = quadruped.toe(selectFrontHind).mass;        
+body4.Mass = quadruped.EE(selectFrontHind).mass;  
+if (linkCount == 3)
+    body4.Mass = quadruped.foot(selectFrontHind).mass;  
+    body5.Mass = quadruped.EE(selectFrontHind).mass;  
+end
+if (linkCount == 4)
+    body4.Mass = quadruped.foot(selectFrontHind).mass;  
+    body5.Mass = quadruped.phalanges(selectFrontHind).mass;  
+    body6.Mass = quadruped.EE(selectFrontHind).mass;  
+end
 
 % inertia = [Ixx Iyy Izz Iyz Ixz Ixy] relative to body frame in kg/m^2
 % note that body3.Inertia encompasses shank and end effector inertia terms
@@ -92,6 +133,8 @@ body1.Inertia = [0.000001  1/3*body1.Mass*l_hip^2                             1/
 body2.Inertia = [0.000001  1/3*body2.Mass*l_thigh^2                           1/3*body2.Mass*l_thigh^2                           0 0 0]; %thigh
 body3.Inertia = [0.000001  1/3*body3.Mass*l_shank^2+1/2*body4.Mass*l_shank^2  1/3*body3.Mass*l_shank^2+1/2*body4.Mass*l_shank^2  0 0 0]; %shank
 body4.Inertia = [0.000001  0.000001                                           0.000001                                           0 0 0]; %EE
+% come back and update for different link counts
+
 
 % center of mass and mass terms do not affect inertia but are used 
 % to compute torque due to gravitational force
@@ -106,13 +149,25 @@ setFixedTransform(jnt0, T_body);
 setFixedTransform(jnt1, T_HAA);
 setFixedTransform(jnt2, T_HFEattachment);
 setFixedTransform(jnt3, T_HFE);
-setFixedTransform(jnt4, T_KFE);            
+setFixedTransform(jnt4, T_KFE); 
+if (linkCount == 3) | (linkCount == 4)
+    setFixedTransform(jnt5, T_AFE);    
+end
+if (linkCount == 4)
+    setFixedTransform(jnt6, T_DFE);            
+end
 
 body0.Joint = jnt0;
 body1.Joint = jnt1;
 body2.Joint = jnt2;
 body3.Joint = jnt3;
 body4.Joint = jnt4;
+if (linkCount == 3) | (linkCount == 4)
+    body5.Joint = jnt5;
+end
+if (linkCount == 4)
+    body6.Joint = jnt6;
+end
 
 %% specify connections between bodies
 addBody(robot, body0,'base');
@@ -120,15 +175,40 @@ addBody(robot, body1,'body0');
 addBody(robot, body2,'body1');
 addBody(robot, body3,'body2');
 addBody(robot, body4,'body3');
+if (linkCount == 3) | (linkCount == 4)
+    addBody(robot, body5,'body4');
+end
+if (linkCount == 4)
+    addBody(robot, body6,'body5');
+end
 
 robot.Gravity = [0 0 -9.8];
             
 %% Display robot 
 for i = 1:length(Leg.(EEselection).q)
-    config(i,:) = [-meanCyclicMotionHipEE.body.eulerAngles(i,2), ... %body rotation about inertial y
-                   Leg.(EEselection).q(i,1), ... % HAA
-                   Leg.(EEselection).q(i,2), ... % HFE
-                   Leg.(EEselection).q(i,3)]; % KFE
+    if (linkCount == 2)
+        config(i,:) = [-meanCyclicMotionHipEE.body.eulerAngles(i,2), ... %body rotation about inertial y
+                       Leg.(EEselection).q(i,1), ... % HAA
+                       Leg.(EEselection).q(i,2), ... % HFE
+                       Leg.(EEselection).q(i,3)]; % KFE
+    end
+    
+    if (linkCount == 3)
+        config(i,:) = [-meanCyclicMotionHipEE.body.eulerAngles(i,2), ... %body rotation about inertial y
+                       Leg.(EEselection).q(i,1), ... % HAA
+                       Leg.(EEselection).q(i,2), ... % HFE
+                       Leg.(EEselection).q(i,3), ... % KFE
+                       Leg.(EEselection).q(i,4)];    % AFE
+    end
+    
+    if (linkCount == 4)
+        config(i,:) = [-meanCyclicMotionHipEE.body.eulerAngles(i,2), ... %body rotation about inertial y
+                       Leg.(EEselection).q(i,1), ... % HAA
+                       Leg.(EEselection).q(i,2), ... % HFE
+                       Leg.(EEselection).q(i,3), ... % KFE
+                       Leg.(EEselection).q(i,4), ... % AFE
+                       Leg.(EEselection).q(i,5)];    % DFE
+    end
 end
 % config(:,4) = 0;
 if viewVisualization

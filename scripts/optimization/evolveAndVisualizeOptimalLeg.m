@@ -7,7 +7,7 @@
 % this function calls evolveOptimalLeg which runs the simulation
 % runFastJointTorqueSim for each set of link lengths 
 
-function [jointTorqueOpt, qOpt, qdotOpt, qdotdotOpt] = evolveAndVisualizeOptimalLeg(linkCount, optimizationProperties, EEselection, meanCyclicMotionHipEE, quadruped, jointCount, configSelection, dt, taskSelection, EE)
+function [jointTorqueOpt, qOpt, qdotOpt, qdotdotOpt] = evolveAndVisualizeOptimalLeg(linkCount, optimizationProperties, EEselection, meanCyclicMotionHipEE, quadruped, configSelection, dt, taskSelection)
 if (EEselection == 'LF') | (EEselection == 'RF')
     selectFrontHind = 1;
     else selectFrontHind = 2;
@@ -17,6 +17,12 @@ end
 initialLinkLengths(1) = quadruped.hip(selectFrontHind).length*100; 
 initialLinkLengths(2) = quadruped.thigh(selectFrontHind).length*100;
 initialLinkLengths(3) = quadruped.shank(selectFrontHind).length*100;
+if (linkCount == 3) || (linkCount == 4)
+    initialLinkLengths(4) = quadruped.foot(selectFrontHind).length*100;
+end
+if (linkCount == 4)
+    initialLinkLengths(5) = quadruped.phalanges(selectFrontHind).length*100;
+end
 
 %% print statement
 upperBnd = round(optimizationProperties.bounds.upperBoundMultiplier.*initialLinkLengths)/100;
@@ -25,18 +31,30 @@ fprintf('\nLower bound on link lengths [m]: %3.3f, %3.3f, %3.3f \n', lowerBnd);
 fprintf('Upper bound on link lengths [m]: %3.3f, %3.3f, %3.3f \n\n', upperBnd);
     
 %% evolve optimal link lengths by running ga
-[linkLengths, penaltyMin] = evolveOptimalLeg(linkCount, optimizationProperties, initialLinkLengths, taskSelection, quadruped, configSelection, EEselection, EE, dt, jointCount, meanCyclicMotionHipEE);
-fprintf('Optimized link lengths [m]: %3.3f, %3.3f, %3.3f \n\n', linkLengths/100);
+[linkLengths, penaltyMin] = evolveOptimalLeg(linkCount, optimizationProperties, initialLinkLengths, taskSelection, quadruped, configSelection, EEselection, dt, meanCyclicMotionHipEE);
+fprintf('Optimized link lengths [m]: %3.3f, %3.3f, %3.3f, %3.3f, %3.3f \n\n', linkLengths/100);
 
 %% convert back from cm to m and save the final link lengths into quadruped
 quadruped.hip(selectFrontHind).length = linkLengths(1)/100;
 quadruped.thigh(selectFrontHind).length = linkLengths(2)/100;
 quadruped.shank(selectFrontHind).length = linkLengths(3)/100;
+if (linkCount == 3) || (linkCount == 4)
+    quadruped.foot(selectFrontHind).length = linkLengths(4)/100;
+end
+if (linkCount ==4)
+    quadruped.phlanges(selectFrontHind).length = linkLengths(5)/100;
+end
+
 % Update link mass with assumption of constant density cylinder
 quadruped.hip(selectFrontHind).mass = quadruped.legDensity * pi*(quadruped.hip(selectFrontHind).radius)^2   * linkLengths(1)/100;
 quadruped.thigh(selectFrontHind).mass = quadruped.legDensity * pi*(quadruped.thigh(selectFrontHind).radius)^2 * linkLengths(2)/100;
 quadruped.shank(selectFrontHind).mass = quadruped.legDensity * pi*(quadruped.shank(selectFrontHind).radius)^2 * linkLengths(3)/100;
-
+if (linkCount == 3) || (linkCount == 4)
+    quadruped.foot(selectFrontHind).mass = quadruped.legDensity * pi*(quadruped.foot(selectFrontHind).radius)^2 * linkLengths(4)/100;
+end
+if (linkCount ==4)
+    quadruped.phalanges(selectFrontHind).mass = quadruped.legDensity * pi*(quadruped.phalanges(selectFrontHind).radius)^2 * linkLengths(5)/100;
+end
 %% visualize the optimized design
 numberOfLoopRepetitions = 3;
 viewVisualization = optimizationProperties.viz.viewVisualization;
@@ -46,7 +64,7 @@ tempLeg.(EEselection).rigidBodyModel = buildRobotRigidBodyModel(linkCount, quadr
 
 %% get joint torques of optimal design
 [tempLeg.(EEselection).qdot, tempLeg.(EEselection).qdotdot] = getJointVelocitiesUsingJacobian(linkCount, EEselection, meanCyclicMotionHipEE, tempLeg, quadruped, dt);
-tempLeg.(EEselection).jointTorque = inverseDynamics(EEselection, tempLeg, meanCyclicMotionHipEE);
+tempLeg.(EEselection).jointTorque = inverseDynamics(EEselection, tempLeg, meanCyclicMotionHipEE, linkCount);
 
 qOpt = tempLeg.(EEselection).q;
 qdotOpt = tempLeg.(EEselection).qdot;
