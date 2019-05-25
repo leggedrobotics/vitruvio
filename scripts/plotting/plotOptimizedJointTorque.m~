@@ -37,7 +37,7 @@ subplot(subplotCount,1,3)
     yl = ylim;
     patch([dt*meanTouchdownIndex.(EEselection) dt*meanTouchdownIndex.(EEselection) time(end) time(end)],[yl(1) yl(2) yl(2) yl(1)], 'b')
     alpha(0.05);
-    if (linkCount == 2)
+    if (linkCount == 3)
         str = {'Stance', 'phase'};
         text(time(end) - 0.05,0.75*yl(1),str,'FontSize',16)
         str = {'Swing', 'phase'};
@@ -58,12 +58,6 @@ if (linkCount == 3) || (linkCount == 4)
             yl = ylim;
             patch([dt*meanTouchdownIndex.(EEselection) dt*meanTouchdownIndex.(EEselection) time(end) time(end)],[yl(1) yl(2) yl(2) yl(1)], 'b')
             alpha(0.05);
-            if (linkCount == 3)
-                str = {'Stance', 'phase'};
-                text(time(end) - 0.05,0.75*yl(1),str,'FontSize',16)
-                str = {'Swing', 'phase'};
-                text(dt*meanTouchdownIndex.(EEselection) - 0.05,0.75*yl(1),str,'FontSize',16)
-            end
             ylabel('joint torque \tau [N]');
             title('AFE torque')
             legend ('initial leg design', 'optimized leg design')
@@ -79,12 +73,6 @@ if (linkCount == 4)
             yl = ylim;
             patch([dt*meanTouchdownIndex.(EEselection) dt*meanTouchdownIndex.(EEselection) time(end) time(end)],[yl(1) yl(2) yl(2) yl(1)], 'b')
             alpha(0.05);
-            if (linkCount == 4)
-                str = {'Stance', 'phase'};
-                text(time(end) - 0.05,0.75*yl(1),str,'FontSize',16)
-                str = {'Swing', 'phase'};
-                text(dt*meanTouchdownIndex.(EEselection) - 0.05,0.75*yl(1),str,'FontSize',16)
-            end
             ylabel('joint torque \tau [N]');
             title('DFE torque')
             legend ('initial leg design', 'optimized leg design')
@@ -129,12 +117,10 @@ hold on
     yl = ylim;
     patch([dt*meanTouchdownIndex.(EEselection) dt*meanTouchdownIndex.(EEselection) time(end) time(end)],[yl(1) yl(2) yl(2) yl(1)], 'b')
     alpha(0.05);
-    if (linkCount == 2)
-        str = {'Stance', 'phase'};
-        text(time(end) - 0.05,0.75*yl(1),str,'FontSize',16)
-        str = {'Swing', 'phase'};
-        text(dt*meanTouchdownIndex.(EEselection) - 0.05, 0.75*yl(1), str,'FontSize', 16)
-    end
+    str = {'Stance', 'phase'};
+    text(time(end) - 0.05,0.75*yl(1),str,'FontSize',16)
+    str = {'Swing', 'phase'};
+    text(dt*meanTouchdownIndex.(EEselection) - 0.05, 0.75*yl(1), str,'FontSize', 16)
     xlabel('time [s]');
     ylabel('joint velocity $\dot{q}$ [rad/s]','interpreter','latex')
     title('KFE velocity')
@@ -150,12 +136,10 @@ if (linkCount == 3) || (linkCount == 4)
             yl = ylim;
             patch([dt*meanTouchdownIndex.(EEselection) dt*meanTouchdownIndex.(EEselection) time(end) time(end)],[yl(1) yl(2) yl(2) yl(1)], 'b')
             alpha(0.05);
-            if (linkCount == 3)
-                str = {'Stance', 'phase'};
-                text(time(end) - 0.05,0.75*yl(1),str,'FontSize',16)
-                str = {'Swing', 'phase'};
-                text(dt*meanTouchdownIndex.(EEselection) - 0.05, 0.75*yl(1), str,'FontSize', 16)
-            end            
+            str = {'Stance', 'phase'};
+            text(time(end) - 0.05,0.75*yl(1),str,'FontSize',16)
+            str = {'Swing', 'phase'};
+            text(dt*meanTouchdownIndex.(EEselection) - 0.05, 0.75*yl(1), str,'FontSize', 16)
             xlabel('time [s]');
             ylabel('joint velocity $\dot{q}$ [rad/s]','interpreter','latex')
             title('AFE velocity')
@@ -172,15 +156,13 @@ if (linkCount == 4)
             yl = ylim;
             patch([dt*meanTouchdownIndex.(EEselection) dt*meanTouchdownIndex.(EEselection) time(end) time(end)],[yl(1) yl(2) yl(2) yl(1)], 'b')
             alpha(0.05);
-            if (linkCount == 4)
-                str = {'Stance', 'phase'};
-                text(time(end) - 0.05,0.75*yl(1),str,'FontSize',16)
-                str = {'Swing', 'phase'};
-                text(dt*meanTouchdownIndex.(EEselection) - 0.05, 0.75*yl(1), str,'FontSize', 16)
-            end            
+            str = {'Stance', 'phase'};
+            text(time(end) - 0.05,0.75*yl(1),str,'FontSize',16)
+            str = {'Swing', 'phase'};
+            text(dt*meanTouchdownIndex.(EEselection) - 0.05, 0.75*yl(1), str,'FontSize', 16)
             xlabel('time [s]');
             ylabel('joint velocity $\dot{q}$ [rad/s]','interpreter','latex')
-            title('DFE velocity')
+            title('AFE velocity')
             legend ('initial leg design', 'optimized leg design')
             grid on
         hold off

@@ -1,6 +1,6 @@
 %% get joint velocities
 
-function [qdot qdotdot] = getJointVelocitiesUsingJacobian(linkCount, EEselection, meanCyclicMotionHipEE, Leg, quadruped, dt)
+function [qdot qdotdot] = getJointVelocitiesUsingFiniteDifference(linkCount, EEselection, meanCyclicMotionHipEE, Leg, quadruped, dt)
 
 % for i = 1:length(meanCyclicMotionHipEE.(EEselection).velocity)
 %     if (EEselection == 'LF') | (EEselection == 'RF')
