@@ -13,7 +13,7 @@ opts.Display = 'iter';
 opts.MaxGenerations = optimizationProperties.options.maxGenerations;
 opts.PopulationSize = optimizationProperties.options.populationSize;
 if optimizationProperties.viz.displayBestCurrentLinkLengths
-    opts.PlotFcn = {@gaplotgenealogy};
+    opts.PlotFcn = {@gaplotgenealogy, @gaplotdistance, @gaplotbestf};
 end
 %% Set bounds and constraints
 % Upper and lower angle bounds

@@ -3,7 +3,7 @@
 % cannot be saved into a .mat file like the motion data
 
 function quadruped = getQuadrupedProperties(robotSelection);
-legDensity = 258; %kg based on desired total leg mass for universal. Could be updated for other robots.
+legDensity = 249.4; %kg based on desired total leg mass for universal. Could be updated for other robots.
 
 %% ANYmal
 robot.anymal.mass.total = 29.5; 
@@ -160,10 +160,10 @@ robot.speedy.thigh(1).length = 0.45;
 robot.speedy.thigh(2).length = 0.45;
 robot.speedy.shank(1).length = 0.45;
 robot.speedy.shank(2).length = 0.45;
-robot.speedy.foot(1).length = 0.2;
-robot.speedy.foot(2).length = 0.05;
-robot.speedy.phalanges(1).length = 0.2;
-robot.speedy.phalanges(2).length = 0.1;
+robot.speedy.foot(1).length = 0.45;
+robot.speedy.foot(2).length = 0.45;
+robot.speedy.phalanges(1).length = 0.45;
+robot.speedy.phalanges(2).length = 0.45;
 
 
 % link radius [m]

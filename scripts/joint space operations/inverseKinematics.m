@@ -40,7 +40,7 @@ function [jointPositions, r1, r2, r3, r4, r5, rEE] = inverseKinematics(linkCount
          [J_P, C_IEE, r_H_I1, r_H_I2, r_H_I3, r_H_I4, r_H_I5, r_H_IEE] = jointToPosJac(linkCount, rotBodyY, q, quadruped, EEselection);
          dr = r_H_IEE_des(i,:)' - r_H_IEE;
          dq = pinv(J_P, lambda)*dr;
-          q = q + 0.005*dq; % keep update size small to prevent overshooting angle
+          q = q + 0.002*dq; % keep update size small to prevent overshooting angle
          it = it+1;    
       end  
       
