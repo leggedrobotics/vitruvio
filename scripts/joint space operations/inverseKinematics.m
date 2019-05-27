@@ -1,14 +1,14 @@
-function [jointPositions, r1, r2, r3, r4, r5, rEE] = inverseKinematics(linkCount, meanCyclicMotionHipEE, quadruped, EEselection, taskSelection, configSelection);
+function [jointPositions, r1, r2, r3, r4, r5, rEE] = inverseKinematics(linkCount, meanCyclicMotionHipEE, quadruped, EEselection, taskSelection, configSelection, hipParalleltoBody);
 
  % Input: desired end-effector position, quadruped properties
  %        initial guess for joint angles, threshold for the stopping-criterion
  % Output: joint angles which match desired end-effector position
 
  %% Setup
-  tol = 0.01;
+  tol = 0.001;
   it = 0;
   r_H_IEE_des = meanCyclicMotionHipEE.(EEselection).position; % desired EE position
-  max_it = 1000;
+  max_it = 100;
 
   %% Get initial guess q0 for desired configuration
   q0 = getInitialJointAnglesForDesiredConfig(taskSelection, EEselection, configSelection);
@@ -18,7 +18,7 @@ function [jointPositions, r1, r2, r3, r4, r5, rEE] = inverseKinematics(linkCount
   % Initialize error -> only position because we don't have orientation data
   rotBodyY = 0;
   q = zeros(linkCount+2, 1);
-  [J_P, C_IEE, r_H_I1, r_H_I2, r_H_I3, r_H_I4, r_H_I5, r_H_IEE] = jointToPosJac(linkCount, rotBodyY, q, quadruped, EEselection);
+  [J_P, C_IEE, r_H_I1, r_H_I2, r_H_I3, r_H_I4, r_H_I5, r_H_IEE] = jointToPosJac(linkCount, rotBodyY, q, quadruped, EEselection, hipParalleltoBody);
   
   % preallocate arrays for joint coordinates
   r1 = zeros(length(meanCyclicMotionHipEE.(EEselection).position(:,1)), 3);
@@ -37,14 +37,17 @@ function [jointPositions, r1, r2, r3, r4, r5, rEE] = inverseKinematics(linkCount
         dr = r_H_IEE_des(i,:)' - r_H_IEE;
         
       while (norm(dr)>tol && it < max_it)
-         [J_P, C_IEE, r_H_I1, r_H_I2, r_H_I3, r_H_I4, r_H_I5, r_H_IEE] = jointToPosJac(linkCount, rotBodyY, q, quadruped, EEselection);
+         [J_P, C_IEE, r_H_I1, r_H_I2, r_H_I3, r_H_I4, r_H_I5, r_H_IEE] = jointToPosJac(linkCount, rotBodyY, q, quadruped, EEselection, hipParalleltoBody);
          dr = r_H_IEE_des(i,:)' - r_H_IEE;
          dq = pinv(J_P, lambda)*dr;
-          q = q + 0.002*dq; % keep update size small to prevent overshooting angle
+         % update size is largely responsible for computation time. With a
+         % larger update size factor of 0.2, the smallest joint angle is
+         % not found, but there are no jumps of ~2pi between steps
+          q = q + 0.2*dq;
          it = it+1;    
       end  
       
-      %fprintf('Inverse kinematics terminated after %d iterations.\n',it);
+%       fprintf('Inverse kinematics terminated after %d iterations.\n',it);
       jointPositions(i,:) = q';
       rEE(i,:) = r_H_IEE;
       % x y z coordinates of joints

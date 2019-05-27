@@ -1,5 +1,5 @@
 %% Read in data for quadruped geometry
-function robot = buildRobotRigidBodyModel(linkCount, quadruped, Leg, meanCyclicMotionHipEE, EEselection, numberOfLoopRepetitions, viewVisualization) 
+function robot = buildRobotRigidBodyModel(linkCount, quadruped, Leg, meanCyclicMotionHipEE, EEselection, numberOfLoopRepetitions, viewVisualization, hipParalleltoBody) 
 
 %% get quadruped properties for selected end effector  
 if (EEselection == 'LF') | (EEselection == 'RF')
@@ -50,10 +50,17 @@ T_HAA =           [0, 0, 1, 0;
 
 % rotation about y by -pi/2 to align z with HFE rotation axis 
 % and hip attachment to HFE translation
-T_HFEattachment = [0,  0, -1, 0;
-                   0,  1, 0, 0;
-                   1,  0, 0, hipOffsetDirection*l_hip;
-                   0,  0, 0, 1];
+if hipParalleltoBody
+    T_HFEattachment = [0,  0, -1, 0;
+                       0,  1, 0,  0;
+                       1,  0, 0, hipOffsetDirection*l_hip;
+                       0,  0, 0,  1];
+    else
+    T_HFEattachment = [0,  0, -1, 0;
+                       0,  1, 0, -l_hip;
+                       1,  0, 0,  0;
+                       0,  0, 0,  1];
+end
 
 % HFE to KFE translation
 T_HFE =           [1, 0, 0, l_thigh;

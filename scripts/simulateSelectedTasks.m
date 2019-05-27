@@ -6,46 +6,46 @@ for i = 1:numberOfRepetitions+1
     if universalTrot
         taskSelection = 'universalTrot'; 
         robotSelection = 'universal';
-        universal.trot(i) = runDataExtractionAndOptScripts(viewVisualization, numberOfLoopRepetitions, viewTrajectoryPlots, linkCount, runOptimization, viewOptimizedLegPlot, optimizeLF, optimizeLH, optimizeRF, optimizeRH, optimizationProperties, taskSelection, robotSelection, configSelection);
+        universal.trot(i) = runDataExtractionAndOptScripts(viewVisualization, numberOfLoopRepetitions, viewTrajectoryPlots, linkCount, runOptimization, viewOptimizedLegPlot, optimizeLF, optimizeLH, optimizeRF, optimizeRH, optimizationProperties, taskSelection, robotSelection, configSelection, hipParalleltoBody);
     end
     if universalStairs
         taskSelection = 'universalStairs'; 
         robotSelection = 'universal';
-        universal.stairs(i) = runDataExtractionAndOptScripts(viewVisualization, numberOfLoopRepetitions, viewTrajectoryPlots, linkCount, runOptimization, viewOptimizedLegPlot, optimizeLF, optimizeLH, optimizeRF, optimizeRH, optimizationProperties, taskSelection, robotSelection, configSelection);
+        universal.stairs(i) = runDataExtractionAndOptScripts(viewVisualization, numberOfLoopRepetitions, viewTrajectoryPlots, linkCount, runOptimization, viewOptimizedLegPlot, optimizeLF, optimizeLH, optimizeRF, optimizeRH, optimizationProperties, taskSelection, robotSelection, configSelection, hipParalleltoBody);
     end
     if speedyGallop
         taskSelection = 'speedyGallop'; 
         robotSelection = 'speedy';
-        speedy.gallop(i) = runDataExtractionAndOptScripts(viewVisualization, numberOfLoopRepetitions, viewTrajectoryPlots, linkCount, runOptimization, viewOptimizedLegPlot, optimizeLF, optimizeLH, optimizeRF, optimizeRH, optimizationProperties, taskSelection, robotSelection, configSelection);
+        speedy.gallop(i) = runDataExtractionAndOptScripts(viewVisualization, numberOfLoopRepetitions, viewTrajectoryPlots, linkCount, runOptimization, viewOptimizedLegPlot, optimizeLF, optimizeLH, optimizeRF, optimizeRH, optimizationProperties, taskSelection, robotSelection, configSelection, hipParalleltoBody);
     end
     if speedyStairs
         taskSelection = 'speedyStairs'; 
         robotSelection = 'speedy';
-        speedy.stairs(i) = runDataExtractionAndOptScripts(viewVisualization, numberOfLoopRepetitions, viewTrajectoryPlots, linkCount, runOptimization, viewOptimizedLegPlot, optimizeLF, optimizeLH, optimizeRF, optimizeRH, optimizationProperties, taskSelection, robotSelection, configSelection);
+        speedy.stairs(i) = runDataExtractionAndOptScripts(viewVisualization, numberOfLoopRepetitions, viewTrajectoryPlots, linkCount, runOptimization, viewOptimizedLegPlot, optimizeLF, optimizeLH, optimizeRF, optimizeRH, optimizationProperties, taskSelection, robotSelection, configSelection, hipParalleltoBody);
     end
     if massivoWalk
         taskSelection = 'massivoWalk'; 
         robotSelection = 'massivo';
-        massivo.walk(i) = runDataExtractionAndOptScripts(viewVisualization, numberOfLoopRepetitions, viewTrajectoryPlots, linkCount, runOptimization, viewOptimizedLegPlot, optimizeLF, optimizeLH, optimizeRF, optimizeRH, optimizationProperties, taskSelection, robotSelection, configSelection);
+        massivo.walk(i) = runDataExtractionAndOptScripts(viewVisualization, numberOfLoopRepetitions, viewTrajectoryPlots, linkCount, runOptimization, viewOptimizedLegPlot, optimizeLF, optimizeLH, optimizeRF, optimizeRH, optimizationProperties, taskSelection, robotSelection, configSelection, hipParalleltoBody);
     end
     if massivoStairs
         taskSelection = 'massivoStairs'; 
         robotSelection = 'massivo';
-        massivo.stairs(i) = runDataExtractionAndOptScripts(viewVisualization, numberOfLoopRepetitions, viewTrajectoryPlots, linkCount, runOptimization, viewOptimizedLegPlot, optimizeLF, optimizeLH, optimizeRF, optimizeRH, optimizationProperties, taskSelection, robotSelection, configSelection);
+        massivo.stairs(i) = runDataExtractionAndOptScripts(viewVisualization, numberOfLoopRepetitions, viewTrajectoryPlots, linkCount, runOptimization, viewOptimizedLegPlot, optimizeLF, optimizeLH, optimizeRF, optimizeRH, optimizationProperties, taskSelection, robotSelection, configSelection, hipParalleltoBody);
     end
     if centaurWalk
         taskSelection = 'centaurWalk'; 
         robotSelection = 'centaur';
-        centaur.walk(i) = runDataExtractionAndOptScripts(viewVisualization, numberOfLoopRepetitions, viewTrajectoryPlots, linkCount, runOptimization, viewOptimizedLegPlot, optimizeLF, optimizeLH, optimizeRF, optimizeRH, optimizationProperties, taskSelection, robotSelection, configSelection);
+        centaur.walk(i) = runDataExtractionAndOptScripts(viewVisualization, numberOfLoopRepetitions, viewTrajectoryPlots, linkCount, runOptimization, viewOptimizedLegPlot, optimizeLF, optimizeLH, optimizeRF, optimizeRH, optimizationProperties, taskSelection, robotSelection, configSelection, hipParalleltoBody);
     end
     if centaurStairs
         taskSelection = 'centaurStairs'; 
         robotSelection = 'centaur';
-        centaur.stairs(i) = runDataExtractionAndOptScripts(viewVisualization, numberOfLoopRepetitions, viewTrajectoryPlots, linkCount, runOptimization, viewOptimizedLegPlot, optimizeLF, optimizeLH, optimizeRF, optimizeRH, optimizationProperties, taskSelection, robotSelection, configSelection);
+        centaur.stairs(i) = runDataExtractionAndOptScripts(viewVisualization, numberOfLoopRepetitions, viewTrajectoryPlots, linkCount, runOptimization, viewOptimizedLegPlot, optimizeLF, optimizeLH, optimizeRF, optimizeRH, optimizationProperties, taskSelection, robotSelection, configSelection, hipParalleltoBody);
     end
     if miniPronk
         taskSelection = 'miniPronk'; 
         robotSelection = 'mini';
-        mini.pronk(i) = runDataExtractionAndOptScripts(viewVisualization, numberOfLoopRepetitions, viewTrajectoryPlots, linkCount, runOptimization, viewOptimizedLegPlot, optimizeLF, optimizeLH, optimizeRF, optimizeRH, optimizationProperties, taskSelection, robotSelection, configSelection);
+        mini.pronk(i) = runDataExtractionAndOptScripts(viewVisualization, numberOfLoopRepetitions, viewTrajectoryPlots, linkCount, runOptimization, viewOptimizedLegPlot, optimizeLF, optimizeLH, optimizeRF, optimizeRH, optimizationProperties, taskSelection, robotSelection, configSelection, hipParalleltoBody);
     end
 end

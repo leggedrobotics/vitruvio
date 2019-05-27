@@ -5,9 +5,12 @@ close all;
 % number of links from 2 to 4. [thigh, shank, foot, phalanges]
 linkCount = 2;
 
+% specify hip orientation
+hipParalleltoBody = false; % if false, hip link is perpendicular to body x
+
 % Toggle trajectory plots and initial design viz
 viewVisualization = false; % initial leg design tracking trajectory plan
-numberOfLoopRepetitions = 3; % number of steps visualized for leg motion
+numberOfLoopRepetitions = 1; % number of steps visualized for leg motion
 viewTrajectoryPlots = false;
 
 % Toggle optimization for each leg
@@ -24,8 +27,8 @@ optimizationProperties.viz.viewVisualization = true;
 optimizationProperties.viz.displayBestCurrentLinkLengths = true; % display chart while running ga
 
 % set number of generations and population size
-optimizationProperties.options.maxGenerations = 10;
-optimizationProperties.options.populationSize = 15;
+optimizationProperties.options.maxGenerations = 30;
+optimizationProperties.options.populationSize = 30;
 
 % set weights for fitness function terms
 optimizationProperties.penaltyWeight.totalTorque =   1;
@@ -37,8 +40,8 @@ optimizationProperties.penaltyWeight.maxPower =      0;
 optimizationProperties.penaltyWeight.trackingError = 1000000;
 
 % set bounds for link lengths as multipliers of initial values
-optimizationProperties.bounds.upperBoundMultiplier = [1, 2, 2]; % [hip thigh shank]
-optimizationProperties.bounds.lowerBoundMultiplier = [1, 0.2, 0.2]; % [hip thigh shank]
+optimizationProperties.bounds.upperBoundMultiplier = [2, 2, 2]; % [hip thigh shank]
+optimizationProperties.bounds.lowerBoundMultiplier = [0.2, 0.2, 0.2]; % [hip thigh shank]
 if linkCount == 3
     optimizationProperties.bounds.upperBoundMultiplier = [1, 1.2, 1.2, 1.2]; % [hip thigh shank]
     optimizationProperties.bounds.lowerBoundMultiplier = [1, 0.1, 0.1, 0.1]; % [hip thigh shank]
