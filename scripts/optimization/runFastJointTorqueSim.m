@@ -21,12 +21,8 @@ end
 if linkCount == 4
     quadruped.phalanges(selectFrontHind).mass = quadruped.legDensity * pi*(quadruped.phalanges(selectFrontHind).radius)^2 * linkLengths(5)/100;
 end
-%% Inverse kinematics to calculate joint angles for each leg joint
-[tempLeg.(EEselection).q, tempLeg.(EEselection).r.EE] = inverseKinematics(linkCount, meanCyclicMotionHipEE, quadruped, EEselection, taskSelection, configSelection);
-
-%% Get EE positions for use in tracking error term
-% rotBodyY = meanCyclicMotionHipEE.body.eulerAngles(:,2);
-% [~, ~, tempLeg.(EEselection).r.EE] = jointToPosJac(linkCount, rotBodyY, q, quadruped, EEselection);
+%% Inverse kinematics to calculate joint angles for each leg joint as well as xyz coordinates of joints
+[tempLeg.(EEselection).q, tempLeg.(EEselection).r.HAA, tempLeg.(EEselection).r.HFE, tempLeg.(EEselection).r.KFE, tempLeg.(EEselection).r.AFE, tempLeg.(EEselection).r.DFE, tempLeg.(EEselection).r.EE] = inverseKinematics(linkCount, meanCyclicMotionHipEE, quadruped, EEselection, taskSelection, configSelection);
 
 %% Build robot model with joint angles from inverse kinematics tempLeg
 numberOfLoopRepetitions = 1;
@@ -57,13 +53,30 @@ maxqdot       = max(max(abs(tempLeg.(EEselection).qdot)));
 maxPower      = max(max(abs((tempLeg.(EEselection).jointTorque).*(tempLeg.(EEselection).qdot(1:end-2,1:end-1)))));
 trackingError = norm(meanCyclicMotionHipEE.(EEselection).position-tempLeg.(EEselection).r.EE);
 
+% find lowest joint and penalize if it is below the EE's lowest point ie
+% penetrating the ground
+
+lowestJoint =  min([min(tempLeg.(EEselection).r.HAA(:,3)), ...
+                    min(tempLeg.(EEselection).r.HFE(:,3)), ...
+                    min(tempLeg.(EEselection).r.KFE(:,3)), ...
+                    min(tempLeg.(EEselection).r.AFE(:,3)),  ...
+                    min(tempLeg.(EEselection).r.DFE(:,3))]);
+                
+% if non zero, this must be the largest penalty as it is an infeasible solution
+if (lowestJoint < min(min(tempLeg.(EEselection).r.DFE(:,3))))
+    jointBelowEEPenalty = 1000000;
+else
+    jointBelowEEPenalty = 0;
+end
+
 penalty = W_totalTorque * totalTorque + ...
           W_totalqdot * totalqdot     + ...
           W_totalPower * totalPower   + ...
           W_maxTorque * maxTorque     + ...
           W_maxqdot * maxqdot         + ...
           W_maxPower * maxPower       + ...
-          W_trackingError * trackingError;
+          W_trackingError * trackingError + ...
+          jointBelowEEPenalty;
 % fprintf('tracking error %3f ',W_trackingError * trackingError)
 % fprintf('total torque %3f \n',W_totalTorque * totalTorque)
 end

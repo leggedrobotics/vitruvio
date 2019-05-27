@@ -42,13 +42,14 @@ T_body =             [1, 0, 0, 0;
                       0, -1, 0, 0;
                       0, 0, 0, 1];
                
-% rotation about y by pi/2
+% rotation about y by pi/2 to align z with HAA rotation axis
 T_HAA =           [0, 0, 1, 0;
                    0, 1, 0, 0;
                   -1, 0, 0, 0;
                    0, 0, 0, 1];
 
-% rotation about y by -pi/2 and hip attachment to HFE translation
+% rotation about y by -pi/2 to align z with HFE rotation axis 
+% and hip attachment to HFE translation
 T_HFEattachment = [0,  0, -1, 0;
                    0,  1, 0, 0;
                    1,  0, 0, hipOffsetDirection*l_hip;
@@ -60,21 +61,21 @@ T_HFE =           [1, 0, 0, l_thigh;
                    0, 0, 1, 0;
                    0, 0, 0, 1];
 
-% KFE to EE translation
+% KFE to EE (or KFE to AFE for higher link counts) translation
 T_KFE =           [1, 0, 0, l_shank;
                    0, 1, 0, 0;
                    0, 0, 1, 0;
                    0, 0, 0, 1];
 
 if (linkCount == 3) | (linkCount ==4)
-    
+    % AFE to EE (or AFE to DFE for higher link counts) translation
     T_AFE =           [1, 0, 0, l_foot;
                        0, 1, 0, 0;
                        0, 0, 1, 0;
                        0, 0, 0, 1];
 end
 if (linkCount ==4)
-
+    % DFE to EE translation
     T_DFE =           [1, 0, 0, l_phalanges;
                        0, 1, 0, 0;
                        0, 0, 1, 0;
@@ -85,15 +86,15 @@ end
 robot = robotics.RigidBodyTree('DataFormat', 'row');
 % Create bodies and joints 
 body0 = robotics.RigidBody('body0');
-body1 = robotics.RigidBody('body1');
-body2 = robotics.RigidBody('body2');
-body3 = robotics.RigidBody('body3');
-body4 = robotics.RigidBody('body4');
+body1 = robotics.RigidBody('body1'); % hip
+body2 = robotics.RigidBody('body2'); % thigh
+body3 = robotics.RigidBody('body3'); % shank
+body4 = robotics.RigidBody('body4'); % EE or foot
 if (linkCount == 3) | (linkCount == 4)
-       body5 = robotics.RigidBody('body5');
+       body5 = robotics.RigidBody('body5'); % EE or phalanges
 end
 if (linkCount == 4)
-       body6 = robotics.RigidBody('body6');
+       body6 = robotics.RigidBody('body6'); % EE
 end
 
 jnt0 = robotics.Joint('jnt0','revolute'); % body rotation about y in inertial frame
@@ -112,29 +113,37 @@ if (linkCount == 4)
 end
 
 body0.Mass = 0;      
-body1.Mass = quadruped.hip(selectFrontHind).mass;      
-body2.Mass = quadruped.thigh(selectFrontHind).mass;
-body3.Mass = quadruped.shank(selectFrontHind).mass;
-body4.Mass = quadruped.EE(selectFrontHind).mass;  
+body1.Mass = quadruped.hip(selectFrontHind).mass;    % hip  
+body2.Mass = quadruped.thigh(selectFrontHind).mass;  % thigh
+body3.Mass = quadruped.shank(selectFrontHind).mass;  % shank
+body4.Mass = quadruped.EE(selectFrontHind).mass;     % EE
 if (linkCount == 3)
-    body4.Mass = quadruped.foot(selectFrontHind).mass;  
-    body5.Mass = quadruped.EE(selectFrontHind).mass;  
+    body4.Mass = quadruped.foot(selectFrontHind).mass;  % overwrite EE with foot
+    body5.Mass = quadruped.EE(selectFrontHind).mass;  % EE
 end
 if (linkCount == 4)
-    body4.Mass = quadruped.foot(selectFrontHind).mass;  
-    body5.Mass = quadruped.phalanges(selectFrontHind).mass;  
-    body6.Mass = quadruped.EE(selectFrontHind).mass;  
+    body4.Mass = quadruped.foot(selectFrontHind).mass;  % foot
+    body5.Mass = quadruped.phalanges(selectFrontHind).mass;  % overwrite EE with phalanges
+    body6.Mass = quadruped.EE(selectFrontHind).mass;  % EE
 end
 
 % inertia = [Ixx Iyy Izz Iyz Ixz Ixy] relative to body frame in kg/m^2
 % note that body3.Inertia encompasses shank and end effector inertia terms
-body0.Inertia = [0 0 0 0 0 0]; %hip      
-body1.Inertia = [0.000001  1/3*body1.Mass*l_hip^2                             1/3*body1.Mass*l_hip^2                             0 0 0]; %hip      
-body2.Inertia = [0.000001  1/3*body2.Mass*l_thigh^2                           1/3*body2.Mass*l_thigh^2                           0 0 0]; %thigh
-body3.Inertia = [0.000001  1/3*body3.Mass*l_shank^2+1/2*body4.Mass*l_shank^2  1/3*body3.Mass*l_shank^2+1/2*body4.Mass*l_shank^2  0 0 0]; %shank
-body4.Inertia = [0.000001  0.000001                                           0.000001                                           0 0 0]; %EE
-% come back and update for different link counts
+body0.Inertia = [0 0 0 0 0 0];      
+body1.Inertia = [0.00000001  1/3*body1.Mass*l_hip^2                             1/3*body1.Mass*l_hip^2                             0 0 0]; %hip      
+body2.Inertia = [0.00000001  1/3*body2.Mass*l_thigh^2                           1/3*body2.Mass*l_thigh^2                           0 0 0]; %thigh
+body3.Inertia = [0.00000001  1/3*body3.Mass*l_shank^2+1/2*body4.Mass*l_shank^2  1/3*body3.Mass*l_shank^2+1/2*body4.Mass*l_shank^2  0 0 0]; %shank and EE inertia
+body4.Inertia = [0 0 0 0 0 0];
 
+if (linkCount == 3)
+    body3.Inertia = [0.00000001  1/3*body3.Mass*l_shank^2  1/3*body3.Mass*l_shank^2  0 0 0]; %shank without EE
+    body4.Inertia = [0.00000001  1/3*body4.Mass*l_foot^2+1/2*body5.Mass*l_foot^2  1/3*body4.Mass*l_foot^2+1/2*body5.Mass*l_foot^2  0 0 0]; % foot with EE
+end
+
+if (linkCount == 4)
+    body4.Inertia = [0.00000001  1/3*body4.Mass*l_foot^2  1/3*body4.Mass*l_foot^2  0 0 0]; %foot without EE
+    body5.Inertia = [0.00000001  1/3*body5.Mass*l_phalanges^2+1/2*body6.Mass*l_phalanges^2  1/3*body5.Mass*l_phalanges^2+1/2*body6.Mass*l_phalanges^2  0 0 0]; % phalanges with EE
+end
 
 % center of mass and mass terms do not affect inertia but are used 
 % to compute torque due to gravitational force

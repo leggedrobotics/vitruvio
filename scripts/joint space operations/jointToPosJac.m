@@ -1,4 +1,4 @@
-function [J_P, C_IEE, r_H_IEE]  = jointToPosJac(linkCount, rotBodyY, q, quadruped, EEselection)
+function [J_P, C_IEE, r_H_I1, r_H_I2, r_H_I3, r_H_I4, r_H_I5, r_H_IEE]  = jointToPosJac(linkCount, rotBodyY, q, quadruped, EEselection)
   % Input: vector of generalized coordinates (joint angles)
   % Output: Jacobian of the end-effector translation which maps joint
   % velocities to end-effector linear velocities in hip attachmemt frame.
@@ -79,8 +79,7 @@ function [J_P, C_IEE, r_H_IEE]  = jointToPosJac(linkCount, rotBodyY, q, quadrupe
                    0, 0,  1,  0;
                    0, 0,  0,  1]; 
         end
-        
-
+       
   % Compute the homogeneous transformation matrices from frame k to the
   % inertial frame I
   T_I1 = T_IH*T_H1;
@@ -110,19 +109,21 @@ function [J_P, C_IEE, r_H_IEE]  = jointToPosJac(linkCount, rotBodyY, q, quadrupe
       R_I6 = T_I6(1:3,1:3);
   end
 
-
   % Extract the position vectors from each homogeneous transformation
   % matrix in inertial frame from hip attachment point to joint k
-  r_H_IH = T_IH(1:3,4);
-  r_H_I1 = T_I1(1:3,4);
-  r_H_I2 = T_I2(1:3,4);
-  r_H_I3 = T_I3(1:3,4);
-  r_H_I4 = T_I4(1:3,4);
+  r_H_IH = T_IH(1:3,4); 
+  r_H_I1 = T_I1(1:3,4); % HAA
+  r_H_I2 = T_I2(1:3,4); % HFE
+  r_H_I3 = T_I3(1:3,4); % KFE
+  r_H_I4 = T_I4(1:3,4); % EE or AFE
+  r_H_I5 = [0; 0; 0]; % zeros if these joints do not exist
+  r_H_I6 = [0; 0; 0]; 
+
   if (linkCount == 3) | (linkCount == 4)
-      r_H_I5 = T_I5(1:3,4);
+      r_H_I5 = T_I5(1:3,4); %% EE or DFE
   end
   if (linkCount == 4)
-      r_H_I6 = T_I6(1:3,4);
+      r_H_I6 = T_I6(1:3,4); % EE
   end
   
   % Define the unit vectors around which each link rotates in the precedent
@@ -181,6 +182,4 @@ function [J_P, C_IEE, r_H_IEE]  = jointToPosJac(linkCount, rotBodyY, q, quadrupe
                 cross(R_I6*n_6, r_H_IEE - r_H_I6) ...
              ];
   end
-  
-  
 end

@@ -390,5 +390,5 @@ robot.mini.q4.minAngle = pi/2;
 robot.mini.q4.maxAngle = -pi/2;
 
 quadruped = robot.(robotSelection);
-quadruped.EE(1).mass = 0.05; 
-quadruped.EE(2).mass = 0.05; 
+quadruped.EE(1).mass = 0.2; 
+quadruped.EE(2).mass = 0.2; 
