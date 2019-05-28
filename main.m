@@ -27,8 +27,8 @@ optimizationProperties.viz.viewVisualization = true;
 optimizationProperties.viz.displayBestCurrentLinkLengths = false; % display chart while running ga
 
 % set number of generations and population size
-optimizationProperties.options.maxGenerations = 10;
-optimizationProperties.options.populationSize = 60;
+optimizationProperties.options.maxGenerations = 4;
+optimizationProperties.options.populationSize = 4;
 
 % set weights for fitness function terms
 optimizationProperties.penaltyWeight.totalTorque =   0;
