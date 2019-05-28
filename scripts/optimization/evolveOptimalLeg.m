@@ -21,6 +21,7 @@ upperBnd = round(optimizationProperties.bounds.upperBoundMultiplier.*initialLink
 lowerBnd = round(optimizationProperties.bounds.lowerBoundMultiplier.*initialLinkLengths);
 
 %% Run optimization
+
 costFcn = @(linkLengths)runFastJointTorqueSim(linkCount, optimizationProperties, quadruped, linkLengths, selectFrontHind, taskSelection, dt, configSelection, EEselection, meanCyclicMotionHipEE, hipParalleltoBody);
 disp(['Running optimization. Population: ' num2str(opts.PopulationSize) ...
       ', Max Generations: ' num2str(opts.MaxGenerations)])

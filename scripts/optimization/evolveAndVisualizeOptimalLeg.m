@@ -7,7 +7,7 @@
 % this function calls evolveOptimalLeg which runs the simulation
 % runFastJointTorqueSim for each set of link lengths 
 
-function [jointTorqueOpt, qOpt, qdotOpt, qdotdotOpt, rOpt, linkLengths, penaltyMin, elapsedTime, exitFlag, Output] = evolveAndVisualizeOptimalLeg(linkCount, optimizationProperties, EEselection, meanCyclicMotionHipEE, quadruped, configSelection, dt, taskSelection, hipParalleltoBody)
+function [jointTorqueOpt, qOpt, qdotOpt, qdotdotOpt, rOpt, jointPowerOpt, linkLengths, penaltyMin, elapsedTime, exitFlag, Output] = evolveAndVisualizeOptimalLeg(linkCount, optimizationProperties, EEselection, meanCyclicMotionHipEE, quadruped, configSelection, dt, taskSelection, hipParalleltoBody)
 if (EEselection == 'LF') | (EEselection == 'RF')
     selectFrontHind = 1;
     else selectFrontHind = 2;
@@ -71,9 +71,14 @@ tempLeg.(EEselection).rigidBodyModel = buildRobotRigidBodyModel(linkCount, quadr
 [tempLeg.(EEselection).qdot, tempLeg.(EEselection).qdotdot] = getJointVelocitiesUsingFiniteDifference(linkCount, EEselection, meanCyclicMotionHipEE, tempLeg, quadruped, dt);
 tempLeg.(EEselection).jointTorque = inverseDynamics(EEselection, tempLeg, meanCyclicMotionHipEE, linkCount);
 
+%% get joint power for optimal design
+tempLeg.(EEselection).jointPower = tempLeg.(EEselection).jointTorque .* tempLeg.(EEselection).qdot(1:end-2,1:end-1);
+
+%% return joint data
 linkLengths = linkLengths/100; %convert back to m for output
 rOpt = tempLeg.(EEselection).r;
 qOpt = tempLeg.(EEselection).q;
 qdotOpt = tempLeg.(EEselection).qdot;
 qdotdotOpt = tempLeg.(EEselection).qdotdot;
 jointTorqueOpt = tempLeg.(EEselection).jointTorque;
+jointPowerOpt = tempLeg.(EEselection).jointPower;

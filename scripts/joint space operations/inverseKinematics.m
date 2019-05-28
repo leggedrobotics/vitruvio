@@ -8,7 +8,7 @@ function [jointPositions, r1, r2, r3, r4, r5, rEE] = inverseKinematics(linkCount
   tol = 0.001;
   it = 0;
   r_H_IEE_des = meanCyclicMotionHipEE.(EEselection).position; % desired EE position
-  max_it = 100;
+  max_it = 1000;
 
   %% Get initial guess q0 for desired configuration
   q0 = getInitialJointAnglesForDesiredConfig(taskSelection, EEselection, configSelection);
@@ -43,7 +43,7 @@ function [jointPositions, r1, r2, r3, r4, r5, rEE] = inverseKinematics(linkCount
          % update size is largely responsible for computation time. With a
          % larger update size factor of 0.2, the smallest joint angle is
          % not found, but there are no jumps of ~2pi between steps
-          q = q + 0.2*dq;
+          q = q + 0.1*dq;
          it = it+1;    
       end  
       

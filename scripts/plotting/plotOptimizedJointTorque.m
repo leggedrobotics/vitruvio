@@ -185,3 +185,96 @@ if (linkCount == 4)
             grid on
         hold off
 end
+
+%% joint power plots
+time = 0:dt:length(Leg.(EEselection).jointPower)*dt-dt;
+
+subplotCount = linkCount+1;
+figure()
+subplot(subplotCount,1,1)
+hold on
+    plot(time, Leg.(EEselection).jointPower(:,1), 'r', ...
+         time, Leg.(EEselection).jointPowerOpt(:,1),'b')
+    yl = ylim;
+    patch([dt*meanTouchdownIndex.(EEselection) dt*meanTouchdownIndex.(EEselection) time(end) time(end)],[yl(1) yl(2) yl(2) yl(1)], 'b')
+    alpha(0.05);
+    ylabel('joint power \tau [W]');
+    title({taskSelection, EEselection,'HAA power'})
+    legend ('initial leg design', 'optimized leg design')
+    grid on
+hold off
+
+subplot(subplotCount,1,2)
+hold on
+    plot(time, Leg.(EEselection).jointPower(:,2), 'r', ...
+         time, Leg.(EEselection).jointPowerOpt(:,2),'b')
+    yl = ylim;
+    patch([dt*meanTouchdownIndex.(EEselection) dt*meanTouchdownIndex.(EEselection) time(end) time(end)],[yl(1) yl(2) yl(2) yl(1)], 'b')
+    alpha(0.05);
+    ylabel('joint power \tau [W]');
+    title('HFE power')
+    legend ('initial leg design', 'optimized leg design')
+    grid on
+hold off
+
+subplot(subplotCount,1,3)
+    hold on
+    plot(time, Leg.(EEselection).jointPower(:,3), 'r', ...
+         time, Leg.(EEselection).jointPowerOpt(:,3),'b')
+    yl = ylim;
+    patch([dt*meanTouchdownIndex.(EEselection) dt*meanTouchdownIndex.(EEselection) time(end) time(end)],[yl(1) yl(2) yl(2) yl(1)], 'b')
+    alpha(0.05);
+    if (linkCount == 2)
+        str = {'Stance', 'phase'};
+        text(time(end) - 0.05,0.75*yl(1),str,'FontSize',16)
+        str = {'Swing', 'phase'};
+        text(dt*meanTouchdownIndex.(EEselection) - 0.05,0.75*yl(1),str,'FontSize',16)
+    end
+    xlabel('time [s]');
+    ylabel('joint power \tau [W]')
+    title('KFE power')
+    legend ('initial leg design', 'optimized leg design')
+    grid on
+hold off
+
+if (linkCount == 3) || (linkCount == 4)
+        subplot(subplotCount,1,4)
+            hold on
+            plot(time, Leg.(EEselection).jointPower(:,4), 'r', ...
+                 time, Leg.(EEselection).jointPowerOpt(:,4),'b')
+            yl = ylim;
+            patch([dt*meanTouchdownIndex.(EEselection) dt*meanTouchdownIndex.(EEselection) time(end) time(end)],[yl(1) yl(2) yl(2) yl(1)], 'b')
+            alpha(0.05);
+            if (linkCount == 3)
+                str = {'Stance', 'phase'};
+                text(time(end) - 0.05,0.75*yl(1),str,'FontSize',16)
+                str = {'Swing', 'phase'};
+                text(dt*meanTouchdownIndex.(EEselection) - 0.05,0.75*yl(1),str,'FontSize',16)
+            end
+            ylabel('joint power \tau [W]');
+            title('AFE power')
+            legend ('initial leg design', 'optimized leg design')
+            grid on
+        hold off
+end
+
+if (linkCount == 4)
+        subplot(subplotCount,1,5)
+            hold on
+            plot(time, Leg.(EEselection).jointPower(:,5), 'r', ...
+                 time, Leg.(EEselection).jointPowerOpt(:,5),'b')
+            yl = ylim;
+            patch([dt*meanTouchdownIndex.(EEselection) dt*meanTouchdownIndex.(EEselection) time(end) time(end)],[yl(1) yl(2) yl(2) yl(1)], 'b')
+            alpha(0.05);
+            if (linkCount == 4)
+                str = {'Stance', 'phase'};
+                text(time(end) - 0.05,0.75*yl(1),str,'FontSize',16)
+                str = {'Swing', 'phase'};
+                text(dt*meanTouchdownIndex.(EEselection) - 0.05,0.75*yl(1),str,'FontSize',16)
+            end
+            ylabel('joint power \tau [W]');
+            title('DFE power')
+            legend ('initial leg design', 'optimized leg design')
+            grid on
+        hold off
+end
