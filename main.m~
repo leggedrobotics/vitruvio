@@ -17,9 +17,9 @@ viewTrajectoryPlots = false;
 runOptimization = true;
 viewOptimizedLegPlot = false;
 optimizeLF = true; 
-optimizeLH = false; 
-optimizeRF = false; 
-optimizeRH = false;
+optimizeLH = true; 
+optimizeRF = true; 
+optimizeRH = true;
 
 %% set optimization properties
 % toggle visualization 
@@ -27,8 +27,8 @@ optimizationProperties.viz.viewVisualization = true;
 optimizationProperties.viz.displayBestCurrentLinkLengths = false; % display chart while running ga
 
 % set number of generations and population size
-optimizationProperties.options.maxGenerations = 20;
-optimizationProperties.options.populationSize = 30;
+optimizationProperties.options.maxGenerations = 10;
+optimizationProperties.options.populationSize = 20;
 
 % set weights for fitness function terms
 optimizationProperties.penaltyWeight.totalTorque =   0;

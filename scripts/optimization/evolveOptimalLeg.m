@@ -1,4 +1,4 @@
-function [linkLengths, penaltyMin, exitFlag, Output] = evolveOptimalLeg(linkCount, optimizationProperties, initialLinkLengths, taskSelection, quadruped, configSelection, EEselection, dt, meanCyclicMotionHipEE, hipParalleltoBody)
+function [linkLengths, penaltyMin, exitFlag, Output] = evolveOptimalLeg(l_hipAttachmentOffset, linkCount, optimizationProperties, initialLinkLengths, taskSelection, quadruped, configSelection, EEselection, dt, meanCyclicMotionHipEE, hipParalleltoBody)
 if (EEselection == 'LF') | (EEselection == 'RF')
          selectFrontHind = 1;
     else selectFrontHind = 2;
@@ -22,7 +22,7 @@ lowerBnd = round(optimizationProperties.bounds.lowerBoundMultiplier.*initialLink
 
 %% Run optimization
 
-costFcn = @(linkLengths)runFastJointTorqueSim(linkCount, optimizationProperties, quadruped, linkLengths, selectFrontHind, taskSelection, dt, configSelection, EEselection, meanCyclicMotionHipEE, hipParalleltoBody);
+costFcn = @(linkLengths)runFastJointTorqueSim(l_hipAttachmentOffset, linkCount, optimizationProperties, quadruped, linkLengths, selectFrontHind, taskSelection, dt, configSelection, EEselection, meanCyclicMotionHipEE, hipParalleltoBody);
 disp(['Running optimization. Population: ' num2str(opts.PopulationSize) ...
       ', Max Generations: ' num2str(opts.MaxGenerations)])
 %[x, feval] = ga(fun,nvars,A,b,[],[],lb,ub,nonlcon,IntCon, options)
@@ -34,7 +34,7 @@ elseif linkCount == 4
     nvars = [1 2 3 4 5];
 end
  [linkLengths,penaltyMin, exitFlag, Output] = ga(costFcn,linkCount+1,[],[],[],[], ... 
-                              lowerBnd,upperBnd,[],nvars,opts);
+                                                 lowerBnd,upperBnd,[],nvars,opts);
 disp(['Final penalty function value: ' num2str(penaltyMin)])
 
 end

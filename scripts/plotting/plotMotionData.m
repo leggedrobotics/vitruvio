@@ -1,9 +1,8 @@
-%% Plot values
-close all;
+%% Plot trajectory data
 set(gcf,'color','w');
 
 %% base position and velocity
-figure(1);
+figure(2);
 subplot(3,2,1);
 plot(t, base.position(:,1));
 ylabel('x position [m]');
@@ -37,7 +36,7 @@ grid on
 %% end effector forces
 figure()
 
-subplot(4,1,1)
+subplot(3,1,1)
 plot(t, EE.LF.force(:,1), 'b', t, EE.LH.force(:,1), 'g', ...
      t, EE.RF.force(:,1), 'r', t, EE.RH.force(:,1), 'c')
 title('End Effector forces')
@@ -45,52 +44,21 @@ ylabel('force in x-direction [N]')
 legend('LF','LH','RF','RH')
 grid on
 
-subplot(4,1,2)
+subplot(3,1,2)
 plot(t, EE.LF.force(:,2), 'b', t, EE.LH.force(:,2), 'g', ...
      t, EE.RF.force(:,2), 'r', t, EE.RH.force(:,2), 'c')
 ylabel('force in y-direction [N]')
 legend('LF','LH','RF','RH')
 grid on
 
-subplot(4,1,3)
+subplot(3,1,3)
 plot(t, EE.LF.force(:,3), 'b', t, EE.LH.force(:,3), 'g', ...
      t, EE.RF.force(:,3), 'r', t, EE.RH.force(:,3), 'c')
 ylabel('force in z-direction [N]')
 legend('LF','LH','RF','RH')
 grid on
-
-subplot(4,1,4)
-plot(t, EE.LF.force(:,4), 'b', t, EE.LH.force(:,4), 'g', ...
-     t, EE.RF.force(:,4), 'r', t, EE.RH.force(:,4), 'c')
-xlabel('time [s]')
-ylabel('magnitude of force [N]')
-legend('LF','LH','RF','RH')
-grid on
  
-%% plots of hip attachment points, end effectors z position and z forces
-
-figure()
-% hip attachment points and end effector z position
-subplot(2,1,1)
-plot(t, EE.LF.position(:,3), 'b', t, EE.LH.position(:,3), 'g', ...
-     t, EE.RF.position(:,3), 'r', t, EE.RH.position(:,3), 'c', ... 
-     t, IF_hip.LF.position(:,3), 'b', t, IF_hip.LH.position(:,3), 'g', ...
-     t, IF_hip.RF.position(:,3), 'r', t, IF_hip.RH.position(:,3), 'c')
- 
-title('Hip attachment point and effector z position');
-xlabel('time [s]')
-ylabel('position in z direction [m]')
-legend('LF','LH','RF','RH')
- 
-% end effector z forces
-subplot(2,1,2)
-plot(t, EE.LF.force(:,3), 'b', t, EE.LH.force(:,3), 'g', ...
-     t, EE.RF.force(:,3), 'r', t, EE.RH.force(:,3), 'c');
-title('End effector z forces');
-xlabel('time [s]')
-ylabel('End effector forces in z direction [m]')
-
-%% relative motion of EE with respect to fixed hip
+%% relative motion of EE with respect to fixed hip displayed in 3D
 
 xMin = min([min(relativeMotionHipEE.LF.position(:,1)) min(relativeMotionHipEE.LH.position(:,1)), ...
             min(relativeMotionHipEE.RF.position(:,1)), min(relativeMotionHipEE.RH.position(:,1))]);
@@ -103,8 +71,7 @@ zMin = min([min(relativeMotionHipEE.LF.position(:,3)) min(relativeMotionHipEE.LH
         
 zMax = max([max(relativeMotionHipEE.LF.position(:,3)) max(relativeMotionHipEE.LH.position(:,3)), ...
              max(relativeMotionHipEE.RF.position(:,3)),max(relativeMotionHipEE.RH.position(:,3))]);       
-        
-                 
+                      
 axisMin = min(xMin,zMin);
 axisMax = max(xMax, zMax);
 
@@ -138,12 +105,11 @@ ylabel('y position [m]')
 zlabel('z position [m]')
 
 %% Plot mean x vs z position of EE in cyclic motion
-
 figure()
 title('End effector motion with all gait cycles')
 
 % LF
-subplot(4,2,1)
+subplot(2,2,1)
 for i = samplingStart:samplingEnd
     hold on
     plot(cyclicMotionHipEE.LF.position(:,1,i), cyclicMotionHipEE.LF.position(:,3,i), 'bo')
@@ -158,7 +124,7 @@ title('LF')
 
 hold off
 % LH
-subplot(4,2,2)
+subplot(2,2,2)
 for i = samplingStart:samplingEnd
     hold on
     plot(cyclicMotionHipEE.LH.position(:,1,i), cyclicMotionHipEE.LH.position(:,3,i), 'bo')
@@ -173,7 +139,7 @@ title('LH')
 hold off
 
 % RF
-subplot(4,2,3)
+subplot(2,2,3)
 for i = samplingStart:samplingEnd
     hold on
     plot(cyclicMotionHipEE.RF.position(:,1,i), cyclicMotionHipEE.RF.position(:,3,i), 'bo')
@@ -187,7 +153,7 @@ title('RF')
 hold off
 
 % RH
-subplot(4,2,4)
+subplot(2,2,4)
 for i = samplingStart:samplingEnd
     hold on
     plot(cyclicMotionHipEE.RH.position(:,1,i), cyclicMotionHipEE.RH.position(:,3,i), 'bo')

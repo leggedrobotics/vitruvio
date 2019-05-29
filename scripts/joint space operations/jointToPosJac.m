@@ -1,4 +1,4 @@
-function [J_P, C_IEE, r_H_I1, r_H_I2, r_H_I3, r_H_I4, r_H_I5, r_H_IEE]  = jointToPosJac(linkCount, rotBodyY, q, quadruped, EEselection, hipParalleltoBody)
+function [J_P, C_IEE, r_H_I1, r_H_I2, r_H_I3, r_H_I4, r_H_I5, r_H_IEE]  = jointToPosJac(l_hipAttachmentOffset, linkCount, rotBodyY, q, quadruped, EEselection, hipParalleltoBody)
   % Input: vector of generalized coordinates (joint angles)
   % Output: Jacobian of the end-effector translation which maps joint
   % velocities to end-effector linear velocities in hip attachmemt frame.
@@ -26,7 +26,7 @@ function [J_P, C_IEE, r_H_I1, r_H_I2, r_H_I3, r_H_I4, r_H_I5, r_H_IEE]  = jointT
      
   % transformation from hip attachment frame to HAA frame   
   % rotation about x of hip attachment frame (HAA rotation)
-  T_H1 = [1, 0,          0,          0;
+  T_H1 = [1, 0,          0,         l_hipAttachmentOffset;
          0, cos(q(1)), -sin(q(1)),  0;
          0, sin(q(1)),  cos(q(1)),  0;
          0, 0,          0,          1];

@@ -3,11 +3,9 @@
 % for a subset of the cycles when the motion is steady and averages the result
 function [meanCyclicMotionHipEE, cyclicMotionHipEE, meanCyclicC_IBody, samplingStart, samplingEnd, meanTouchdownIndex] = getHipEECyclicData(quadruped, tLiftoff, relativeMotionHipEE, EE, removalRatioStart, removalRatioEnd, dt, minStepCount, C_IBody, EEnames)
 %% Save position data for each cycle for each end effector
-
 % determine minimum number of data points from liftoff to subsequent
 % liftoff. The data for the cyclical motion will then be stored only up to
 % this index number
-
 for i = 1:length(tLiftoff.LF)-2
     temp1 = length(relativeMotionHipEE.LF.position(floor(tLiftoff.LF(i)/dt):floor(tLiftoff.LF(i+1)/dt)));
     temp2 = length(relativeMotionHipEE.LH.position(floor(tLiftoff.LH(i)/dt):floor(tLiftoff.LH(i+1)/dt)));
@@ -18,8 +16,6 @@ end
 indexMax = min(tempMin);
 
 %% save cyclic position of each end effector into an array. The 3rd dimension of the array is the step number
-
-%LF
 % use minStepCount-2 because some tasks had different sized arrays of data
 % in the last couple steps likely due to violation of constraints in towr
 % this way we can neglect those last couple steps

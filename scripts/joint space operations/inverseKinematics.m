@@ -1,4 +1,4 @@
-function [jointPositions, r1, r2, r3, r4, r5, rEE] = inverseKinematics(linkCount, meanCyclicMotionHipEE, quadruped, EEselection, taskSelection, configSelection, hipParalleltoBody);
+function [jointPositions, r1, r2, r3, r4, r5, rEE] = inverseKinematics(l_hipAttachmentOffset, linkCount, meanCyclicMotionHipEE, quadruped, EEselection, taskSelection, configSelection, hipParalleltoBody);
 
  % Input: desired end-effector position, quadruped properties
  %        initial guess for joint angles, threshold for the stopping-criterion
@@ -18,7 +18,7 @@ function [jointPositions, r1, r2, r3, r4, r5, rEE] = inverseKinematics(linkCount
   % Initialize error -> only position because we don't have orientation data
   rotBodyY = 0;
   q = zeros(linkCount+2, 1);
-  [J_P, C_IEE, r_H_I1, r_H_I2, r_H_I3, r_H_I4, r_H_I5, r_H_IEE] = jointToPosJac(linkCount, rotBodyY, q, quadruped, EEselection, hipParalleltoBody);
+  [J_P, C_IEE, r_H_I1, r_H_I2, r_H_I3, r_H_I4, r_H_I5, r_H_IEE] = jointToPosJac(l_hipAttachmentOffset, linkCount, rotBodyY, q, quadruped, EEselection, hipParalleltoBody);
   
   % preallocate arrays for joint coordinates
   r1 = zeros(length(meanCyclicMotionHipEE.(EEselection).position(:,1)), 3);
@@ -37,7 +37,7 @@ function [jointPositions, r1, r2, r3, r4, r5, rEE] = inverseKinematics(linkCount
         dr = r_H_IEE_des(i,:)' - r_H_IEE;
         
       while (norm(dr)>tol && it < max_it)
-         [J_P, C_IEE, r_H_I1, r_H_I2, r_H_I3, r_H_I4, r_H_I5, r_H_IEE] = jointToPosJac(linkCount, rotBodyY, q, quadruped, EEselection, hipParalleltoBody);
+         [J_P, C_IEE, r_H_I1, r_H_I2, r_H_I3, r_H_I4, r_H_I5, r_H_IEE] = jointToPosJac(l_hipAttachmentOffset, linkCount, rotBodyY, q, quadruped, EEselection, hipParalleltoBody);
          dr = r_H_IEE_des(i,:)' - r_H_IEE;
          dq = pinv(J_P, lambda)*dr;
          % update size is largely responsible for computation time. With a

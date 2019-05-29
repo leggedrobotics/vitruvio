@@ -1,4 +1,4 @@
-function penalty = runFastJointTorqueSim(linkCount, optimizationProperties, quadruped, linkLengths, selectFrontHind, taskSelection, dt, configSelection, EEselection, meanCyclicMotionHipEE, hipParalleltoBody)
+function penalty = runFastJointTorqueSim(l_hipAttachmentOffset, linkCount, optimizationProperties, quadruped, linkLengths, selectFrontHind, taskSelection, dt, configSelection, EEselection, meanCyclicMotionHipEE, hipParalleltoBody)
 %% Get quadruped properties 
 % Update link lengths, unit in meters
 quadruped.hip(selectFrontHind).length = linkLengths(1)/100;
@@ -22,12 +22,12 @@ if linkCount == 4
     quadruped.phalanges(selectFrontHind).mass = quadruped.legDensity * pi*(quadruped.phalanges(selectFrontHind).radius)^2 * linkLengths(5)/100;
 end
 %% Inverse kinematics to calculate joint angles for each leg joint as well as xyz coordinates of joints
-[tempLeg.(EEselection).q, tempLeg.(EEselection).r.HAA, tempLeg.(EEselection).r.HFE, tempLeg.(EEselection).r.KFE, tempLeg.(EEselection).r.AFE, tempLeg.(EEselection).r.DFE, tempLeg.(EEselection).r.EE] = inverseKinematics(linkCount, meanCyclicMotionHipEE, quadruped, EEselection, taskSelection, configSelection, hipParalleltoBody);
+[tempLeg.(EEselection).q, tempLeg.(EEselection).r.HAA, tempLeg.(EEselection).r.HFE, tempLeg.(EEselection).r.KFE, tempLeg.(EEselection).r.AFE, tempLeg.(EEselection).r.DFE, tempLeg.(EEselection).r.EE] = inverseKinematics(l_hipAttachmentOffset, linkCount, meanCyclicMotionHipEE, quadruped, EEselection, taskSelection, configSelection, hipParalleltoBody);
 
 %% Build robot model with joint angles from inverse kinematics tempLeg
 numberOfLoopRepetitions = 1;
 viewVisualization = 0;
-tempLeg.(EEselection).rigidBodyModel = buildRobotRigidBodyModel(linkCount, quadruped, tempLeg, meanCyclicMotionHipEE, EEselection, numberOfLoopRepetitions, viewVisualization, hipParalleltoBody);
+tempLeg.(EEselection).rigidBodyModel = buildRobotRigidBodyModel(l_hipAttachmentOffset, linkCount, quadruped, tempLeg, meanCyclicMotionHipEE, EEselection, numberOfLoopRepetitions, viewVisualization, hipParalleltoBody);
 
 %% Get joint velocities with inverse(Jacobian)* EE.velocity
 % The joint accelerations are then computed using finite difference
@@ -36,7 +36,18 @@ tempLeg.(EEselection).rigidBodyModel = buildRobotRigidBodyModel(linkCount, quadr
 %% Get joint torques using inverse dynamics
 tempLeg.(EEselection).jointTorque = inverseDynamics(EEselection, tempLeg, meanCyclicMotionHipEE, linkCount);
 
-%% Penalty term for ga
+%% Regenerative breaking
+% no regenerative breaking, set negative power terms to zero
+jointPower = tempLeg.(EEselection).jointTorque .* tempLeg.(EEselection).qdot(1:end-2,1:end-1);
+for j = 1:length(jointPower)
+    for k = 1:length(jointPower(1,:))
+        if jointPower(j,k) < 0
+              jointPower(j,k) = 0;
+        end
+    end
+end
+
+%% Load in penalty weights
 W_totalTorque   = optimizationProperties.penaltyWeight.totalTorque;
 W_totalqdot     = optimizationProperties.penaltyWeight.totalqdot;
 W_totalPower    = optimizationProperties.penaltyWeight.totalPower;
@@ -47,15 +58,15 @@ W_trackingError = optimizationProperties.penaltyWeight.trackingError;
 
 allowableExtension   = optimizationProperties.allowableExtension;
 
-
+%% Compute penalty terms
 totalTorque   = sum(sum((tempLeg.(EEselection).jointTorque).^2)); 
 totalqdot     = sum(sum((tempLeg.(EEselection).qdot).^2));
-totalPower    = sum(sum(abs((tempLeg.(EEselection).jointTorque .* tempLeg.(EEselection).qdot(1:end-2,1:end-1)))));
+totalPower    = sum(sum(jointPower));
 maxTorque     = max(max(abs(tempLeg.(EEselection).jointTorque)));
 maxqdot       = max(max(abs(tempLeg.(EEselection).qdot)));
 maxPower      = max(max(abs((tempLeg.(EEselection).jointTorque).*(tempLeg.(EEselection).qdot(1:end-2,1:end-1)))));
-% trackingError = norm(meanCyclicMotionHipEE.(EEselection).position-tempLeg.(EEselection).r.EE);
 
+%% tracking error penalty
 % impose tracking error penalty if any point has tracking error above an
 % allowable threshhold
 trackingError = meanCyclicMotionHipEE.(EEselection).position-tempLeg.(EEselection).r.EE;
@@ -64,9 +75,9 @@ if max(abs(trackingError)) > 0.01
     else trackingErrorPenalty = 0;
 end
 
+%% joint below ground penalty
 % find lowest joint and penalize if it is below the EE's lowest point ie
 % penetrating the ground
-
 lowestJoint =  min([min(tempLeg.(EEselection).r.HAA(:,3)), ...
                     min(tempLeg.(EEselection).r.HFE(:,3)), ...
                     min(tempLeg.(EEselection).r.KFE(:,3)), ...
@@ -80,7 +91,7 @@ else
     jointBelowEEPenalty = 0;
 end
 
-% extension penalty
+%% maximum allowable extension exceeded penalty
 if optimizationProperties.penaltyWeight.trackingError
     offsetHFE2EEdes = tempLeg.(EEselection).r.HFE - meanCyclicMotionHipEE.(EEselection).position; % offset from HFE to desired EE position
     maxOffsetHFE2EEdes = max(sqrt(sum(offsetHFE2EEdes.^2,2))); % max euclidian distance from HFE to desired EE position
@@ -96,7 +107,7 @@ penalty = W_totalTorque * totalTorque + ...
           W_maxTorque * maxTorque     + ...
           W_maxqdot * maxqdot         + ...
           W_maxPower * maxPower       + ...
-          W_trackingError * trackingErrorPenalty + ...
+          trackingErrorPenalty + ...
           jointBelowEEPenalty + ...
           maximumExtensionPenalty;
 end

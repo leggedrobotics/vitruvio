@@ -1,5 +1,5 @@
 %% Read in data for quadruped geometry
-function robot = buildRobotRigidBodyModel(linkCount, quadruped, Leg, meanCyclicMotionHipEE, EEselection, numberOfLoopRepetitions, viewVisualization, hipParalleltoBody) 
+function robot = buildRobotRigidBodyModel(l_hipAttachmentOffset, linkCount, quadruped, Leg, meanCyclicMotionHipEE, EEselection, numberOfLoopRepetitions, viewVisualization, hipParalleltoBody) 
 
 %% get quadruped properties for selected end effector  
 if (EEselection == 'LF') | (EEselection == 'RF')
@@ -9,7 +9,11 @@ if (EEselection == 'LF') | (EEselection == 'RF')
          hipOffsetDirection = -1;
 end
 
-l_hip = quadruped.hip(selectFrontHind).length;
+% offset from nominal stance EE position to HAA along body x
+l_hipAttachmentOffsetX = l_hipAttachmentOffset*cos(meanCyclicMotionHipEE.body.eulerAngles(1,2)); 
+l_hipAttachmentOffsetZ = l_hipAttachmentOffset*sin(meanCyclicMotionHipEE.body.eulerAngles(1,2));  
+
+l_hip = quadruped.hip(selectFrontHind).length; % offset from HAA to HFE
 l_thigh = quadruped.thigh(selectFrontHind).length;
 l_shank = quadruped.shank(selectFrontHind).length;
 l_foot = quadruped.foot(selectFrontHind).length;
@@ -37,9 +41,9 @@ zNom = quadruped.zNom; % equal for each hip attachment point
 
 % rotation about x by -pi/2 to align z with inertial y. Rotation about this
 % z gives the angle of attack of the base 
-T_body =             [1, 0, 0, 0;
-                      0, 0, 1, 0;
-                      0, -1, 0, 0;
+T_body =             [1, 0, 0, l_hipAttachmentOffsetX;
+                      0, 0, 1,  0;
+                      0, -1, 0, l_hipAttachmentOffsetZ;
                       0, 0, 0, 1];
                
 % rotation about y by pi/2 to align z with HAA rotation axis
@@ -178,7 +182,7 @@ body1.Joint = jnt1;
 body2.Joint = jnt2;
 body3.Joint = jnt3;
 body4.Joint = jnt4;
-if (linkCount == 3) | (linkCount == 4)
+if (linkCount == 3) || (linkCount == 4)
     body5.Joint = jnt5;
 end
 if (linkCount == 4)
@@ -226,19 +230,19 @@ for i = 1:length(Leg.(EEselection).q)
                        Leg.(EEselection).q(i,5)];    % DFE
     end
 end
-% config(:,4) = 0;
+
+figure(1)
 if viewVisualization
     for j = 1: numberOfLoopRepetitions
         for i = 1:length(Leg.(EEselection).q)
-            xlim([-0.9 0.9]);
-            ylim([-0.9 0.9]);
-            zlim([-1.2 0.6]);
-% set(groot,'defaultfigureposition',[100 100 1200 1000])
-
-            figure(11)
+            set(gcf, 'Position', get(0, 'Screensize'));
+            xlim([-0.7 0.7]);
+            ylim([-0.1 0.1]);
+            zlim([-0.8 0.2]);
+            figure(1)
             show(robot,config(i,:));
-
             hold on
+            % plot desired trajectory to observe tracking
             plot3(meanCyclicMotionHipEE.(EEselection).position(:,1), ...
                   meanCyclicMotionHipEE.(EEselection).position(:,2), ...
                   meanCyclicMotionHipEE.(EEselection).position(:,3),'r', 'LineWidth', 3)
