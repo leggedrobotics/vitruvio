@@ -7,18 +7,18 @@ function [jointPositions, r1, r2, r3, r4, r5, rEE] = inverseKinematics(l_hipAtta
  %% Setup
   tol = 0.001;
   it = 0;
-  r_H_IEE_des = meanCyclicMotionHipEE.(EEselection).position; % desired EE position
+  r_H_0EE_des = meanCyclicMotionHipEE.(EEselection).position; % desired EE position
   max_it = 1000;
 
-  %% Get initial guess q0 for desired configuration
+  %% Get initial conditions for IK algorithm
   q0 = getInitialJointAnglesForDesiredConfig(taskSelection, EEselection, configSelection);
-  q = [q0']; % final term will be used for body rotation about inertial frame y
+  q = [q0'];
   jointPositions = zeros(length(meanCyclicMotionHipEE.(EEselection).position(:,1)),linkCount+2);
   lambda = 0.001; % damping factor -> values below lambda are set to zero in matrix inversion
   % Initialize error -> only position because we don't have orientation data
   rotBodyY = 0;
   q = zeros(linkCount+2, 1);
-  [J_P, C_IEE, r_H_I1, r_H_I2, r_H_I3, r_H_I4, r_H_I5, r_H_IEE] = jointToPosJac(l_hipAttachmentOffset, linkCount, rotBodyY, q, quadruped, EEselection, hipParalleltoBody);
+  [J_P, C_0EE, r_H_01, r_H_02, r_H_03, r_H_04, r_H_05, r_H_0EE] = jointToPosJac(l_hipAttachmentOffset, linkCount, rotBodyY, q, quadruped, EEselection, hipParalleltoBody);
   
   % preallocate arrays for joint coordinates
   r1 = zeros(length(meanCyclicMotionHipEE.(EEselection).position(:,1)), 3);
@@ -34,26 +34,25 @@ function [jointPositions, r1, r2, r3, r4, r5, rEE] = inverseKinematics(l_hipAtta
        % negative value then means positive angle of attack.
         rotBodyY = -meanCyclicMotionHipEE.body.eulerAngles(i,2); % rotation of body about inertial y
         it = 0; % reset iteration count
-        dr = r_H_IEE_des(i,:)' - r_H_IEE;
-        
+        dr = r_H_0EE_des(i,:)' - r_H_0EE;
       while (norm(dr)>tol && it < max_it)
-         [J_P, C_IEE, r_H_I1, r_H_I2, r_H_I3, r_H_I4, r_H_I5, r_H_IEE] = jointToPosJac(l_hipAttachmentOffset, linkCount, rotBodyY, q, quadruped, EEselection, hipParalleltoBody);
-         dr = r_H_IEE_des(i,:)' - r_H_IEE;
+         [J_P, C_0EE, r_H_01, r_H_02, r_H_03, r_H_04, r_H_05, r_H_0EE] = jointToPosJac(l_hipAttachmentOffset, linkCount, rotBodyY, q, quadruped, EEselection, hipParalleltoBody);
+         dr = r_H_0EE_des(i,:)' - r_H_0EE;
          dq = pinv(J_P, lambda)*dr;
          % update size is largely responsible for computation time. With a
          % larger update size factor of 0.2, the smallest joint angle is
          % not found, but there are no jumps of ~2pi between steps
-          q = q + 0.1*dq;
+          q = q + 0.05*dq;
          it = it+1;    
       end  
       
 %       fprintf('Inverse kinematics terminated after %d iterations.\n',it);
       jointPositions(i,:) = q';
-      rEE(i,:) = r_H_IEE;
+      rEE(i,:) = r_H_0EE;
       % x y z coordinates of joints
-      r1(i,:) = r_H_I1;
-      r2(i,:) = r_H_I2;
-      r3(i,:) = r_H_I3;
-      r4(i,:) = r_H_I4;
-      r5(i,:) = r_H_I5;
+      r1(i,:) = r_H_01;
+      r2(i,:) = r_H_02;
+      r3(i,:) = r_H_03;
+      r4(i,:) = r_H_04;
+      r5(i,:) = r_H_05;
   end     

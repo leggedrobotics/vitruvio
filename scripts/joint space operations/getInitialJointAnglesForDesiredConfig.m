@@ -10,10 +10,10 @@ q0.X.universalStairs.LH = [0 -pi  0 0];
 q0.X.universalStairs.RF = [0 0 0 0];
 q0.X.universalStairs.RH = [0 -pi 0 0];
 
-q0.X.universalTrot.LF = [0 pi -pi 0];
-q0.X.universalTrot.LH = [0 0 0 0];
-q0.X.universalTrot.RF = [0 pi -pi/4 0];
-q0.X.universalTrot.RH = [0 0 0 0];
+q0.X.universalTrot.LF = [0  -pi pi 0];
+q0.X.universalTrot.LH = [0 0 pi 0];
+q0.X.universalTrot.RF = [0  -pi  pi 0];
+q0.X.universalTrot.RH = [0 0 pi  0];
 
 q0.M.universalTrot.LF = [0 -pi/4 -pi/2 0];
 q0.M.universalTrot.LH = [0 -pi/4 -pi/2 0];

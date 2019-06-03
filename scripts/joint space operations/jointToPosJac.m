@@ -1,4 +1,4 @@
-function [J_P, C_IEE, r_H_I1, r_H_I2, r_H_I3, r_H_I4, r_H_I5, r_H_IEE]  = jointToPosJac(l_hipAttachmentOffset, linkCount, rotBodyY, q, quadruped, EEselection, hipParalleltoBody)
+function [J_P, C_0EE, r_H_01, r_H_02, r_H_03, r_H_04, r_H_05, r_H_0EE]  = jointToPosJac(l_hipAttachmentOffset, linkCount, rotBodyY, q, quadruped, EEselection, hipParalleltoBody)
   % Input: vector of generalized coordinates (joint angles)
   % Output: Jacobian of the end-effector translation which maps joint
   % velocities to end-effector linear velocities in hip attachmemt frame.
@@ -19,31 +19,31 @@ function [J_P, C_IEE, r_H_I1, r_H_I2, r_H_I3, r_H_I4, r_H_I5, r_H_IEE]  = jointT
 
   
   % rotation about y of inertial frame to create hip attachment frame
-  T_IH = [cos(rotBodyY),  0, sin(rotBodyY), 0;
-         0,           1, 0,         0;
-         -sin(rotBodyY),  0, cos(rotBodyY), 0;
-         0,           0, 0,         1];
+  T_0H = [cos(rotBodyY), 0, sin(rotBodyY), 0;
+         0,              1, 0,             0;
+        -sin(rotBodyY),  0, cos(rotBodyY), 0;
+         0,              0, 0,             1];
      
   % transformation from hip attachment frame to HAA frame   
   % rotation about x of hip attachment frame (HAA rotation)
-  T_H1 = [1, 0,          0,         l_hipAttachmentOffset;
-         0, cos(q(1)), -sin(q(1)),  0;
-         0, sin(q(1)),  cos(q(1)),  0;
-         0, 0,          0,          1];
+  T_H1 = [1, 0,          0,          l_hipAttachmentOffset;
+          0, cos(q(1)), -sin(q(1)),  0;
+          0, sin(q(1)),  cos(q(1)),  0;
+          0, 0,          0,          1];
 
   % transformation from HFE to HAA
   % rotation about y, translation along hip link
 % 
 if hipParalleltoBody == true
     T_12 = [cos(q(2)), 0,  sin(q(2)),  hipOffsetDirection*l_hip;
-              0,         1,  0,          0;
-             -sin(q(2)), 0,  cos(q(2)),  0;
-              0,         0,  0,          1];  
+            0,         1,  0,          0;
+           -sin(q(2)), 0,  cos(q(2)),  0;
+            0,         0,  0,          1];  
 else
     T_12 = [cos(q(2)), 0,  sin(q(2)),  0;
-          0,         1,  0,          0;
-         -sin(q(2)), 0,  cos(q(2)),  l_hip;
-          0,         0,  0,          1];   
+            0,         1,  0,          0;
+           -sin(q(2)), 0,  cos(q(2)),  l_hip;
+            0,         0,  0,          1];   
 end   
   % transformation from HFE to KFE
   % rotation about y, translation along z
@@ -89,48 +89,48 @@ end
        
   % Compute the homogeneous transformation matrices from frame k to the
   % inertial frame I
-  T_I1 = T_IH*T_H1;
-  T_I2 = T_I1*T_12;
-  T_I3 = T_I2*T_23;
-  T_I4 = T_I3*T_34; %EE for 2 link leg
+  T_01 = T_0H*T_H1;
+  T_02 = T_01*T_12;
+  T_03 = T_02*T_23;
+  T_04 = T_03*T_34; %EE for 2 link leg
   
   if (linkCount == 3) | (linkCount == 4)
-      T_I5 = T_I4*T_45;   %EE for 3 link leg
+      T_05 = T_04*T_45;   %EE for 3 link leg
   end
   
   if linkCount == 4
-      T_I6 = T_I5*T_56; % EE for 4 link leg
+      T_06 = T_05*T_56; % EE for 4 link leg
   end
   
   % Extract the rotation matrices from each homogeneous transformation
   % matrix.
-  R_IH = T_IH(1:3,1:3);
-  R_I1 = T_I1(1:3,1:3);
-  R_I2 = T_I2(1:3,1:3);
-  R_I3 = T_I3(1:3,1:3);
-  R_I4 = T_I4(1:3,1:3);
+  R_0H = T_0H(1:3,1:3);
+  R_01 = T_01(1:3,1:3);
+  R_02 = T_02(1:3,1:3);
+  R_03 = T_03(1:3,1:3);
+  R_04 = T_04(1:3,1:3);
   if (linkCount == 3) | (linkCount == 4)
-      R_I5 = T_I5(1:3,1:3);
+      R_05 = T_05(1:3,1:3);
   end
   if (linkCount == 4)
-      R_I6 = T_I6(1:3,1:3);
+      R_06 = T_06(1:3,1:3);
   end
 
   % Extract the position vectors from each homogeneous transformation
-  % matrix in inertial frame from hip attachment point to joint k
-  r_H_IH = T_IH(1:3,4); 
-  r_H_I1 = T_I1(1:3,4); % HAA
-  r_H_I2 = T_I2(1:3,4); % HFE
-  r_H_I3 = T_I3(1:3,4); % KFE
-  r_H_I4 = T_I4(1:3,4); % EE or AFE
-  r_H_I5 = [0; 0; 0]; % zeros if these joints do not exist
-  r_H_I6 = [0; 0; 0]; 
+  % matrix in inertial frame from origin (hip attachment point) to joint k
+  r_H_0H = T_0H(1:3,4); 
+  r_H_01 = T_01(1:3,4); % HAA
+  r_H_02 = T_02(1:3,4); % HFE
+  r_H_03 = T_03(1:3,4); % KFE
+  r_H_04 = T_04(1:3,4); % EE or AFE
+  r_H_05 = [0; 0; 0]; % zeros if these joints do not exist
+  r_H_06 = [0; 0; 0]; 
 
   if (linkCount == 3) | (linkCount == 4)
-      r_H_I5 = T_I5(1:3,4); %% EE or DFE
+      r_H_05 = T_05(1:3,4); %% EE or DFE
   end
   if (linkCount == 4)
-      r_H_I6 = T_I6(1:3,4); % EE
+      r_H_06 = T_06(1:3,4); % EE
   end
   
   % Define the unit vectors around which each link rotates in the precedent
@@ -152,41 +152,41 @@ end
   
   % return joint to position and joint to rotation matrix for IK algorithm
   if (linkCount == 2)
-      r_H_IEE = r_H_I4; 
-      C_IEE = T_I4(1:3,1:3);
+      r_H_0EE = r_H_04; 
+      C_0EE = T_04(1:3,1:3);
   end
   if (linkCount == 3)
-      r_H_IEE = r_H_I5; 
-      C_IEE = T_I5(1:3,1:3);
+      r_H_0EE = r_H_05; 
+      C_0EE = T_05(1:3,1:3);
   end
   if (linkCount == 4)
-      r_H_IEE = r_H_I6; 
-      C_IEE = T_I6(1:3,1:3);
+      r_H_0EE = r_H_06; 
+      C_0EE = T_06(1:3,1:3);
   end
   
   % Compute the translational jacobian.
   if (linkCount == 2)
-      J_P = [   cross(R_I1*n_1, r_H_IEE - r_H_I1) ...
-                cross(R_I2*n_2, r_H_IEE - r_H_I2) ...
-                cross(R_I3*n_3, r_H_IEE - r_H_I3) ...
-                cross(R_I4*n_4, r_H_IEE - r_H_I4) ...
+      J_P = [   cross(R_01*n_1, r_H_0EE - r_H_01) ...
+                cross(R_02*n_2, r_H_0EE - r_H_02) ...
+                cross(R_03*n_3, r_H_0EE - r_H_03) ...
+                cross(R_04*n_4, r_H_0EE - r_H_04) ...
              ];
   end
   if (linkCount == 3)
-      J_P = [   cross(R_I1*n_1, r_H_IEE - r_H_I1) ...
-                cross(R_I2*n_2, r_H_IEE - r_H_I2) ...
-                cross(R_I3*n_3, r_H_IEE - r_H_I3) ...
-                cross(R_I4*n_4, r_H_IEE - r_H_I4) ...
-                cross(R_I5*n_5, r_H_IEE - r_H_I5) ...
+      J_P = [   cross(R_01*n_1, r_H_0EE - r_H_01) ...
+                cross(R_02*n_2, r_H_0EE - r_H_02) ...
+                cross(R_03*n_3, r_H_0EE - r_H_03) ...
+                cross(R_04*n_4, r_H_0EE - r_H_04) ...
+                cross(R_05*n_5, r_H_0EE - r_H_05) ...
              ];
   end
   if (linkCount == 4)
-      J_P = [   cross(R_I1*n_1, r_H_IEE - r_H_I1) ...
-                cross(R_I2*n_2, r_H_IEE - r_H_I2) ...
-                cross(R_I3*n_3, r_H_IEE - r_H_I3) ...
-                cross(R_I4*n_4, r_H_IEE - r_H_I4) ...
-                cross(R_I5*n_5, r_H_IEE - r_H_I5) ...
-                cross(R_I6*n_6, r_H_IEE - r_H_I6) ...
+      J_P = [   cross(R_01*n_1, r_H_0EE - r_H_01) ...
+                cross(R_02*n_2, r_H_0EE - r_H_02) ...
+                cross(R_03*n_3, r_H_0EE - r_H_03) ...
+                cross(R_04*n_4, r_H_0EE - r_H_04) ...
+                cross(R_05*n_5, r_H_0EE - r_H_05) ...
+                cross(R_06*n_6, r_H_0EE - r_H_06) ...
              ];
   end
 end

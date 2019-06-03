@@ -101,6 +101,7 @@ body1 = robotics.RigidBody('body1'); % hip
 body2 = robotics.RigidBody('body2'); % thigh
 body3 = robotics.RigidBody('body3'); % shank
 body4 = robotics.RigidBody('body4'); % EE or foot
+
 if (linkCount == 3) | (linkCount == 4)
        body5 = robotics.RigidBody('body5'); % EE or phalanges
 end
@@ -231,7 +232,8 @@ for i = 1:length(Leg.(EEselection).q)
     end
 end
 
-figure(1)
+figure(1);
+
 if viewVisualization
     for j = 1: numberOfLoopRepetitions
         for i = 1:length(Leg.(EEselection).q)
@@ -239,7 +241,7 @@ if viewVisualization
             xlim([-0.7 0.7]);
             ylim([-0.1 0.1]);
             zlim([-0.8 0.2]);
-            figure(1)
+            figure(1);
             show(robot,config(i,:));
             hold on
             % plot desired trajectory to observe tracking

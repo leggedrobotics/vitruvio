@@ -86,7 +86,7 @@ lowestJoint =  min([min(tempLeg.(EEselection).r.HAA(:,3)), ...
                 
 % if non zero, this must be the largest penalty as it is an infeasible solution
 if (lowestJoint < min(min(tempLeg.(EEselection).r.EE(:,3))))
-    jointBelowEEPenalty = 1000000;
+    jointBelowEEPenalty = 100000000;
 else
     jointBelowEEPenalty = 0;
 end
@@ -96,7 +96,7 @@ if optimizationProperties.penaltyWeight.trackingError
     offsetHFE2EEdes = tempLeg.(EEselection).r.HFE - meanCyclicMotionHipEE.(EEselection).position; % offset from HFE to desired EE position
     maxOffsetHFE2EEdes = max(sqrt(sum(offsetHFE2EEdes.^2,2))); % max euclidian distance from HFE to desired EE position
         if maxOffsetHFE2EEdes > allowableExtension*sum(linkLengths(2:end)/100)
-            maximumExtensionPenalty = 1000000;
+            maximumExtensionPenalty = 100000000;
         else maximumExtensionPenalty = 0;
     end
 end
