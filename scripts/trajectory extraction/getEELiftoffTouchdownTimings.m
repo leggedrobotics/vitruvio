@@ -70,5 +70,12 @@ end
 minStepCount = min([length(tLiftoffLF), length(tLiftoffLH), length(tLiftoffRF),length( tLiftoffRH)]);
 
 % row order:    LF LH RF RH
-tLiftoff = [tLiftoffLF(1:minStepCount)' tLiftoffLH(1:minStepCount)' tLiftoffRF(1:minStepCount)' tLiftoffRH(1:minStepCount)'];
-tTouchdown = [tTouchdownLF(1:minStepCount)' tTouchdownLH(1:minStepCount)' tTouchdownRF(1:minStepCount)' tTouchdownRH(1:minStepCount)'];
+tLiftoff.LF = tLiftoffLF(1:minStepCount)';
+tLiftoff.LH = tLiftoffLH(1:minStepCount)';
+tLiftoff.RF = tLiftoffRF(1:minStepCount)';
+tLiftoff.RH = tLiftoffRH(1:minStepCount)';
+
+tTouchdown.LF = tTouchdownLF(1:minStepCount)';
+tTouchdown.LH = tTouchdownLH(1:minStepCount)';
+tTouchdown.RF = tTouchdownRF(1:minStepCount)';
+tTouchdown.RH = tTouchdownRH(1:minStepCount)';

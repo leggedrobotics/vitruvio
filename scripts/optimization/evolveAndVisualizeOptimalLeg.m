@@ -7,42 +7,78 @@
 % this function calls evolveOptimalLeg which runs the simulation
 % runFastJointTorqueSim for each set of link lengths 
 
-function [jointTorqueOpt, qdotOpt, qdotdotOpt] = evolveAndVisualizeOptimalLeg(optimizationProperties, EEselection, meanCyclicMotionHipEE, quadruped, jointCount, configSelection, dt, taskSelection, EE)
+function [jointTorqueOpt, qOpt, qdotOpt, qdotdotOpt, rOpt, jointPowerOpt, linkLengths, penaltyMin, elapsedTime, exitFlag, Output] = evolveAndVisualizeOptimalLeg(l_hipAttachmentOffset, linkCount, optimizationProperties, EEselection, meanCyclicMotionHipEE, quadruped, configSelection, dt, taskSelection, hipParalleltoBody)
 if (EEselection == 'LF') | (EEselection == 'RF')
     selectFrontHind = 1;
     else selectFrontHind = 2;
 end
 %% initialize link length values
-% link lengths in cm
+% link lengths in cm so that optimizer can consider only integer values 
 initialLinkLengths(1) = quadruped.hip(selectFrontHind).length*100; 
 initialLinkLengths(2) = quadruped.thigh(selectFrontHind).length*100;
 initialLinkLengths(3) = quadruped.shank(selectFrontHind).length*100;
+if (linkCount == 3) || (linkCount == 4)
+    initialLinkLengths(4) = quadruped.foot(selectFrontHind).length*100;
+end
+if (linkCount == 4)
+    initialLinkLengths(5) = quadruped.phalanges(selectFrontHind).length*100;
+end
 
 %% print statement
-upperBnd = round(optimizationProperties.upperBoundMultiplier*initialLinkLengths)/100;
-lowerBnd = round(optimizationProperties.lowerBoundMultiplier*initialLinkLengths)/100;
-fprintf('\nLower bound on link lengths [m]: %3.3f, %3.3f, %3.3f \n', lowerBnd);
-fprintf('Upper bound on link lengths [m]: %3.3f, %3.3f, %3.3f \n\n', upperBnd);
-    
-%% evolve optimal link lengths by running ga
-[linkLengths, penaltyMin] = evolveOptimalLeg(optimizationProperties, initialLinkLengths, taskSelection, quadruped, configSelection, EEselection, EE, dt, jointCount, meanCyclicMotionHipEE);
-fprintf('Optimized link lengths [m]: %3.3f, %3.3f, %3.3f \n\n', linkLengths/100);
+upperBnd = round(optimizationProperties.bounds.upperBoundMultiplier.*initialLinkLengths)/100;
+lowerBnd = round(optimizationProperties.bounds.lowerBoundMultiplier.*initialLinkLengths)/100;
+fprintf('\nLower bound on link lengths [m]:')
+disp(lowerBnd);
+fprintf('Upper bound on link lengths [m]:')
+disp(upperBnd);
 
-%% convert back from cm to m and save the final link lengths
+%% evolve optimal link lengths by running ga
+tic;
+[linkLengths, penaltyMin, exitFlag, Output] = evolveOptimalLeg(l_hipAttachmentOffset, linkCount, optimizationProperties, initialLinkLengths, taskSelection, quadruped, configSelection, EEselection, dt, meanCyclicMotionHipEE, hipParalleltoBody);
+elapsedTime = toc;
+fprintf('Optimized link lengths [m]:')
+disp(linkLengths/100);
+
+%% convert back from cm to m and save the final link lengths into quadruped
 quadruped.hip(selectFrontHind).length = linkLengths(1)/100;
 quadruped.thigh(selectFrontHind).length = linkLengths(2)/100;
 quadruped.shank(selectFrontHind).length = linkLengths(3)/100;
+if (linkCount == 3) || (linkCount == 4)
+    quadruped.foot(selectFrontHind).length = linkLengths(4)/100;
+end
+if (linkCount ==4)
+    quadruped.phlanges(selectFrontHind).length = linkLengths(5)/100;
+end
 
+% Update link mass with assumption of constant density cylinder
+quadruped.hip(selectFrontHind).mass = quadruped.legDensity * pi*(quadruped.hip(selectFrontHind).radius)^2   * linkLengths(1)/100;
+quadruped.thigh(selectFrontHind).mass = quadruped.legDensity * pi*(quadruped.thigh(selectFrontHind).radius)^2 * linkLengths(2)/100;
+quadruped.shank(selectFrontHind).mass = quadruped.legDensity * pi*(quadruped.shank(selectFrontHind).radius)^2 * linkLengths(3)/100;
+if (linkCount == 3) || (linkCount == 4)
+    quadruped.foot(selectFrontHind).mass = quadruped.legDensity * pi*(quadruped.foot(selectFrontHind).radius)^2 * linkLengths(4)/100;
+end
+if (linkCount ==4)
+    quadruped.phalanges(selectFrontHind).mass = quadruped.legDensity * pi*(quadruped.phalanges(selectFrontHind).radius)^2 * linkLengths(5)/100;
+end
 %% visualize the optimized design
 numberOfLoopRepetitions = 3;
-viewVisualization = optimizationProperties.viewVisualization;
-tempLeg.(EEselection).q = inverseKinematics(meanCyclicMotionHipEE, quadruped, EEselection, taskSelection, configSelection);
-tempLeg.(EEselection).rigidBodyModel = buildRobotRigidBodyModel(quadruped, tempLeg, meanCyclicMotionHipEE, EEselection, numberOfLoopRepetitions, viewVisualization);
+viewVisualization = optimizationProperties.viz.viewVisualization;
+%inverse kinematics
+[tempLeg.(EEselection).q, tempLeg.(EEselection).r.HAA, tempLeg.(EEselection).r.HFE, tempLeg.(EEselection).r.KFE, tempLeg.(EEselection).r.AFE, tempLeg.(EEselection).r.DFE, tempLeg.(EEselection).r.EE] = inverseKinematics(l_hipAttachmentOffset, linkCount, meanCyclicMotionHipEE, quadruped, EEselection, taskSelection, configSelection, hipParalleltoBody);
+tempLeg.(EEselection).rigidBodyModel = buildRobotRigidBodyModel(l_hipAttachmentOffset, linkCount, quadruped, tempLeg, meanCyclicMotionHipEE, EEselection, numberOfLoopRepetitions, viewVisualization, hipParalleltoBody);
 
 %% get joint torques of optimal design
-[tempLeg.(EEselection).qdot, tempLeg.(EEselection).qdotdot] = getJointVelocitiesUsingJacobian(EEselection, meanCyclicMotionHipEE, tempLeg, quadruped, dt);
-tempLeg.(EEselection).jointTorque = getInverseDynamics(EEselection, tempLeg, meanCyclicMotionHipEE);
+[tempLeg.(EEselection).qdot, tempLeg.(EEselection).qdotdot] = getJointVelocitiesUsingFiniteDifference(linkCount, EEselection, meanCyclicMotionHipEE, tempLeg, quadruped, dt);
+tempLeg.(EEselection).jointTorque = inverseDynamics(EEselection, tempLeg, meanCyclicMotionHipEE, linkCount);
 
+%% get joint power for optimal design
+tempLeg.(EEselection).jointPower = tempLeg.(EEselection).jointTorque .* tempLeg.(EEselection).qdot(1:end-2,1:end-1);
+
+%% return joint data
+linkLengths = linkLengths/100; %convert back to m for output
+rOpt = tempLeg.(EEselection).r;
+qOpt = tempLeg.(EEselection).q;
 qdotOpt = tempLeg.(EEselection).qdot;
 qdotdotOpt = tempLeg.(EEselection).qdotdot;
 jointTorqueOpt = tempLeg.(EEselection).jointTorque;
+jointPowerOpt = tempLeg.(EEselection).jointPower;
