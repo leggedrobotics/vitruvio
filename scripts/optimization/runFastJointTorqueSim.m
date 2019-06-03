@@ -49,6 +49,7 @@ end
 
 %% Load in penalty weights
 W_totalTorque   = optimizationProperties.penaltyWeight.totalTorque;
+W_totalTorqueHFE   = optimizationProperties.penaltyWeight.totalTorqueHFE;
 W_totalqdot     = optimizationProperties.penaltyWeight.totalqdot;
 W_totalPower    = optimizationProperties.penaltyWeight.totalPower;
 W_maxTorque     = optimizationProperties.penaltyWeight.maxTorque;
@@ -59,12 +60,13 @@ W_trackingError = optimizationProperties.penaltyWeight.trackingError;
 allowableExtension   = optimizationProperties.allowableExtension;
 
 %% Compute penalty terms
-totalTorque   = sum(sum((tempLeg.(EEselection).jointTorque).^2)); 
-totalqdot     = sum(sum((tempLeg.(EEselection).qdot).^2));
-totalPower    = sum(sum(jointPower));
-maxTorque     = max(max(abs(tempLeg.(EEselection).jointTorque)));
-maxqdot       = max(max(abs(tempLeg.(EEselection).qdot)));
-maxPower      = max(max(abs((tempLeg.(EEselection).jointTorque).*(tempLeg.(EEselection).qdot(1:end-2,1:end-1)))));
+totalTorque    = sum(sum((tempLeg.(EEselection).jointTorque).^2)); 
+totalTorqueHFE = sum((tempLeg.(EEselection).jointTorque(:,2)).^2); 
+totalqdot      = sum(sum((tempLeg.(EEselection).qdot).^2));
+totalPower     = sum(sum(jointPower));
+maxTorque      = max(max(abs(tempLeg.(EEselection).jointTorque)));
+maxqdot        = max(max(abs(tempLeg.(EEselection).qdot)));
+maxPower       = max(max(abs((tempLeg.(EEselection).jointTorque).*(tempLeg.(EEselection).qdot(1:end-2,1:end-1)))));
 
 %% tracking error penalty
 % impose tracking error penalty if any point has tracking error above an
@@ -102,6 +104,7 @@ if optimizationProperties.penaltyWeight.trackingError
 end
 
 penalty = W_totalTorque * totalTorque + ...
+          W_totalTorqueHFE * totalTorqueHFE + ...
           W_totalqdot * totalqdot     + ...
           W_totalPower * totalPower   + ...
           W_maxTorque * maxTorque     + ...

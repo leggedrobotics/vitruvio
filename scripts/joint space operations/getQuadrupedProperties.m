@@ -91,9 +91,9 @@ robot.universal.nomHipPos(4,:) = [-robot.universal.xNom(2), -robot.universal.yNo
 % fore, hind
 robot.universal.hip(1).length = 0.14;
 robot.universal.hip(2).length = 0.14;
-robot.universal.thigh(1).length = 0.25;
+robot.universal.thigh(1).length = 0.25 + 0.2;
 robot.universal.thigh(2).length = 0.4;
-robot.universal.shank(1).length = 0.33;
+robot.universal.shank(1).length = 0.33 + 0.2;
 robot.universal.shank(2).length = 0.4;
 robot.universal.foot(1).length = 0.1;
 robot.universal.foot(2).length = 0.1;
@@ -218,12 +218,12 @@ robot.massivo.nomHipPos(4,:) = [-robot.massivo.xNom(2), -robot.massivo.yNom(2), 
 
 % link lengths [m]
 % fore, hind
-robot.massivo.hip(1).length = 0.05;
-robot.massivo.hip(2).length = 0.05;
-robot.massivo.thigh(1).length = 0.3;
-robot.massivo.thigh(2).length = 0.3;
-robot.massivo.shank(1).length = 0.3;
-robot.massivo.shank(2).length = 0.3;
+robot.massivo.hip(1).length = 0.15;
+robot.massivo.hip(2).length = 0.15;
+robot.massivo.thigh(1).length = 0.5;
+robot.massivo.thigh(2).length = 0.5;
+robot.massivo.shank(1).length = 0.5;
+robot.massivo.shank(2).length = 0.5;
 robot.massivo.foot(1).length = 0.05;
 robot.massivo.foot(2).length = 0.05;
 robot.massivo.phalanges(1).length = 0.05;
@@ -282,12 +282,12 @@ robot.centaur.nomHipPos(4,:) = [-robot.centaur.xNom(2), -robot.centaur.yNom(2), 
 
 % link lengths [m]
 % fore, hind
-robot.centaur.hip(1).length = 0.05;
-robot.centaur.hip(2).length = 0.05;
-robot.centaur.thigh(1).length = 0.3;
-robot.centaur.thigh(2).length = 0.3;
-robot.centaur.shank(1).length = 0.3;
-robot.centaur.shank(2).length = 0.3;
+robot.centaur.hip(1).length = 0.15;
+robot.centaur.hip(2).length = 0.15;
+robot.centaur.thigh(1).length = 0.5;
+robot.centaur.thigh(2).length = 0.5;
+robot.centaur.shank(1).length = 0.5;
+robot.centaur.shank(2).length = 0.5;
 robot.centaur.foot(1).length = 0.05;
 robot.centaur.foot(2).length = 0.05;
 robot.centaur.phalanges(1).length = 0.05;
