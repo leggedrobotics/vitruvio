@@ -61,7 +61,6 @@ if viewTrajectoryPlots
 end
 
 %% Inverse kinematics to calculate joint angles for each leg joint
-
 % compute qAFE for 3 link leg
 if linkCount == 3
     for i = 1:4
@@ -105,6 +104,14 @@ for i = 1:4
     EEselection = EEnames(i,:);
     Leg.(EEselection).jointPower = Leg.(EEselection).jointTorque .* Leg.(EEselection).qdot(1:end-2,1:end-1);
 end
+
+%% Get leg mass
+
+for i = 1:4
+    EEselection = EEnames(i,:);
+    [Leg.(EEselection).linkMass, Leg.(EEselection).EEMass, Leg.(EEselection).totalLinkMass] = getLinkMass(Leg, EEselection, linkCount);
+end
+
 %% Get cost of transport
 Leg.CoM.velocity = base.velocity(floor(removalRatioStart*length(base.velocity))+1:floor((1-removalRatioEnd)*length(base.velocity)),:);
 Leg.metaParameters.CoT.total = 0;
@@ -122,7 +129,7 @@ if runOptimization
         EEselection = 'LF';
         fprintf('\nInitiating optimization of link lengths for %s\n', EEselection);
          % evolve leg
-        [Leg.(EEselection).jointTorqueOpt, Leg.(EEselection).qOpt, Leg.(EEselection).qdotOpt, Leg.(EEselection).qdotdotOpt, Leg.(EEselection).rOpt,  Leg.(EEselection).jointPowerOpt, Leg.(EEselection).linkLengthsOpt, Leg.(EEselection).penaltyMin, Leg.(EEselection).elapsedTime, Leg.(EEselection).exitFlag, Leg.(EEselection).Output] = evolveAndVisualizeOptimalLeg(l_hipAttachmentOffset, linkCount, optimizationProperties, EEselection, meanCyclicMotionHipEE, quadruped, configSelection, dt, taskSelection, hipParalleltoBody, Leg);
+        [Leg.(EEselection).jointTorqueOpt, Leg.(EEselection).qOpt, Leg.(EEselection).qdotOpt, Leg.(EEselection).qdotdotOpt, Leg.(EEselection).rOpt,  Leg.(EEselection).jointPowerOpt, Leg.(EEselection).linkLengthsOpt, Leg.(EEselection).penaltyMin, Leg.(EEselection).elapsedTime, Leg.(EEselection).elapsedTimePerFuncEval, Leg.(EEselection).output, Leg.(EEselection).linkMassOpt, Leg.(EEselection).totalLinkMassOpt] = evolveAndVisualizeOptimalLeg(l_hipAttachmentOffset, linkCount, optimizationProperties, EEselection, meanCyclicMotionHipEE, quadruped, configSelection, dt, taskSelection, hipParalleltoBody, Leg);
          % compute CoT 
          power = Leg.(EEselection).jointPowerOpt;
          Leg.metaParameters.CoTOpt.(EEselection) = getCostOfTransport(Leg, power, quadruped, EEselection);
@@ -131,7 +138,7 @@ if runOptimization
         EEselection = 'LH';
         fprintf('\nInitiating optimization of link lengths for %s\n', EEselection);
         % evolve leg
-        [Leg.(EEselection).jointTorqueOpt, Leg.(EEselection).qOpt, Leg.(EEselection).qdotOpt, Leg.(EEselection).qdotdotOpt, Leg.(EEselection).rOpt,  Leg.(EEselection).jointPowerOpt, Leg.(EEselection).linkLengthsOpt, Leg.(EEselection).penaltyMin, Leg.(EEselection).elapsedTime, Leg.(EEselection).exitFlag, Leg.(EEselection).Output] = evolveAndVisualizeOptimalLeg(l_hipAttachmentOffset, linkCount, optimizationProperties, EEselection, meanCyclicMotionHipEE, quadruped, configSelection, dt, taskSelection, hipParalleltoBody, Leg);
+        [Leg.(EEselection).jointTorqueOpt, Leg.(EEselection).qOpt, Leg.(EEselection).qdotOpt, Leg.(EEselection).qdotdotOpt, Leg.(EEselection).rOpt,  Leg.(EEselection).jointPowerOpt, Leg.(EEselection).linkLengthsOpt, Leg.(EEselection).penaltyMin, Leg.(EEselection).elapsedTime, Leg.(EEselection).elapsedTimePerFuncEval, Leg.(EEselection).output, Leg.(EEselection).linkMassOpt,  Leg.(EEselection).totalLinkMassOpt] = evolveAndVisualizeOptimalLeg(l_hipAttachmentOffset, linkCount, optimizationProperties, EEselection, meanCyclicMotionHipEE, quadruped, configSelection, dt, taskSelection, hipParalleltoBody, Leg);
         % compute CoT
          power = Leg.(EEselection).jointPowerOpt;
          Leg.metaParameters.CoTOpt.(EEselection) = getCostOfTransport(Leg, power, quadruped, EEselection);
@@ -140,7 +147,7 @@ if runOptimization
         EEselection = 'RF';
         fprintf('\nInitiating optimization of link lengths for %s\n', EEselection);
         % evolve leg
-        [Leg.(EEselection).jointTorqueOpt, Leg.(EEselection).qOpt, Leg.(EEselection).qdotOpt, Leg.(EEselection).qdotdotOpt, Leg.(EEselection).rOpt,  Leg.(EEselection).jointPowerOpt, Leg.(EEselection).linkLengthsOpt, Leg.(EEselection).penaltyMin, Leg.(EEselection).elapsedTime, Leg.(EEselection).exitFlag, Leg.(EEselection).Output] = evolveAndVisualizeOptimalLeg(l_hipAttachmentOffset, linkCount, optimizationProperties, EEselection, meanCyclicMotionHipEE, quadruped, configSelection, dt, taskSelection, hipParalleltoBody, Leg);
+        [Leg.(EEselection).jointTorqueOpt, Leg.(EEselection).qOpt, Leg.(EEselection).qdotOpt, Leg.(EEselection).qdotdotOpt, Leg.(EEselection).rOpt,  Leg.(EEselection).jointPowerOpt, Leg.(EEselection).linkLengthsOpt, Leg.(EEselection).penaltyMin, Leg.(EEselection).elapsedTime, Leg.(EEselection).elapsedTimePerFuncEval, Leg.(EEselection).output, Leg.(EEselection).linkMassOpt,  Leg.(EEselection).totalLinkMassOpt] = evolveAndVisualizeOptimalLeg(l_hipAttachmentOffset, linkCount, optimizationProperties, EEselection, meanCyclicMotionHipEE, quadruped, configSelection, dt, taskSelection, hipParalleltoBody, Leg);
         % compute CoT
          power = Leg.(EEselection).jointPowerOpt;
          Leg.metaParameters.CoTOpt.(EEselection) = getCostOfTransport(Leg, power, quadruped, EEselection);
@@ -149,7 +156,7 @@ if runOptimization
         EEselection = 'RH';
         fprintf('\nInitiating optimization of link lengths for %s\n', EEselection);
         % evolve leg
-        [Leg.(EEselection).jointTorqueOpt, Leg.(EEselection).qOpt, Leg.(EEselection).qdotOpt, Leg.(EEselection).qdotdotOpt, Leg.(EEselection).rOpt,  Leg.(EEselection).jointPowerOpt, Leg.(EEselection).linkLengthsOpt, Leg.(EEselection).penaltyMin, Leg.(EEselection).elapsedTime, Leg.(EEselection).exitFlag, Leg.(EEselection).Output] = evolveAndVisualizeOptimalLeg(l_hipAttachmentOffset, linkCount, optimizationProperties, EEselection, meanCyclicMotionHipEE, quadruped, configSelection, dt, taskSelection, hipParalleltoBody, Leg);
+        [Leg.(EEselection).jointTorqueOpt, Leg.(EEselection).qOpt, Leg.(EEselection).qdotOpt, Leg.(EEselection).qdotdotOpt, Leg.(EEselection).rOpt,  Leg.(EEselection).jointPowerOpt, Leg.(EEselection).linkLengthsOpt, Leg.(EEselection).penaltyMin, Leg.(EEselection).elapsedTime, Leg.(EEselection).elapsedTimePerFuncEval, Leg.(EEselection).output, Leg.(EEselection).linkMassOpt,  Leg.(EEselection).totalLinkMassOpt] = evolveAndVisualizeOptimalLeg(l_hipAttachmentOffset, linkCount, optimizationProperties, EEselection, meanCyclicMotionHipEE, quadruped, configSelection, dt, taskSelection, hipParalleltoBody, Leg);
         % compute CoT
          power = Leg.(EEselection).jointPowerOpt;
          Leg.metaParameters.CoTOpt.(EEselection) = getCostOfTransport(Leg, power, quadruped, EEselection);

@@ -27,12 +27,12 @@ optimizationProperties.viz.viewVisualization = true;
 optimizationProperties.viz.displayBestCurrentLinkLengths = false; % display chart while running ga
 
 % set number of generations and population size
-optimizationProperties.options.maxGenerations = 20;
-optimizationProperties.options.populationSize = 20;
+optimizationProperties.options.maxGenerations = 2;
+optimizationProperties.options.populationSize = 4;
 
 % set weights for fitness function terms
-optimizationProperties.penaltyWeight.totalTorque      = 0;
-optimizationProperties.penaltyWeight.totalTorqueHFE   = 1;
+optimizationProperties.penaltyWeight.totalTorque      = 1;
+optimizationProperties.penaltyWeight.totalTorqueHFE   = 0;
 optimizationProperties.penaltyWeight.totalqdot        = 0;
 optimizationProperties.penaltyWeight.totalPower       = 0; % only considers power terms > 0
 optimizationProperties.penaltyWeight.maxTorque        = 0;
@@ -66,7 +66,7 @@ centaurStairs   = false;
 miniPronk       = false;
 
 configSelection = 'X'; % this feature needs to be reworked 
-numberOfRepetitions = 0; % number of times that leg is reoptimized
+numberOfRepetitions = 1; % number of times that leg is reoptimized
 
 %% run the simulation
 simulateSelectedTasks;

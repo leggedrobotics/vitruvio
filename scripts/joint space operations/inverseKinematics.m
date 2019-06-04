@@ -46,12 +46,10 @@ function [jointPositions, r1, r2, r3, r4, r5, rEE] = inverseKinematics(l_hipAtta
         dr = r_H_0EE_des(i,:)' - r_H_0EE;
         k = 0.2;
         max_it = 200;
-
         if i < 2 % fine update for first point, then can make update more coarse
             k = 0.001;
             max_it = 10000;
-        end
-        
+        end 
         if linkCount == 3
             q(4) = qAFE(i);
         end
