@@ -39,6 +39,10 @@ fprintf('Computing end effector liftoff and touchdown timings \n');
 %% Get the mean cyclic position and forces for each end effector
 fprintf('Computing average relative motion of end effectors over one step \n');
 [meanCyclicMotionHipEE, cyclicMotionHipEE, meanCyclicC_IBody, samplingStart, samplingEnd, meanTouchdownIndex] = getHipEECyclicData(quadruped, tLiftoff, relativeMotionHipEE, EE, removalRatioStart, removalRatioEnd, dt, minStepCount, C_IBody, EEnames);
+for i = 1:4
+    EEselection = EEnames(i,:);
+    Leg.(EEselection).force = meanCyclicMotionHipEE.(EEselection).force;
+end
 
 % this is a temporary solution to the issue of phase shift between end
 % effector and body, particularly for speedy gallop. For stair climbing robots, the body rotates but the

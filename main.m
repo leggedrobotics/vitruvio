@@ -14,7 +14,7 @@ numberOfLoopRepetitions = 1; % number of steps visualized for leg motion
 viewTrajectoryPlots = false;
 
 % Toggle optimization for each leg
-runOptimization = true;
+runOptimization = false;
 viewOptimizedLegPlot = true;
 optimizeLF = true; 
 optimizeLH = false; 
@@ -23,12 +23,12 @@ optimizeRH = false;
 
 %% set optimization properties
 % toggle visualization 
-optimizationProperties.viz.viewVisualization = true;
+optimizationProperties.viz.viewVisualization = false;
 optimizationProperties.viz.displayBestCurrentLinkLengths = false; % display chart while running ga
 
 % set number of generations and population size
-optimizationProperties.options.maxGenerations = 15;
-optimizationProperties.options.populationSize = 30;
+optimizationProperties.options.maxGenerations = 20;
+optimizationProperties.options.populationSize = 10;
 
 % set weights for fitness function terms
 optimizationProperties.penaltyWeight.totalTorque      = 0;
