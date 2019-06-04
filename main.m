@@ -3,13 +3,13 @@ close all;
 
 %% Toggle leg properties, visualization and optimization functions
 % number of links from 2 to 4. [thigh, shank, foot, phalanges]
-linkCount = 2;
+linkCount = 3;
 
 % specify hip orientation
 hipParalleltoBody = false; % if false, hip link is perpendicular to body x
 
 % Toggle trajectory plots and initial design viz
-viewVisualization = false; % initial leg design tracking trajectory plan
+viewVisualization = true; % initial leg design tracking trajectory plan
 numberOfLoopRepetitions = 1; % number of steps visualized for leg motion
 viewTrajectoryPlots = false;
 
@@ -23,21 +23,21 @@ optimizeRH = false;
 
 %% set optimization properties
 % toggle visualization 
-optimizationProperties.viz.viewVisualization = false;
+optimizationProperties.viz.viewVisualization = true;
 optimizationProperties.viz.displayBestCurrentLinkLengths = false; % display chart while running ga
 
 % set number of generations and population size
-optimizationProperties.options.maxGenerations = 20;
+optimizationProperties.options.maxGenerations = 10;
 optimizationProperties.options.populationSize = 10;
 
 % set weights for fitness function terms
 optimizationProperties.penaltyWeight.totalTorque      = 0;
-optimizationProperties.penaltyWeight.totalTorqueHFE   = 1;
+optimizationProperties.penaltyWeight.totalTorqueHFE   = 0;
 optimizationProperties.penaltyWeight.totalqdot        = 0;
-optimizationProperties.penaltyWeight.totalPower       = 0;
+optimizationProperties.penaltyWeight.totalPower       = 1; % only considers power terms > 0
 optimizationProperties.penaltyWeight.maxTorque        = 0;
 optimizationProperties.penaltyWeight.maxqdot          = 0;
-optimizationProperties.penaltyWeight.maxPower         = 0;
+optimizationProperties.penaltyWeight.maxPower         = 0; % only considers power terms > 0
 optimizationProperties.penaltyWeight.trackingError    = true; % large penalty incurred if tracking error > 1cm, else penalty is zero
 optimizationProperties.penaltyWeight.maximumExtension = true; % large penalty incurred if leg extends beyond 80% of maximum possible extension
 optimizationProperties.allowableExtension             = 1; % penalize extension above this ratio of total possible extension
@@ -65,7 +65,7 @@ centaurWalk     = false;
 centaurStairs   = false;
 miniPronk       = false;
 
-configSelection = 'M'; % this feature needs to be reworked 
+configSelection = 'X'; % this feature needs to be reworked 
 numberOfRepetitions = 0; % number of times that leg is reoptimized
 
 %% run the simulation

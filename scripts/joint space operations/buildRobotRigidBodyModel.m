@@ -233,14 +233,13 @@ for i = 1:length(Leg.(EEselection).q)
 end
 
 figure(1);
-
 if viewVisualization
     for j = 1: numberOfLoopRepetitions
         for i = 1:length(Leg.(EEselection).q)
             set(gcf, 'Position', get(0, 'Screensize'));
             xlim([-0.7 0.7]);
             ylim([-0.1 0.1]);
-            zlim([-0.8 0.2]);
+            zlim([-0.8 0.3]);
             figure(1);
             show(robot,config(i,:));
             hold on

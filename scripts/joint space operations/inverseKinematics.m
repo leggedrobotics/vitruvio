@@ -1,4 +1,4 @@
-function [jointPositions, r1, r2, r3, r4, r5, rEE] = inverseKinematics(l_hipAttachmentOffset, linkCount, meanCyclicMotionHipEE, quadruped, EEselection, taskSelection, configSelection, hipParalleltoBody);
+function [jointPositions, r1, r2, r3, r4, r5, rEE] = inverseKinematics(l_hipAttachmentOffset, linkCount, meanCyclicMotionHipEE, quadruped, EEselection, taskSelection, configSelection, hipParalleltoBody, Leg)
 
  % Input: desired end-effector position, quadruped properties
  %        initial guess for joint angles, threshold for the stopping-criterion
@@ -33,6 +33,10 @@ function [jointPositions, r1, r2, r3, r4, r5, rEE] = inverseKinematics(l_hipAtta
   r5 = r1;
   r6 = r1;
 
+  if linkCount == 3 % heuristic for qAFE
+      qAFE = -Leg.(EEselection).q(:,4);
+  end
+
   %% Iterative inverse kinematics
   for i = 1:length(meanCyclicMotionHipEE.(EEselection).position(:,1))
        % to keep system right handed, input body rotation as negative. A
@@ -48,21 +52,24 @@ function [jointPositions, r1, r2, r3, r4, r5, rEE] = inverseKinematics(l_hipAtta
             max_it = 10000;
         end
         
+        if linkCount == 3
+            q(4) = qAFE(i);
+        end
       while (norm(dr)>tol && it < max_it)
          [J_P, ~, r_H_01, r_H_02, r_H_03, r_H_04, r_H_05, r_H_0EE] = jointToPosJac(l_hipAttachmentOffset, linkCount, rotBodyY, q, quadruped, EEselection, hipParalleltoBody);
          dr = r_H_0EE_des(i,:)' - r_H_0EE;
          dq = pinv(J_P, lambda)*dr;
-         % update size is largely responsible for computation time. With a
-         % larger update size factor of 0.2, the smallest joint angle is
-         % not found, but there are no jumps of ~2pi between steps
-          q = q + k*dq;
+         q = q + k*dq;
          it = it+1;    
+         if linkCount == 3
+             q(4) = qAFE(i);
+         end 
       end  
       
-%       fprintf('Inverse kinematics terminated after %d iterations.\n',it);
+      % fprintf('Inverse kinematics terminated after %d iterations.\n',it);
       jointPositions(i,:) = q';
-      rEE(i,:) = r_H_0EE;
-      % x y z coordinates of joints
+      rEE(i,:) = r_H_0EE; %% EE coordinates
+      % x y z coordinates of each joint
       r1(i,:) = r_H_01;
       r2(i,:) = r_H_02;
       r3(i,:) = r_H_03;
