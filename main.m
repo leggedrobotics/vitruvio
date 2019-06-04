@@ -3,21 +3,21 @@ close all;
 
 %% Toggle leg properties, visualization and optimization functions
 % number of links from 2 to 4. [thigh, shank, foot, phalanges]
-linkCount = 3;
+linkCount = 2;
 
 % specify hip orientation
-hipParalleltoBody = false; % if false, hip link is perpendicular to body x
+hipParalleltoBody = true; % if false, hip link is perpendicular to body x
 
 % Toggle trajectory plots and initial design viz
-viewVisualization = true; % initial leg design tracking trajectory plan
+viewVisualization = false; % initial leg design tracking trajectory plan
 numberOfLoopRepetitions = 1; % number of steps visualized for leg motion
 viewTrajectoryPlots = false;
 
 % Toggle optimization for each leg
-runOptimization = false;
+runOptimization = true;
 viewOptimizedLegPlot = true;
 optimizeLF = true; 
-optimizeLH = false; 
+optimizeLH = true; 
 optimizeRF = false; 
 optimizeRH = false;
 
@@ -27,14 +27,14 @@ optimizationProperties.viz.viewVisualization = true;
 optimizationProperties.viz.displayBestCurrentLinkLengths = false; % display chart while running ga
 
 % set number of generations and population size
-optimizationProperties.options.maxGenerations = 10;
-optimizationProperties.options.populationSize = 10;
+optimizationProperties.options.maxGenerations = 20;
+optimizationProperties.options.populationSize = 20;
 
 % set weights for fitness function terms
 optimizationProperties.penaltyWeight.totalTorque      = 0;
-optimizationProperties.penaltyWeight.totalTorqueHFE   = 0;
+optimizationProperties.penaltyWeight.totalTorqueHFE   = 1;
 optimizationProperties.penaltyWeight.totalqdot        = 0;
-optimizationProperties.penaltyWeight.totalPower       = 1; % only considers power terms > 0
+optimizationProperties.penaltyWeight.totalPower       = 0; % only considers power terms > 0
 optimizationProperties.penaltyWeight.maxTorque        = 0;
 optimizationProperties.penaltyWeight.maxqdot          = 0;
 optimizationProperties.penaltyWeight.maxPower         = 0; % only considers power terms > 0
@@ -43,8 +43,8 @@ optimizationProperties.penaltyWeight.maximumExtension = true; % large penalty in
 optimizationProperties.allowableExtension             = 1; % penalize extension above this ratio of total possible extension
 
 % set bounds for link lengths as multipliers of initial values
-optimizationProperties.bounds.upperBoundMultiplier = [3, 2, 2]; % [hip thigh shank]
-optimizationProperties.bounds.lowerBoundMultiplier = [0.2, 0.2, 0.2]; % [hip thigh shank]
+optimizationProperties.bounds.upperBoundMultiplier = [2, 2, 2]; % [hip thigh shank]
+optimizationProperties.bounds.lowerBoundMultiplier = [0.1, 0.2, 0.2]; % [hip thigh shank]
 if linkCount == 3
     optimizationProperties.bounds.upperBoundMultiplier = [1, 1.2, 1.2, 1.2]; % [hip thigh shank]
     optimizationProperties.bounds.lowerBoundMultiplier = [1, 0.1, 0.1, 0.1]; % [hip thigh shank]
