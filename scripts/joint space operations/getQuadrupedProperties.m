@@ -2,7 +2,7 @@
 % the link lengths need to be updated during the optimization so this data
 % cannot be saved into a .mat file like the motion data
 
-function quadruped = getQuadrupedProperties(robotSelection);
+function quadruped = getQuadrupedProperties(robotSelection, linkCount)
 legDensity = 249.4; %kg based on desired total leg mass for universal. Could be updated for other robots.
 
 %% ANYmal
@@ -92,9 +92,9 @@ robot.universal.nomHipPos(4,:) = [-robot.universal.xNom(2), -robot.universal.yNo
 robot.universal.hip(1).length = 0.14;
 robot.universal.hip(2).length = 0.14;
 robot.universal.thigh(1).length = 0.25;
-robot.universal.thigh(2).length = 0.4;
-robot.universal.shank(1).length = 0.33;
-robot.universal.shank(2).length = 0.4;
+robot.universal.thigh(2).length = 0.33;
+robot.universal.shank(1).length = 0.25;
+robot.universal.shank(2).length = 0.33;
 robot.universal.foot(1).length = 0.1;
 robot.universal.foot(2).length = 0.1;
 robot.universal.phalanges(1).length = 0.1;
@@ -156,14 +156,14 @@ robot.speedy.nomHipPos(4,:) = [-robot.speedy.xNom(2), -robot.speedy.yNom(2), rob
 % fore, hind
 robot.speedy.hip(1).length = 0.15;
 robot.speedy.hip(2).length = 0.15;
-robot.speedy.thigh(1).length = 0.45;
-robot.speedy.thigh(2).length = 0.45;
+robot.speedy.thigh(1).length = 0.5;
+robot.speedy.thigh(2).length = 0.5;
 robot.speedy.shank(1).length = 0.45;
 robot.speedy.shank(2).length = 0.45;
-robot.speedy.foot(1).length = 0.45;
-robot.speedy.foot(2).length = 0.45;
-robot.speedy.phalanges(1).length = 0.45;
-robot.speedy.phalanges(2).length = 0.45;
+robot.speedy.foot(1).length = 0.15;
+robot.speedy.foot(2).length = 0.15;
+robot.speedy.phalanges(1).length = 0.1;
+robot.speedy.phalanges(2).length = 0.1;
 
 
 % link radius [m]
@@ -218,14 +218,14 @@ robot.massivo.nomHipPos(4,:) = [-robot.massivo.xNom(2), -robot.massivo.yNom(2), 
 
 % link lengths [m]
 % fore, hind
-robot.massivo.hip(1).length = 0.05;
-robot.massivo.hip(2).length = 0.05;
-robot.massivo.thigh(1).length = 0.3;
-robot.massivo.thigh(2).length = 0.3;
-robot.massivo.shank(1).length = 0.3;
-robot.massivo.shank(2).length = 0.3;
-robot.massivo.foot(1).length = 0.05;
-robot.massivo.foot(2).length = 0.05;
+robot.massivo.hip(1).length = 0.15;
+robot.massivo.hip(2).length = 0.15;
+robot.massivo.thigh(1).length = 0.5;
+robot.massivo.thigh(2).length = 0.5;
+robot.massivo.shank(1).length = 0.5;
+robot.massivo.shank(2).length = 0.5;
+robot.massivo.foot(1).length = 0.1;
+robot.massivo.foot(2).length = 0.1;
 robot.massivo.phalanges(1).length = 0.05;
 robot.massivo.phalanges(2).length = 0.05;
 
@@ -282,12 +282,12 @@ robot.centaur.nomHipPos(4,:) = [-robot.centaur.xNom(2), -robot.centaur.yNom(2), 
 
 % link lengths [m]
 % fore, hind
-robot.centaur.hip(1).length = 0.05;
-robot.centaur.hip(2).length = 0.05;
-robot.centaur.thigh(1).length = 0.3;
-robot.centaur.thigh(2).length = 0.3;
-robot.centaur.shank(1).length = 0.3;
-robot.centaur.shank(2).length = 0.3;
+robot.centaur.hip(1).length = 0.15;
+robot.centaur.hip(2).length = 0.15;
+robot.centaur.thigh(1).length = 0.5;
+robot.centaur.thigh(2).length = 0.5;
+robot.centaur.shank(1).length = 0.5;
+robot.centaur.shank(2).length = 0.5;
 robot.centaur.foot(1).length = 0.05;
 robot.centaur.foot(2).length = 0.05;
 robot.centaur.phalanges(1).length = 0.05;
@@ -389,6 +389,15 @@ robot.mini.q3.maxAngle = -pi/2;
 robot.mini.q4.minAngle = pi/2;
 robot.mini.q4.maxAngle = -pi/2;
 
+
+
 quadruped = robot.(robotSelection);
+if linkCount == 2
+    for i = 1:2
+        quadruped.thigh(i).length = quadruped.thigh(i).length + 0.1;
+        quadruped.shank(i).length = quadruped.shank(i).length + 0.1;
+    end
+end
 quadruped.EE(1).mass = 0.2; 
 quadruped.EE(2).mass = 0.2; 
+

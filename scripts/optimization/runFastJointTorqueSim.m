@@ -1,4 +1,4 @@
-function penalty = runFastJointTorqueSim(l_hipAttachmentOffset, linkCount, optimizationProperties, quadruped, linkLengths, selectFrontHind, taskSelection, dt, configSelection, EEselection, meanCyclicMotionHipEE, hipParalleltoBody)
+function penalty = runFastJointTorqueSim(l_hipAttachmentOffset, linkCount, optimizationProperties, quadruped, linkLengths, selectFrontHind, taskSelection, dt, configSelection, EEselection, meanCyclicMotionHipEE, hipParalleltoBody, Leg)
 %% Get quadruped properties 
 % Update link lengths, unit in meters
 quadruped.hip(selectFrontHind).length = linkLengths(1)/100;
@@ -22,7 +22,7 @@ if linkCount == 4
     quadruped.phalanges(selectFrontHind).mass = quadruped.legDensity * pi*(quadruped.phalanges(selectFrontHind).radius)^2 * linkLengths(5)/100;
 end
 %% Inverse kinematics to calculate joint angles for each leg joint as well as xyz coordinates of joints
-[tempLeg.(EEselection).q, tempLeg.(EEselection).r.HAA, tempLeg.(EEselection).r.HFE, tempLeg.(EEselection).r.KFE, tempLeg.(EEselection).r.AFE, tempLeg.(EEselection).r.DFE, tempLeg.(EEselection).r.EE] = inverseKinematics(l_hipAttachmentOffset, linkCount, meanCyclicMotionHipEE, quadruped, EEselection, taskSelection, configSelection, hipParalleltoBody);
+[tempLeg.(EEselection).q, tempLeg.(EEselection).r.HAA, tempLeg.(EEselection).r.HFE, tempLeg.(EEselection).r.KFE, tempLeg.(EEselection).r.AFE, tempLeg.(EEselection).r.DFE, tempLeg.(EEselection).r.EE] = inverseKinematics(l_hipAttachmentOffset, linkCount, meanCyclicMotionHipEE, quadruped, EEselection, taskSelection, configSelection, hipParalleltoBody, Leg);
 
 %% Build robot model with joint angles from inverse kinematics tempLeg
 numberOfLoopRepetitions = 1;
@@ -49,6 +49,7 @@ end
 
 %% Load in penalty weights
 W_totalTorque   = optimizationProperties.penaltyWeight.totalTorque;
+W_totalTorqueHFE   = optimizationProperties.penaltyWeight.totalTorqueHFE;
 W_totalqdot     = optimizationProperties.penaltyWeight.totalqdot;
 W_totalPower    = optimizationProperties.penaltyWeight.totalPower;
 W_maxTorque     = optimizationProperties.penaltyWeight.maxTorque;
@@ -59,12 +60,13 @@ W_trackingError = optimizationProperties.penaltyWeight.trackingError;
 allowableExtension   = optimizationProperties.allowableExtension;
 
 %% Compute penalty terms
-totalTorque   = sum(sum((tempLeg.(EEselection).jointTorque).^2)); 
-totalqdot     = sum(sum((tempLeg.(EEselection).qdot).^2));
-totalPower    = sum(sum(jointPower));
-maxTorque     = max(max(abs(tempLeg.(EEselection).jointTorque)));
-maxqdot       = max(max(abs(tempLeg.(EEselection).qdot)));
-maxPower      = max(max(abs((tempLeg.(EEselection).jointTorque).*(tempLeg.(EEselection).qdot(1:end-2,1:end-1)))));
+totalTorque    = sum(sum((tempLeg.(EEselection).jointTorque).^2)); 
+totalTorqueHFE = sum((tempLeg.(EEselection).jointTorque(:,2)).^2); 
+totalqdot      = sum(sum((tempLeg.(EEselection).qdot).^2));
+totalPower     = sum(sum(jointPower));
+maxTorque      = max(max(abs(tempLeg.(EEselection).jointTorque)));
+maxqdot        = max(max(abs(tempLeg.(EEselection).qdot)));
+maxPower       = max(max(abs((tempLeg.(EEselection).jointTorque).*(tempLeg.(EEselection).qdot(1:end-2,1:end-1)))));
 
 %% tracking error penalty
 % impose tracking error penalty if any point has tracking error above an
@@ -102,6 +104,7 @@ if optimizationProperties.penaltyWeight.trackingError
 end
 
 penalty = W_totalTorque * totalTorque + ...
+          W_totalTorqueHFE * totalTorqueHFE + ...
           W_totalqdot * totalqdot     + ...
           W_totalPower * totalPower   + ...
           W_maxTorque * maxTorque     + ...
