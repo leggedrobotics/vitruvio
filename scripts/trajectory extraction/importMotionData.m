@@ -7,7 +7,7 @@ clear all;
 close all;
 
 %% Enter path to bag containing trajectory data
-pathToTrajectoryData =  '/Users/michaelchadwick/Documents/git/vitruvio/data/trajectory_data/ANYmal/matlab_ANYmal_flat_trot_6,5_14,8.bag';
+pathToTrajectoryData =  '/Users/michaelchadwick/Documents/git/vitruvio/data/trajectory_data/ANYmal/matlab_ANYmal_flat_trot_3,7_22,8.bag';
 
 %% Extract the desired 3D vectors from the bag
 bag_all = rosbag(pathToTrajectoryData);
@@ -97,7 +97,7 @@ motion.base.position = [ts_base_pos.Data(:,1) ts_base_pos.Data(:,2) ts_base_pos.
 motion.base.velocity = [ts_base_vel.Data(:,1) ts_base_vel.Data(:,2) ts_base_vel.Data(:,3)];
 motion.base.acceleration = ts_base_acc.Data(:,1);
 
-save('ANYmalTrot.mat', '-struct','motion') 
+save('ANYmalSlowTrot.mat', '-struct','motion') 
 % %% error
 % % 
 % m = 29.52;   % weight of the robot

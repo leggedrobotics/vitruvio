@@ -104,4 +104,13 @@ for i = 1:numberOfRepetitions+1
             ANYmal.trot(i).(EEselection) = orderfields(ANYmal.trot(i).(EEselection));
         end
     end
+    if ANYmalSlowTrot
+        taskSelection = 'ANYmalSlowTrot'; 
+        classSelection = 'ANYmal';
+        ANYmal.slowTrot(i) = runDataExtractionAndOptScripts(actuateJointsDirectly, viewVisualization, numberOfLoopRepetitions, viewTrajectoryPlots, linkCount, runOptimization, viewOptimizedLegPlot, optimizeLF, optimizeLH, optimizeRF, optimizeRH, optimizationProperties, taskSelection, classSelection, configSelection, hipParalleltoBody);
+        for j = 1:4
+            EEselection = EEnames(j,:);
+            ANYmal.slowTrot(i).(EEselection) = orderfields(ANYmal.slowTrot(i).(EEselection));
+        end
+    end
 end

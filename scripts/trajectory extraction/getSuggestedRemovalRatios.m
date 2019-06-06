@@ -32,5 +32,8 @@ suggestedRemovalRatioEnd.miniPronk = 0.1;
 suggestedRemovalRatioStart.ANYmalTrot = 0.4;
 suggestedRemovalRatioEnd.ANYmalTrot = 0.5;
 
+suggestedRemovalRatioStart.ANYmalSlowTrot = 0.2;
+suggestedRemovalRatioEnd.ANYmalSlowTrot = 0.2;
+
 removalRatioStart = suggestedRemovalRatioStart.(taskSelection);
 removalRatioEnd = suggestedRemovalRatioEnd.(taskSelection);

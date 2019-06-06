@@ -1,8 +1,98 @@
 function [] = plotOptimizedJointTorque(Leg, EEselection, dt, meanTouchdownIndex, taskSelection, linkCount)
-%% joint torque plots
 time = 0:dt:length(Leg.(EEselection).jointTorque)*dt-dt;
-
 subplotCount = linkCount+1;
+
+%% joint angle plots
+figure()
+subplot(subplotCount,1,1)
+hold on
+    plot(time, Leg.(EEselection).q(1:end-3,1), 'r',  ...
+         time, Leg.(EEselection).qOpt(1:end-3,1),'b', 'LineWidth', 2)
+    yl = ylim;
+    patch([dt*meanTouchdownIndex.(EEselection) dt*meanTouchdownIndex.(EEselection) time(end) time(end)],[yl(1) yl(2) yl(2) yl(1)], 'b')
+    alpha(0.05);
+    ylabel('joint angle [rad]');
+    title({taskSelection, EEselection,'qHAA'})
+    legend ('initial leg design', 'optimized leg design')
+    grid on
+hold off
+
+subplot(subplotCount,1,2)
+hold on
+    plot(time, Leg.(EEselection).q(1:end-3,2), 'r', ...
+         time, Leg.(EEselection).qOpt(1:end-3,2),'b', 'LineWidth', 2')
+    yl = ylim;
+    patch([dt*meanTouchdownIndex.(EEselection) dt*meanTouchdownIndex.(EEselection) time(end) time(end)],[yl(1) yl(2) yl(2) yl(1)], 'b')
+    alpha(0.05);
+    ylabel('joint angle [rad]');
+    title('qHFE')
+    legend ('initial leg design', 'optimized leg design')
+    grid on
+hold off
+
+subplot(subplotCount,1,3)
+    hold on
+    plot(time, Leg.(EEselection).q(1:end-3,3), 'r', ...
+         time, Leg.(EEselection).qOpt(1:end-3,3),'b','LineWidth', 2)
+    yl = ylim;
+    patch([dt*meanTouchdownIndex.(EEselection) dt*meanTouchdownIndex.(EEselection) time(end) time(end)],[yl(1) yl(2) yl(2) yl(1)], 'b')
+    alpha(0.05);
+    if (linkCount == 2)
+        str = {'Stance', 'phase'};
+        text(time(end) - 0.05,0.75*yl(1),str,'FontSize',16)
+        str = {'Swing', 'phase'};
+        text(dt*meanTouchdownIndex.(EEselection) - 0.05,0.75*yl(1),str,'FontSize',16)
+    end
+    xlabel('time [s]');
+    ylabel('joint angle [rad]')
+    title('qKFE')
+    legend ('initial leg design', 'optimized leg design')
+    grid on
+hold off
+
+if (linkCount == 3) || (linkCount == 4)
+        subplot(subplotCount,1,4)
+            hold on
+            plot(time, Leg.(EEselection).q(1:end-3,4), 'r', ...
+                 time, Leg.(EEselection).qOpt(1:end-3,4),'b', 'LineWidth', 2)
+            yl = ylim;
+            patch([dt*meanTouchdownIndex.(EEselection) dt*meanTouchdownIndex.(EEselection) time(end) time(end)],[yl(1) yl(2) yl(2) yl(1)], 'b')
+            alpha(0.05);
+            if (linkCount == 3)
+                str = {'Stance', 'phase'};
+                text(time(end) - 0.05,0.75*yl(1),str,'FontSize',16)
+                str = {'Swing', 'phase'};
+                text(dt*meanTouchdownIndex.(EEselection) - 0.05,0.75*yl(1),str,'FontSize',16)
+            end
+            ylabel('joint angle [rad]');
+            title('qAFE')
+            legend ('initial leg design', 'optimized leg design')
+            grid on
+        hold off
+end
+
+if (linkCount == 4)
+        subplot(subplotCount,1,5)
+            hold on
+            plot(time, Leg.(EEselection).q(1:end-3,5), 'r', ...
+                 time, Leg.(EEselection).qOpt(1:end-3,5),'b', 'LineWidth', 2)
+            yl = ylim;
+            patch([dt*meanTouchdownIndex.(EEselection) dt*meanTouchdownIndex.(EEselection) time(end) time(end)],[yl(1) yl(2) yl(2) yl(1)], 'b')
+            alpha(0.05);
+            if (linkCount == 4)
+                str = {'Stance', 'phase'};
+                text(time(end) - 0.05,0.75*yl(1),str,'FontSize',16)
+                str = {'Swing', 'phase'};
+                text(dt*meanTouchdownIndex.(EEselection) - 0.05,0.75*yl(1),str,'FontSize',16)
+            end
+            ylabel('joint angle [rad]');
+            title('qDFE')
+            legend ('initial leg design', 'optimized leg design')
+            grid on
+        hold off
+end
+
+%% joint torque plots
 figure()
 subplot(subplotCount,1,1)
 hold on
