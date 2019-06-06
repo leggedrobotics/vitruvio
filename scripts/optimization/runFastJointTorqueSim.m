@@ -1,4 +1,4 @@
-function penalty = runFastJointTorqueSim(l_hipAttachmentOffset, linkCount, optimizationProperties, quadruped, linkLengths, selectFrontHind, taskSelection, dt, configSelection, EEselection, meanCyclicMotionHipEE, hipParalleltoBody, Leg)
+function penalty = runFastJointTorqueSim(actuateJointsDirectly, l_hipAttachmentOffset, linkCount, optimizationProperties, quadruped, linkLengths, selectFrontHind, taskSelection, dt, configSelection, EEselection, meanCyclicMotionHipEE, hipParalleltoBody, Leg, meanTouchdownIndex)
 %% Get quadruped properties 
 % Update link lengths, unit in meters
 quadruped.hip(selectFrontHind).length = linkLengths(1)/100;
@@ -27,7 +27,7 @@ end
 %% Build robot model with joint angles from inverse kinematics tempLeg
 numberOfLoopRepetitions = 1;
 viewVisualization = 0;
-tempLeg.(EEselection).rigidBodyModel = buildRobotRigidBodyModel(l_hipAttachmentOffset, linkCount, quadruped, tempLeg, meanCyclicMotionHipEE, EEselection, numberOfLoopRepetitions, viewVisualization, hipParalleltoBody);
+tempLeg.(EEselection).rigidBodyModel = buildRobotRigidBodyModel(actuateJointsDirectly, l_hipAttachmentOffset, linkCount, quadruped, tempLeg, meanCyclicMotionHipEE, EEselection, numberOfLoopRepetitions, viewVisualization, hipParalleltoBody);
 
 %% Get joint velocities with inverse(Jacobian)* EE.velocity
 % The joint accelerations are then computed using finite difference
@@ -48,18 +48,23 @@ for j = 1:length(jointPower)
 end
 
 %% Load in penalty weights
+W_totalSwingTorque   = optimizationProperties.penaltyWeight.totalSwingTorque;
+W_totalStanceTorque   = optimizationProperties.penaltyWeight.totalStanceTorque;
 W_totalTorque   = optimizationProperties.penaltyWeight.totalTorque;
-W_totalTorqueHFE   = optimizationProperties.penaltyWeight.totalTorqueHFE;
+W_totalTorqueHFE= optimizationProperties.penaltyWeight.totalTorqueHFE;
 W_totalqdot     = optimizationProperties.penaltyWeight.totalqdot;
 W_totalPower    = optimizationProperties.penaltyWeight.totalPower;
 W_maxTorque     = optimizationProperties.penaltyWeight.maxTorque;
 W_maxqdot       = optimizationProperties.penaltyWeight.maxqdot;
 W_maxPower      = optimizationProperties.penaltyWeight.maxPower;
-W_trackingError = optimizationProperties.penaltyWeight.trackingError;
-
-allowableExtension   = optimizationProperties.allowableExtension;
+allowableExtension = optimizationProperties.allowableExtension; % as ratio of total possible extension
 
 %% Compute penalty terms
+torque.swing  = tempLeg.(EEselection).jointTorque(1:meanTouchdownIndex.(EEselection), :);
+torque.stance = tempLeg.(EEselection).jointTorque(meanTouchdownIndex.(EEselection)+1:end, :);
+
+totalSwingTorque = sum(sum((torque.swing).^2)); 
+totalStanceTorque = sum(sum((torque.stance).^2)); 
 totalTorque    = sum(sum((tempLeg.(EEselection).jointTorque).^2)); 
 totalTorqueHFE = sum((tempLeg.(EEselection).jointTorque(:,2)).^2); 
 totalqdot      = sum(sum((tempLeg.(EEselection).qdot).^2));
@@ -74,7 +79,8 @@ maxPower       = max(max(abs((tempLeg.(EEselection).jointTorque).*(tempLeg.(EEse
 trackingError = meanCyclicMotionHipEE.(EEselection).position-tempLeg.(EEselection).r.EE;
 if max(abs(trackingError)) > 0.01
     trackingErrorPenalty = 100000;
-    else trackingErrorPenalty = 0;
+else
+    trackingErrorPenalty = 0;
 end
 
 %% joint below ground penalty
@@ -94,7 +100,7 @@ else
 end
 
 %% maximum allowable extension exceeded penalty
-if optimizationProperties.penaltyWeight.trackingError
+if optimizationProperties.penaltyWeight.maximumExtension % if true, calculate and penalize for overzealous extension
     offsetHFE2EEdes = tempLeg.(EEselection).r.HFE - meanCyclicMotionHipEE.(EEselection).position; % offset from HFE to desired EE position
     maxOffsetHFE2EEdes = max(sqrt(sum(offsetHFE2EEdes.^2,2))); % max euclidian distance from HFE to desired EE position
         if maxOffsetHFE2EEdes > allowableExtension*sum(linkLengths(2:end)/100)
@@ -105,6 +111,8 @@ end
 
 penalty = W_totalTorque * totalTorque + ...
           W_totalTorqueHFE * totalTorqueHFE + ...
+          W_totalSwingTorque * totalSwingTorque + ...
+          W_totalStanceTorque * totalStanceTorque + ...
           W_totalqdot * totalqdot     + ...
           W_totalPower * totalPower   + ...
           W_maxTorque * maxTorque     + ...

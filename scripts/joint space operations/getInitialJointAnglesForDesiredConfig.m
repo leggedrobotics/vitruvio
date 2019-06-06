@@ -26,6 +26,7 @@ q0.X.massivoStairs      = q0.X.quadruped;
 q0.X.centaurWalk        = q0.X.quadruped;
 q0.X.centaurStairs      = q0.X.quadruped;
 q0.X.miniPronk          = q0.X.quadruped;
+q0.X.ANYmalTrot         = q0.X.quadruped;
 
 %% M configuration
 q0.M.universalStairs    = q0.M.quadruped;
@@ -37,5 +38,5 @@ q0.M.massivoStairs      = q0.M.quadruped;
 q0.M.centaurWalk        = q0.M.quadruped;
 q0.M.centaurStairs      = q0.M.quadruped;
 q0.M.miniPronk          = q0.M.quadruped;
-
+q0.M.ANYmalTrot         = q0.M.quadruped;
 q0 = q0.(configSelection).(taskSelection).(EEselection);

@@ -7,7 +7,7 @@
 % this function calls evolveOptimalLeg which runs the simulation
 % runFastJointTorqueSim for each set of link lengths 
 
-function [jointTorqueOpt, qOpt, qdotOpt, qdotdotOpt, rOpt, jointPowerOpt, linkLengths, penaltyMin, elapsedTime, exitFlag, Output] = evolveAndVisualizeOptimalLeg(l_hipAttachmentOffset, linkCount, optimizationProperties, EEselection, meanCyclicMotionHipEE, quadruped, configSelection, dt, taskSelection, hipParalleltoBody, Leg)
+function [jointTorqueOpt, qOpt, qdotOpt, qdotdotOpt, rOpt, jointPowerOpt, linkLengths, penaltyMin, elapsedTime, elapsedTimePerFuncEval, output, linkMassOpt, totalLinkMassOpt] = evolveAndVisualizeOptimalLeg(actuateJointsDirectly, l_hipAttachmentOffset, linkCount, optimizationProperties, EEselection, meanCyclicMotionHipEE, quadruped, configSelection, dt, taskSelection, hipParalleltoBody, Leg, meanTouchdownIndex)
 if (EEselection == 'LF') | (EEselection == 'RF')
     selectFrontHind = 1;
     else selectFrontHind = 2;
@@ -34,8 +34,9 @@ disp(upperBnd);
 
 %% evolve optimal link lengths by running ga
 tic;
-[linkLengths, penaltyMin, exitFlag, Output] = evolveOptimalLeg(l_hipAttachmentOffset, linkCount, optimizationProperties, initialLinkLengths, taskSelection, quadruped, configSelection, EEselection, dt, meanCyclicMotionHipEE, hipParalleltoBody, Leg);
+[linkLengths, penaltyMin, output] = evolveOptimalLeg(actuateJointsDirectly, l_hipAttachmentOffset, linkCount, optimizationProperties, initialLinkLengths, taskSelection, quadruped, configSelection, EEselection, dt, meanCyclicMotionHipEE, hipParalleltoBody, Leg, meanTouchdownIndex);
 elapsedTime = toc;
+elapsedTimePerFuncEval = elapsedTime/output.funccount;
 fprintf('Optimized link lengths [m]:')
 disp(linkLengths/100);
 
@@ -65,7 +66,7 @@ numberOfLoopRepetitions = 3;
 viewVisualization = optimizationProperties.viz.viewVisualization;
 %inverse kinematics
 [tempLeg.(EEselection).q, tempLeg.(EEselection).r.HAA, tempLeg.(EEselection).r.HFE, tempLeg.(EEselection).r.KFE, tempLeg.(EEselection).r.AFE, tempLeg.(EEselection).r.DFE, tempLeg.(EEselection).r.EE] = inverseKinematics(l_hipAttachmentOffset, linkCount, meanCyclicMotionHipEE, quadruped, EEselection, taskSelection, configSelection, hipParalleltoBody, Leg);
-tempLeg.(EEselection).rigidBodyModel = buildRobotRigidBodyModel(l_hipAttachmentOffset, linkCount, quadruped, tempLeg, meanCyclicMotionHipEE, EEselection, numberOfLoopRepetitions, viewVisualization, hipParalleltoBody);
+tempLeg.(EEselection).rigidBodyModel = buildRobotRigidBodyModel(actuateJointsDirectly, l_hipAttachmentOffset, linkCount, quadruped, tempLeg, meanCyclicMotionHipEE, EEselection, numberOfLoopRepetitions, viewVisualization, hipParalleltoBody);
 
 %% get joint torques of optimal design
 [tempLeg.(EEselection).qdot, tempLeg.(EEselection).qdotdot] = getJointVelocitiesUsingFiniteDifference(linkCount, EEselection, meanCyclicMotionHipEE, tempLeg, quadruped, dt);
@@ -73,6 +74,9 @@ tempLeg.(EEselection).jointTorque = inverseDynamics(EEselection, tempLeg, meanCy
 
 %% get joint power for optimal design
 tempLeg.(EEselection).jointPower = tempLeg.(EEselection).jointTorque .* tempLeg.(EEselection).qdot(1:end-2,1:end-1);
+
+%% get link mass for optimal design
+[linkMassOpt, ~, totalLinkMassOpt] = getLinkMass(tempLeg, EEselection, linkCount);
 
 %% return joint data
 linkLengths = linkLengths/100; %convert back to m for output

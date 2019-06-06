@@ -1,34 +1,16 @@
-%% Plot towr rosbags in matlab
-%
-% The bags can be generated using
-% towr_ros/src/exe/rosbag_geom_msg_extractor.cc.
-%
-% Author: Alexander Winkler
+% This script reads trajectory data from a rosbag and writes the result
+% into a .mat file. The user specifies the path to the trajectory data and
+% the name of the .mat file where the data is saved.
 
 clc;
 clear all;
 close all;
 
-%% List of bags containing motion data
-miniPronk =  '~/Documents/thesis/trajectory_data/mini/matlab_mini_flat_pronk_2,1_3,6.bag';
-
-speedyGallop = '~/Documents/thesis/trajectory_data/speedy/matlab_speedy_flat_gallop_35,0_10,0.bag';
-speedyStairs = '~/Documents/thesis/trajectory_data/speedy/matlab_speedy_stairs_walk_2,9_4,8.bag';
-
-universalTrot = '~/Documents/thesis/trajectory_data/universal/payload/matlab_universalPL_flat_trot_7,4_8,8.bag';
-universalStairs = '~/Documents/thesis/trajectory_data/universal/payload/matlab_universalPL_stairs_walk_3,1_7,4.bag';
-universalVersatile = 0;
-
-massivoWalk = '~/Documents/thesis/trajectory_data/massivo/matlab_massivo_flat_walk_2,8_7,0.bag';
-massivoStairs = '~/Documents/thesis/trajectory_data/massivo/matlab_massivo_stairs_overlapwalk_6,2_15,8.bag';
-
-centaurWalk = '~/Documents/thesis/trajectory_data/centaur/matlab_centaur_flat_walk_2,8_7,0.bag';
-centaurStairs = '~/Documents/thesis/trajectory_data/centaur/matlab_centaur_stairs_overlapwalk_6,2_15,8.bag';
-
+%% Enter path to bag containing trajectory data
+pathToTrajectoryData =  '/Users/michaelchadwick/Documents/git/vitruvio/data/trajectory_data/ANYmal/matlab_ANYmal_flat_trot_6,5_14,8.bag';
 
 %% Extract the desired 3D vectors from the bag
-filePath = centaurStairs;
-bag_all = rosbag(filePath);
+bag_all = rosbag(pathToTrajectoryData);
 
 t0 = 0.0; %bag_all.StartTime;
 T  = bag_all.EndTime;
@@ -50,7 +32,6 @@ ts_base_acc = timeseries(bag_base_acc, 'Z');
 
 % Base rotation
 motion.quat = [ts_base_pos.Data(:,7) -ts_base_pos.Data(:,4) -ts_base_pos.Data(:,5) -ts_base_pos.Data(:,6)];
-
 
 %% endeffector motion
 bag_foot_0 = select(bag, 'Topic', 'foot_pos_0');
@@ -78,8 +59,6 @@ ts_force_LH  = timeseries(bag_force_2, 'X', 'Y','Z');
 bag_force_3 = select(bag, 'Topic', 'foot_force_3');
 ts_force_RH  = timeseries(bag_force_3, 'X', 'Y','Z');
 
-
-%% 
 motion.t = ts_base_pos.Time; 
 motion.dt = motion.t(2)-motion.t(1);
 
@@ -118,7 +97,7 @@ motion.base.position = [ts_base_pos.Data(:,1) ts_base_pos.Data(:,2) ts_base_pos.
 motion.base.velocity = [ts_base_vel.Data(:,1) ts_base_vel.Data(:,2) ts_base_vel.Data(:,3)];
 motion.base.acceleration = ts_base_acc.Data(:,1);
 
-save('centaurStairs.mat', '-struct','motion') 
+save('ANYmalTrot.mat', '-struct','motion') 
 % %% error
 % % 
 % m = 29.52;   % weight of the robot
