@@ -29,5 +29,8 @@ suggestedRemovalRatioEnd.centaurWalk = 0.1;
 suggestedRemovalRatioStart.miniPronk = 0.1;
 suggestedRemovalRatioEnd.miniPronk = 0.1;
 
+suggestedRemovalRatioStart.ANYmalTrot = 0.4;
+suggestedRemovalRatioEnd.ANYmalTrot = 0.5;
+
 removalRatioStart = suggestedRemovalRatioStart.(taskSelection);
 removalRatioEnd = suggestedRemovalRatioEnd.(taskSelection);

@@ -20,7 +20,7 @@ jointTorque = zeros(length(Leg.(EEselection).qdotdot),linkCount+2);
         qdotdot = Leg.(EEselection).qdotdot(i,1:linkCount+1);
         rigidBodyModel = Leg.(EEselection).rigidBodyModel;
         wrench = [0 0 0 meanCyclicMotionHipEE.(EEselection).force(i,1:3)]; % torques and forces applied to the body [Tx Ty Tz Fx Fy Fz]
-        fext = externalForce(rigidBodyModel,endEffector,wrench); % apply force on body4 = end effector
+        fext = externalForce(rigidBodyModel,endEffector,wrench); % apply force on end effector
         jointTorque(i,:) = inverseDynamics(rigidBodyModel, [rotBodyY q], [0 qdot], [0 qdotdot], fext);
     end
 % the first term is due to body rotation but this is not related to an actuated joint so we neglect it    

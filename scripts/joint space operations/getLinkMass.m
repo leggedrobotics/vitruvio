@@ -6,6 +6,6 @@ numberOfBodies = linkCount + 2; % [base hip thigh shank (foot) (phalanges)]
 for i = 2:numberOfBodies
     linkMass(i) = Leg.(EEselection).rigidBodyModel.Bodies{1,i}.Mass;
 end
-EEMass = Leg.(EEselection).rigidBodyModel.Bodies{1,end}.Mass;
+EEMass = Leg.(EEselection).rigidBodyModel.Bodies{1,numberOfBodies+1}.Mass;
 totalLinkMass = sum(linkMass);
 

@@ -33,8 +33,11 @@ function [jointPositions, r1, r2, r3, r4, r5, rEE] = inverseKinematics(l_hipAtta
   r5 = r1;
   r6 = r1;
 
-  if linkCount == 3 % heuristic for qAFE
+  if linkCount == 3 % heuristic for final joint angle
       qAFE = -Leg.(EEselection).q(:,4);
+  end
+  if linkCount == 4 % heuristic for final joint angle
+      qDFE = -Leg.(EEselection).q(:,5);
   end
 
   %% Iterative inverse kinematics
@@ -53,6 +56,10 @@ function [jointPositions, r1, r2, r3, r4, r5, rEE] = inverseKinematics(l_hipAtta
         if linkCount == 3
             q(4) = qAFE(i);
         end
+        if linkCount == 4
+            q(4) = -q(3);
+            q(5) = qDFE(i);
+        end         
       while (norm(dr)>tol && it < max_it)
          [J_P, ~, r_H_01, r_H_02, r_H_03, r_H_04, r_H_05, r_H_0EE] = jointToPosJac(l_hipAttachmentOffset, linkCount, rotBodyY, q, quadruped, EEselection, hipParalleltoBody);
          dr = r_H_0EE_des(i,:)' - r_H_0EE;
@@ -61,6 +68,10 @@ function [jointPositions, r1, r2, r3, r4, r5, rEE] = inverseKinematics(l_hipAtta
          it = it+1;    
          if linkCount == 3
              q(4) = qAFE(i);
+         end 
+         if linkCount == 4
+             q(4) = -q(3); % foot parallel to thigh requires qAFE = -qKFE 
+             q(5) = qDFE(i);
          end 
       end  
       

@@ -113,7 +113,7 @@ figure(5)
 title('End effector motion with all gait cycles')
 
 % LF
-subplot(4,2,1)
+subplot(2,2,1)
 for i = samplingStart:samplingEnd
     hold on
     plot(cyclicMotionHipEE.LF.position(:,1,i), cyclicMotionHipEE.LF.position(:,3,i), 'o', 'MarkerEdgeColor', '[0.5843 0.8157 0.9882]', 'MarkerFaceColor', '[ 0.5843 0.8157 0.9882]')
@@ -128,7 +128,7 @@ title('LF')
 
 hold off
 % LH
-subplot(4,2,2)
+subplot(2,2,2)
 for i = samplingStart:samplingEnd
     hold on
     plot(cyclicMotionHipEE.LH.position(:,1,i), cyclicMotionHipEE.LH.position(:,3,i), 'o', 'MarkerEdgeColor', '[0.5843 0.8157 0.9882]', 'MarkerFaceColor', '[ 0.5843 0.8157 0.9882]')
@@ -143,7 +143,7 @@ title('LH')
 hold off
 
 % RF
-subplot(4,2,3)
+subplot(2,2,3)
 for i = samplingStart:samplingEnd
     hold on
     plot(cyclicMotionHipEE.RF.position(:,1,i), cyclicMotionHipEE.RF.position(:,3,i), 'o', 'MarkerEdgeColor', '[0.5843 0.8157 0.9882]', 'MarkerFaceColor', '[ 0.5843 0.8157 0.9882]')
@@ -157,7 +157,7 @@ title('RF')
 hold off
 
 % RH
-subplot(4,2,4)
+subplot(2,2,4)
 for i = samplingStart:samplingEnd
     hold on
     plot(cyclicMotionHipEE.RH.position(:,1,i), cyclicMotionHipEE.RH.position(:,3,i), 'o', 'MarkerEdgeColor', '[0.5843 0.8157 0.9882]', 'MarkerFaceColor', '[ 0.5843 0.8157 0.9882]')

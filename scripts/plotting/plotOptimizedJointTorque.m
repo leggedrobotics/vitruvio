@@ -11,7 +11,7 @@ hold on
     yl = ylim;
     patch([dt*meanTouchdownIndex.(EEselection) dt*meanTouchdownIndex.(EEselection) time(end) time(end)],[yl(1) yl(2) yl(2) yl(1)], 'b')
     alpha(0.05);
-    ylabel('joint torque \tau [N]');
+    ylabel('joint torque \tau [Nm]');
     title({taskSelection, EEselection,'HAA torque'})
     legend ('initial leg design', 'optimized leg design')
     grid on
@@ -24,7 +24,7 @@ hold on
     yl = ylim;
     patch([dt*meanTouchdownIndex.(EEselection) dt*meanTouchdownIndex.(EEselection) time(end) time(end)],[yl(1) yl(2) yl(2) yl(1)], 'b')
     alpha(0.05);
-    ylabel('joint torque \tau [N]');
+    ylabel('joint torque \tau [Nm]');
     title('HFE torque')
     legend ('initial leg design', 'optimized leg design')
     grid on
@@ -44,7 +44,7 @@ subplot(subplotCount,1,3)
         text(dt*meanTouchdownIndex.(EEselection) - 0.05,0.75*yl(1),str,'FontSize',16)
     end
     xlabel('time [s]');
-    ylabel('joint torque \tau [N]')
+    ylabel('joint torque \tau [Nm]')
     title('KFE torque')
     legend ('initial leg design', 'optimized leg design')
     grid on
@@ -64,7 +64,7 @@ if (linkCount == 3) || (linkCount == 4)
                 str = {'Swing', 'phase'};
                 text(dt*meanTouchdownIndex.(EEselection) - 0.05,0.75*yl(1),str,'FontSize',16)
             end
-            ylabel('joint torque \tau [N]');
+            ylabel('joint torque \tau [Nm]');
             title('AFE torque')
             legend ('initial leg design', 'optimized leg design')
             grid on
@@ -85,7 +85,7 @@ if (linkCount == 4)
                 str = {'Swing', 'phase'};
                 text(dt*meanTouchdownIndex.(EEselection) - 0.05,0.75*yl(1),str,'FontSize',16)
             end
-            ylabel('joint torque \tau [N]');
+            ylabel('joint torque \tau [Nm]');
             title('DFE torque')
             legend ('initial leg design', 'optimized leg design')
             grid on
