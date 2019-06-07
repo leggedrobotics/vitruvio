@@ -289,16 +289,16 @@ hold off
 
 %% mean forces
 % Z forces
-figure(8)
-time = 0:dt:dt*length(meanCyclicMotionHipEE.LF.position(:,1));
-plot([time(1:end-1)+tTouchdown.LF(1) time(1:end-1)+tTouchdown.LF(2)], [meanCyclicMotionHipEE.LF.force(:,3); meanCyclicMotionHipEE.LF.force(:,3)], 'b--', ...
-     [time(1:end-1)+tTouchdown.LH(1) time(1:end-1)+tTouchdown.LH(2)], [meanCyclicMotionHipEE.LH.force(:,3); meanCyclicMotionHipEE.LH.force(:,3)], 'g', ...
-     [time(1:end-1)+tTouchdown.RF(1) time(1:end-1)+tTouchdown.RF(2)], [meanCyclicMotionHipEE.RF.force(:,3); meanCyclicMotionHipEE.RF.force(:,3)], 'r--', ...
-     [time(1:end-1)+tTouchdown.RH(1) time(1:end-1)+tTouchdown.RH(2)], [meanCyclicMotionHipEE.RH.force(:,3); meanCyclicMotionHipEE.RH.force(:,3)], 'c', 'LineWidth', 3)  
-clear time;
-title('Average of end-effector forces in z-direction displayed over two gait cycles')
-lgd = legend('LF','LH','RF','RH');
-lgd.FontSize = 16;
-xlabel('time [s]')
-ylabel('Force [N]')
-grid on
+% figure(8)
+% time = 0:dt:dt*length(meanCyclicMotionHipEE.LF.position(:,1));
+% plot([time(1:end-1)+tTouchdown.LF(1) time(1:end-1)+tTouchdown.LF(2)], [meanCyclicMotionHipEE.LF.force(:,3); meanCyclicMotionHipEE.LF.force(:,3)], 'b--', ...
+%      [time(1:end-1)+tTouchdown.LH(1) time(1:end-1)+tTouchdown.LH(2)], [meanCyclicMotionHipEE.LH.force(:,3); meanCyclicMotionHipEE.LH.force(:,3)], 'g', ...
+%      [time(1:end-1)+tTouchdown.RF(1) time(1:end-1)+tTouchdown.RF(2)], [meanCyclicMotionHipEE.RF.force(:,3); meanCyclicMotionHipEE.RF.force(:,3)], 'r--', ...
+%      [time(1:end-1)+tTouchdown.RH(1) time(1:end-1)+tTouchdown.RH(2)], [meanCyclicMotionHipEE.RH.force(:,3); meanCyclicMotionHipEE.RH.force(:,3)], 'c', 'LineWidth', 3)  
+% clear time;
+% title('Average of end-effector forces in z-direction displayed over two gait cycles')
+% lgd = legend('LF','LH','RF','RH');
+% lgd.FontSize = 16;
+% xlabel('time [s]')
+% ylabel('Force [N]')
+% grid on

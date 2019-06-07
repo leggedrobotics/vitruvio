@@ -38,7 +38,7 @@ tempLeg.(EEselection).jointTorque = inverseDynamics(EEselection, tempLeg, meanCy
 
 %% Regenerative breaking
 % no regenerative breaking, set negative power terms to zero
-jointPower = tempLeg.(EEselection).jointTorque .* tempLeg.(EEselection).qdot(1:end-2,1:end-1);
+jointPower = tempLeg.(EEselection).jointTorque .* tempLeg.(EEselection).qdot(:,1:end-1);
 for j = 1:length(jointPower)
     for k = 1:length(jointPower(1,:))
         if jointPower(j,k) < 0
@@ -71,7 +71,7 @@ totalqdot      = sum(sum((tempLeg.(EEselection).qdot).^2));
 totalPower     = sum(sum(jointPower));
 maxTorque      = max(max(abs(tempLeg.(EEselection).jointTorque)));
 maxqdot        = max(max(abs(tempLeg.(EEselection).qdot)));
-maxPower       = max(max(abs((tempLeg.(EEselection).jointTorque).*(tempLeg.(EEselection).qdot(1:end-2,1:end-1)))));
+maxPower       = max(max(abs((tempLeg.(EEselection).jointTorque).*(tempLeg.(EEselection).qdot(:,1:end-1)))));
 
 %% tracking error penalty
 % impose tracking error penalty if any point has tracking error above an
@@ -101,7 +101,7 @@ end
 
 %% maximum allowable extension exceeded penalty
 if optimizationProperties.penaltyWeight.maximumExtension % if true, calculate and penalize for overzealous extension
-    offsetHFE2EEdes = tempLeg.(EEselection).r.HFE - meanCyclicMotionHipEE.(EEselection).position; % offset from HFE to desired EE position
+    offsetHFE2EEdes = tempLeg.(EEselection).r.HFE - meanCyclicMotionHipEE.(EEselection).position(1:end-2,:); % offset from HFE to desired EE position
     maxOffsetHFE2EEdes = max(sqrt(sum(offsetHFE2EEdes.^2,2))); % max euclidian distance from HFE to desired EE position
         if maxOffsetHFE2EEdes > allowableExtension*sum(linkLengths(2:end)/100)
             maximumExtensionPenalty = 100000000;

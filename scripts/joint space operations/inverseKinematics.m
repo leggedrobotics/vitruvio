@@ -75,7 +75,7 @@ function [jointPositions, r1, r2, r3, r4, r5, rEE] = inverseKinematics(l_hipAtta
          end 
       end  
       
-      % fprintf('Inverse kinematics terminated after %d iterations.\n',it);
+%       fprintf('Inverse kinematics terminated after %d iterations.\n',it);
       jointPositions(i,:) = q';
       rEE(i,:) = r_H_0EE; %% EE coordinates
       % x y z coordinates of each joint
@@ -84,4 +84,12 @@ function [jointPositions, r1, r2, r3, r4, r5, rEE] = inverseKinematics(l_hipAtta
       r3(i,:) = r_H_03;
       r4(i,:) = r_H_04;
       r5(i,:) = r_H_05;
-  end     
+  end 
+  % We can remove the final two points that were looped around. This
+  % ensures the position, vel, accel vectors all have the same length after
+  % applying finite difference and the data exactly captures one cycle.
+  r1 = r1(1:end-2,:);
+  r2 = r2(1:end-2,:);
+  r3 = r3(1:end-2,:);
+  r4 = r4(1:end-2,:);
+  r5 = r5(1:end-2,:);  
