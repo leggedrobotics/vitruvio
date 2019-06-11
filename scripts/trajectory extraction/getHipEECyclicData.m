@@ -119,6 +119,7 @@ for i = 1:minStepCount-2
     temp.rotation = C_IBody(:,:,floor(tLiftoff.LF(i)/dt):floor(tLiftoff.LF(i+1)/dt));
     cyclicC_IBody(:,:,:,i) = temp.rotation(:,:,1:indexMax);
 end
+
 %% Average the position of the end effector at corresponding times for each cycle
 % only consider cycles outside of the acceleration and deceleration phases
 
@@ -138,14 +139,10 @@ for i = 1:4
     meanCyclicMotionHipEE.(EEselection).velocity = mean(cyclicMotionHipEE.(EEselection).velocity(:,:,samplingStart:samplingEnd),3);
     meanCyclicMotionHipEE.(EEselection).force = mean(cyclicMotionHipEE.(EEselection).force(:,:,samplingStart:samplingEnd),3);
     % add new row at end of array with starting position to loop the position,
-    % velocity and force data. Add two terms to position data so when we
-    % take finite differences later we still have full loop for torque
-    meanCyclicMotionHipEE.(EEselection).position(end+1,:) = meanCyclicMotionHipEE.(EEselection).position(1,:);   
-    meanCyclicMotionHipEE.(EEselection).position(end+1,:) = meanCyclicMotionHipEE.(EEselection).position(2,:);   
-    meanCyclicMotionHipEE.(EEselection).position(end+1,:) = meanCyclicMotionHipEE.(EEselection).position(3,:);   
-
-    meanCyclicMotionHipEE.(EEselection).velocity(end+1,:) = meanCyclicMotionHipEE.(EEselection).velocity(1,:);
-    meanCyclicMotionHipEE.(EEselection).force(end+1,:) = meanCyclicMotionHipEE.(EEselection).force(1,:);
+    % velocity and force data
+%     meanCyclicMotionHipEE.(EEselection).position(end+1,:) = meanCyclicMotionHipEE.(EEselection).position(1,:);
+%     meanCyclicMotionHipEE.(EEselection).velocity(end+1,:) = meanCyclicMotionHipEE.(EEselection).velocity(1,:);
+%     meanCyclicMotionHipEE.(EEselection).force(end+1,:) = meanCyclicMotionHipEE.(EEselection).force(1,:);
 end
 meanCyclicC_IBody(:,:,end+1) = meanCyclicC_IBody(:,:,1);
 
@@ -162,6 +159,3 @@ end
 % mean cyclic euler angles for body rotation
 meanEuler = rotm2eul(meanCyclicC_IBody, 'ZYX');
 meanCyclicMotionHipEE.body.eulerAngles = meanEuler;
-meanCyclicMotionHipEE.body.eulerAngles(end+1,:) = meanCyclicMotionHipEE.body.eulerAngles(1,:);
-meanCyclicMotionHipEE.body.eulerAngles(end+1,:) = meanCyclicMotionHipEE.body.eulerAngles(2,:);
-meanCyclicMotionHipEE.body.eulerAngles(end+1,:) = meanCyclicMotionHipEE.body.eulerAngles(3,:);

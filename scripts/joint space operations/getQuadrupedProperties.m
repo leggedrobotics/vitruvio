@@ -24,8 +24,8 @@ robot.ANYmal.nomHipPos(4,:) = [-robot.ANYmal.xNom(2), -robot.ANYmal.yNom(2), rob
 
 % link lengths [m]
 % fore, hind
-robot.ANYmal.hip(1).length = 0.01;
-robot.ANYmal.hip(2).length = 0.01;
+robot.ANYmal.hip(1).length = 0.14;
+robot.ANYmal.hip(2).length = 0.14;
 robot.ANYmal.thigh(1).length = 0.25;
 robot.ANYmal.thigh(2).length = 0.25;
 robot.ANYmal.shank(1).length = 0.33;

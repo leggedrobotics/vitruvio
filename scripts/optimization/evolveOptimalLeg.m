@@ -22,7 +22,7 @@ lowerBnd = round(optimizationProperties.bounds.lowerBoundMultiplier.*initialLink
 
 %% Run optimization
 
-costFcn = @(linkLengths)runFastJointTorqueSim(actuateJointsDirectly, l_hipAttachmentOffset, linkCount, optimizationProperties, quadruped, linkLengths, selectFrontHind, taskSelection, dt, configSelection, EEselection, meanCyclicMotionHipEE, hipParalleltoBody, Leg, meanTouchdownIndex);
+costFcn = @(linkLengths)computePenalty(actuateJointsDirectly, l_hipAttachmentOffset, linkCount, optimizationProperties, quadruped, linkLengths, selectFrontHind, taskSelection, dt, configSelection, EEselection, meanCyclicMotionHipEE, hipParalleltoBody, Leg, meanTouchdownIndex);
 disp(['Running optimization. Population: ' num2str(opts.PopulationSize) ...
       ', Max Generations: ' num2str(opts.MaxGenerations)])
 %[x, feval] = ga(fun,nvars,A,b,[],[],lb,ub,nonlcon,IntCon, options)

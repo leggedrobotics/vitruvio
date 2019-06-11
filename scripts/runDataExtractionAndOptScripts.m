@@ -2,7 +2,8 @@ function Leg = runDataExtractionAndOptScripts(actuateJointsDirectly, viewVisuali
 
 EEnames = ['LF'; 'RF'; 'LH'; 'RH'];
 linkNames = {'hip','thigh' 'shank' 'foot' 'phalanges'};
-l_hipAttachmentOffset = 0; % this will become an optimization parameter but for now is hard coded
+l_hipAttachmentOffset.fore = -0.14; % this will become an optimization parameter but for now is hard coded. Need one for hind and one for front legs.
+l_hipAttachmentOffset.hind = 0.14;
 fprintf('Loading data for task %s.\n', taskSelection);
 
 % Get suggested removal ratio for cropping motion data to useful steady state motion
@@ -81,6 +82,7 @@ for i = 1:4
      Leg.(EEselection).r.EEdes = meanCyclicMotionHipEE.(EEselection).position; % save desired EE position in the same struct for easy comparison
 end
 
+
 %% Build robot rigid body model
 fprintf('Creating robot rigid body model. \n');
 for i = 1:4
@@ -112,7 +114,6 @@ for i = 1:4
 end
 
 %% Get leg mass
-
 for i = 1:4
     EEselection = EEnames(i,:);
     [Leg.(EEselection).linkMass, Leg.(EEselection).EEMass, Leg.(EEselection).totalLinkMass] = getLinkMass(Leg, EEselection, linkCount);
@@ -125,7 +126,7 @@ for i = 1:4
     EEselection = EEnames(i,:);
     power = Leg.(EEselection).jointPower;
     Leg.metaParameters.CoT.(EEselection) = getCostOfTransport(Leg, power, quadruped, EEselection);
-    % add contribution of each leg to get the total CoT
+%     add contribution of each leg to get the total CoT
     Leg.metaParameters.CoT.total = Leg.metaParameters.CoT.total + Leg.metaParameters.CoT.(EEselection); 
 end
 %% Optimize selected legs and compute their cost of transport
