@@ -24,5 +24,5 @@ jointTorque = zeros(length(Leg.(EEselection).qdotdot),linkCount+2);
         jointTorque(i,:) = inverseDynamics(rigidBodyModel, [rotBodyY q], [0 qdot], [0 qdotdot], fext);
     end
 % the first term is due to body rotation but this is not related to an actuated joint so we neglect it    
-jointTorque = jointTorque(1:end-1,2:end);
+jointTorque = jointTorque(:,2:end);
 end

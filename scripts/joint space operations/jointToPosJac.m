@@ -5,9 +5,11 @@ function [J_P, C_0EE, r_H_01, r_H_02, r_H_03, r_H_04, r_H_05, r_H_0EE]  = jointT
   
   if (EEselection == 'LF') | (EEselection == 'RF')
     selectFrontHind = 1;
+    l_hipAttachmentOffset = l_hipAttachmentOffset.fore;
     hipOffsetDirection = 1;
     else selectFrontHind = 2;
          hipOffsetDirection = -1;
+         l_hipAttachmentOffset = l_hipAttachmentOffset.hind;
   end
     
   % Compute the relative homogeneous transformation matrices.

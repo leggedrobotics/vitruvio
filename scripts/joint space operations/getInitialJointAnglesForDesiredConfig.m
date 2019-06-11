@@ -16,27 +16,28 @@ q0.M.quadruped.LH = kneesBackward;
 q0.M.quadruped.RF = kneesBackward;
 q0.M.quadruped.RH = kneesBackward;
 
-%% X configuration
-q0.X.universalStairs    = q0.X.quadruped;
-q0.X.universalTrot      = q0.X.quadruped;
-q0.X.speedyGallop       = q0.X.quadruped;
-q0.X.speedyStairs       = q0.X.quadruped;
-q0.X.massivoWalk        = q0.X.quadruped;
-q0.X.massivoStairs      = q0.X.quadruped;
-q0.X.centaurWalk        = q0.X.quadruped;
-q0.X.centaurStairs      = q0.X.quadruped;
-q0.X.miniPronk          = q0.X.quadruped;
-q0.X.ANYmalTrot         = q0.X.quadruped;
+% %% X configuration
+% q0.X.universalStairs    = q0.X.quadruped;
+% q0.X.universalTrot      = q0.X.quadruped;
+% q0.X.speedyGallop       = q0.X.quadruped;
+% q0.X.speedyStairs       = q0.X.quadruped;
+% q0.X.massivoWalk        = q0.X.quadruped;
+% q0.X.massivoStairs      = q0.X.quadruped;
+% q0.X.centaurWalk        = q0.X.quadruped;
+% q0.X.centaurStairs      = q0.X.quadruped;
+% q0.X.miniPronk          = q0.X.quadruped;
+% q0.X.ANYmalTrot         = q0.X.quadruped;
+% 
+% %% M configuration
+% q0.M.universalStairs    = q0.M.quadruped;
+% q0.M.universalTrot      = q0.M.quadruped;
+% q0.M.speedyGallop       = q0.M.quadruped;
+% q0.M.speedyStairs       = q0.M.quadruped;
+% q0.M.massivoWalk        = q0.M.quadruped;
+% q0.M.massivoStairs      = q0.M.quadruped;
+% q0.M.centaurWalk        = q0.M.quadruped;
+% q0.M.centaurStairs      = q0.M.quadruped;
+% q0.M.miniPronk          = q0.M.quadruped;
+% q0.M.ANYmalTrot         = q0.M.quadruped;
 
-%% M configuration
-q0.M.universalStairs    = q0.M.quadruped;
-q0.M.universalTrot      = q0.M.quadruped;
-q0.M.speedyGallop       = q0.M.quadruped;
-q0.M.speedyStairs       = q0.M.quadruped;
-q0.M.massivoWalk        = q0.M.quadruped;
-q0.M.massivoStairs      = q0.M.quadruped;
-q0.M.centaurWalk        = q0.M.quadruped;
-q0.M.centaurStairs      = q0.M.quadruped;
-q0.M.miniPronk          = q0.M.quadruped;
-q0.M.ANYmalTrot         = q0.M.quadruped;
-q0 = q0.(configSelection).(taskSelection).(EEselection);
+q0 = q0.(configSelection).quadruped.(EEselection);

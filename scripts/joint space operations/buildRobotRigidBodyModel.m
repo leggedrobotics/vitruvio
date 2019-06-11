@@ -5,8 +5,10 @@ function robot = buildRobotRigidBodyModel(actuateJointsDirectly, l_hipAttachment
 if (EEselection == 'LF') | (EEselection == 'RF')
     selectFrontHind = 1;
     hipOffsetDirection = 1;
+    l_hipAttachmentOffset = l_hipAttachmentOffset.fore;
     else selectFrontHind = 2;
          hipOffsetDirection = -1;
+         l_hipAttachmentOffset = l_hipAttachmentOffset.hind;
 end
 % offset from nominal stance EE position to HAA along body x
 l_hipAttachmentOffsetX = l_hipAttachmentOffset*cos(meanCyclicMotionHipEE.body.eulerAngles(1,2)); 
@@ -17,7 +19,6 @@ l_thigh = quadruped.thigh(selectFrontHind).length;
 l_shank = quadruped.shank(selectFrontHind).length;
 l_foot  = quadruped.foot(selectFrontHind).length;
 l_phalanges = quadruped.phalanges(selectFrontHind).length;
-
 
 % hip attachment points
 xNom.LF = quadruped.xNom(1);
@@ -139,17 +140,17 @@ end
 
 % actuators
 if actuateJointsDirectly
-    body7  = robotics.RigidBody('body7'); % HAA
-    body8  = robotics.RigidBody('body8'); % HFE
-    body9  = robotics.RigidBody('body9'); % KFE
+    body7  = robotics.RigidBody('body7');  % HAA
+    body8  = robotics.RigidBody('body8');  % HFE
+    body9  = robotics.RigidBody('body9');  % KFE
     body10 = robotics.RigidBody('body10'); % AFE
     body11 = robotics.RigidBody('body11'); % DFE
 
-    body7.Mass  = 1.1;
-    body8.Mass  = 1.1;
-    body9.Mass  = 1.1;
-    body10.Mass = 1.1;
-    body11.Mass = 1.1;
+    body7.Mass  = 1.1; % HAA
+    body8.Mass  = 1.1; % HFE
+    body9.Mass  = 1.1; % KFE
+    body10.Mass = 1.1; % AFE
+    body11.Mass = 1.1; % DFE
 end
 
 
@@ -186,9 +187,9 @@ end
 body0.Inertia = [0 0 0 0 0 0]; % base    
 body1.Inertia =  I_hip;     
 body2.Inertia =  I_thigh; 
-body3.Inertia =  I_shank + I_EE;
+body3.Inertia =  I_shank;
 if linkCount == 2
-    body4.Inertia = [0 0 0 0 0 0]; % EE inertia accounted for in body3
+    body4.Inertia = I_EE; % EE inertia accounted for in body3
 elseif linkCount == 3
     body4.Inertia = I_foot;
     body5.Inertia = I_EE;
@@ -210,16 +211,16 @@ if actuateJointsDirectly
 end
 
 % center of mass and mass terms do not affect inertia but are used 
-% to compute torque due to gravitational force. Default is zero when not
+% to compute torque due to gravitational force. Default is [0 0 0] when not
 % specified.
-body1.CenterOfMass = [0.5*quadruped.hip(selectFrontHind).length   0 0];
-body2.CenterOfMass = [0.5*quadruped.thigh(selectFrontHind).length 0 0];
-body3.CenterOfMass = [0.5*quadruped.shank(selectFrontHind).length 0 0]; 
+body1.CenterOfMass = [0.5*l_hip   0 0];
+body2.CenterOfMass = [0.5*l_thigh 0 0];
+body3.CenterOfMass = [0.5*l_shank 0 0]; 
 if linkCount == 3
-    body4.CenterOfMass = [0.5*quadruped.foot(selectFrontHind).length 0 0];
+    body4.CenterOfMass = [0.5*l_foot 0 0];
 elseif linkCount == 4
-    body4.CenterOfMass = [0.5*quadruped.foot(selectFrontHind).length 0 0];
-    body5.CenterOfMass = [0.5*quadruped.phalanges(selectFrontHind).length 0 0];
+    body4.CenterOfMass = [0.5*l_foot 0 0];
+    body5.CenterOfMass = [0.5*l_phalanges 0 0];
 end
 
 %% set joint transforms

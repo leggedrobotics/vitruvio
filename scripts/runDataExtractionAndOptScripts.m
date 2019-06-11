@@ -2,7 +2,8 @@ function Leg = runDataExtractionAndOptScripts(actuateJointsDirectly, viewVisuali
 
 EEnames = ['LF'; 'RF'; 'LH'; 'RH'];
 linkNames = {'hip','thigh' 'shank' 'foot' 'phalanges'};
-l_hipAttachmentOffset = 0; % this will become an optimization parameter but for now is hard coded
+l_hipAttachmentOffset.fore = -0.14; % this will become an optimization parameter but for now is hard coded. Need one for hind and one for front legs.
+l_hipAttachmentOffset.hind = 0.14;
 fprintf('Loading data for task %s.\n', taskSelection);
 
 % Get suggested removal ratio for cropping motion data to useful steady state motion
@@ -61,7 +62,8 @@ if viewTrajectoryPlots
 end
 
 %% Inverse kinematics to calculate joint angles for each leg joint
-% compute qFinalJoint for 3 link leg
+% Compute qFinalJoint for 3 and 4 link leg. These are then input to inverse
+% kinematics which solves the remaining joint angles
 if (linkCount > 2)
     for i = 1:4
         EEselection = EEnames(i,:);
@@ -80,6 +82,7 @@ for i = 1:4
      Leg.(EEselection).r.EEdes = meanCyclicMotionHipEE.(EEselection).position; % save desired EE position in the same struct for easy comparison
 end
 
+
 %% Build robot rigid body model
 fprintf('Creating robot rigid body model. \n');
 for i = 1:4
@@ -93,6 +96,7 @@ fprintf('Computing joint velocities and accelerations. \n');
 for i = 1:4
     EEselection = EEnames(i,:);
     [Leg.(EEselection).qdot, Leg.(EEselection).qdotdot] = getJointVelocitiesUsingFiniteDifference(linkCount, EEselection, meanCyclicMotionHipEE, Leg, quadruped, dt);
+    Leg.(EEselection).q = Leg.(EEselection).q(1:end-2,:); % no longer need the two additional points for position after solving for joint speed and acceleration
 end
 
 %% Get joint torques using inverse dynamics
@@ -106,11 +110,10 @@ end
 fprintf('Computing joint power \n \n');
 for i = 1:4
     EEselection = EEnames(i,:);
-    Leg.(EEselection).jointPower = Leg.(EEselection).jointTorque .* Leg.(EEselection).qdot(1:end-2,1:end-1);
+    Leg.(EEselection).jointPower = Leg.(EEselection).jointTorque .* Leg.(EEselection).qdot(:,1:end-1);
 end
 
 %% Get leg mass
-
 for i = 1:4
     EEselection = EEnames(i,:);
     [Leg.(EEselection).linkMass, Leg.(EEselection).EEMass, Leg.(EEselection).totalLinkMass] = getLinkMass(Leg, EEselection, linkCount);
@@ -123,7 +126,7 @@ for i = 1:4
     EEselection = EEnames(i,:);
     power = Leg.(EEselection).jointPower;
     Leg.metaParameters.CoT.(EEselection) = getCostOfTransport(Leg, power, quadruped, EEselection);
-    % add contribution of each leg to get the total CoT
+%     add contribution of each leg to get the total CoT
     Leg.metaParameters.CoT.total = Leg.metaParameters.CoT.total + Leg.metaParameters.CoT.(EEselection); 
 end
 %% Optimize selected legs and compute their cost of transport
@@ -134,6 +137,7 @@ if runOptimization
         fprintf('\nInitiating optimization of link lengths for %s\n', EEselection);
          % evolve leg
         [Leg.(EEselection).jointTorqueOpt, Leg.(EEselection).qOpt, Leg.(EEselection).qdotOpt, Leg.(EEselection).qdotdotOpt, Leg.(EEselection).rOpt,  Leg.(EEselection).jointPowerOpt, Leg.(EEselection).linkLengthsOpt, Leg.(EEselection).penaltyMinOpt, Leg.(EEselection).elapsedTime, Leg.(EEselection).elapsedTimePerFuncEval, Leg.(EEselection).output, Leg.(EEselection).linkMassOpt, Leg.(EEselection).totalLinkMassOpt] = evolveAndVisualizeOptimalLeg(actuateJointsDirectly,l_hipAttachmentOffset, linkCount, optimizationProperties, EEselection, meanCyclicMotionHipEE, quadruped, configSelection, dt, taskSelection, hipParalleltoBody, Leg, meanTouchdownIndex);
+         Leg.(EEselection).qOpt = Leg.(EEselection).qOpt(1:end-2,:); % after solving finite difference we can remove the additional looped around terms from the position vectors
          % compute CoT 
          power = Leg.(EEselection).jointPowerOpt;
          Leg.metaParameters.CoTOpt.(EEselection) = getCostOfTransport(Leg, power, quadruped, EEselection);
@@ -143,6 +147,7 @@ if runOptimization
         fprintf('\nInitiating optimization of link lengths for %s\n', EEselection);
         % evolve leg
         [Leg.(EEselection).jointTorqueOpt, Leg.(EEselection).qOpt, Leg.(EEselection).qdotOpt, Leg.(EEselection).qdotdotOpt, Leg.(EEselection).rOpt,  Leg.(EEselection).jointPowerOpt, Leg.(EEselection).linkLengthsOpt, Leg.(EEselection).penaltyMinOpt, Leg.(EEselection).elapsedTime, Leg.(EEselection).elapsedTimePerFuncEval, Leg.(EEselection).output, Leg.(EEselection).linkMassOpt,  Leg.(EEselection).totalLinkMassOpt] = evolveAndVisualizeOptimalLeg(actuateJointsDirectly, l_hipAttachmentOffset, linkCount, optimizationProperties, EEselection, meanCyclicMotionHipEE, quadruped, configSelection, dt, taskSelection, hipParalleltoBody, Leg, meanTouchdownIndex);
+         Leg.(EEselection).qOpt = Leg.(EEselection).qOpt(1:end-2,:); % after solving finite difference we can remove the additional looped around terms from the position vectors
         % compute CoT
          power = Leg.(EEselection).jointPowerOpt;
          Leg.metaParameters.CoTOpt.(EEselection) = getCostOfTransport(Leg, power, quadruped, EEselection);
@@ -152,6 +157,7 @@ if runOptimization
         fprintf('\nInitiating optimization of link lengths for %s\n', EEselection);
         % evolve leg
         [Leg.(EEselection).jointTorqueOpt, Leg.(EEselection).qOpt, Leg.(EEselection).qdotOpt, Leg.(EEselection).qdotdotOpt, Leg.(EEselection).rOpt,  Leg.(EEselection).jointPowerOpt, Leg.(EEselection).linkLengthsOpt, Leg.(EEselection).penaltyMinOpt, Leg.(EEselection).elapsedTime, Leg.(EEselection).elapsedTimePerFuncEval, Leg.(EEselection).output, Leg.(EEselection).linkMassOpt,  Leg.(EEselection).totalLinkMassOpt] = evolveAndVisualizeOptimalLeg(actuateJointsDirectly, l_hipAttachmentOffset, linkCount, optimizationProperties, EEselection, meanCyclicMotionHipEE, quadruped, configSelection, dt, taskSelection, hipParalleltoBody, Leg, meanTouchdownIndex);
+         Leg.(EEselection).qOpt = Leg.(EEselection).qOpt(1:end-2,:); % after solving finite difference we can remove the additional looped around terms from the position vectors
         % compute CoT
          power = Leg.(EEselection).jointPowerOpt;
          Leg.metaParameters.CoTOpt.(EEselection) = getCostOfTransport(Leg, power, quadruped, EEselection);
@@ -161,6 +167,7 @@ if runOptimization
         fprintf('\nInitiating optimization of link lengths for %s\n', EEselection);
         % evolve leg
         [Leg.(EEselection).jointTorqueOpt, Leg.(EEselection).qOpt, Leg.(EEselection).qdotOpt, Leg.(EEselection).qdotdotOpt, Leg.(EEselection).rOpt,  Leg.(EEselection).jointPowerOpt, Leg.(EEselection).linkLengthsOpt, Leg.(EEselection).penaltyMinOpt, Leg.(EEselection).elapsedTime, Leg.(EEselection).elapsedTimePerFuncEval, Leg.(EEselection).output, Leg.(EEselection).linkMassOpt,  Leg.(EEselection).totalLinkMassOpt] = evolveAndVisualizeOptimalLeg(actuateJointsDirectly, l_hipAttachmentOffset, linkCount, optimizationProperties, EEselection, meanCyclicMotionHipEE, quadruped, configSelection, dt, taskSelection, hipParalleltoBody, Leg, meanTouchdownIndex);
+         Leg.(EEselection).qOpt = Leg.(EEselection).qOpt(1:end-2,:); % after solving finite difference we can remove the additional looped around terms from the position vectors
         % compute CoT
          power = Leg.(EEselection).jointPowerOpt;
          Leg.metaParameters.CoTOpt.(EEselection) = getCostOfTransport(Leg, power, quadruped, EEselection);

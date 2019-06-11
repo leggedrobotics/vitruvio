@@ -1,4 +1,4 @@
-function penalty = runFastJointTorqueSim(actuateJointsDirectly, l_hipAttachmentOffset, linkCount, optimizationProperties, quadruped, linkLengths, selectFrontHind, taskSelection, dt, configSelection, EEselection, meanCyclicMotionHipEE, hipParalleltoBody, Leg, meanTouchdownIndex)
+function penalty = computePenalty(actuateJointsDirectly, l_hipAttachmentOffset, linkCount, optimizationProperties, quadruped, linkLengths, selectFrontHind, taskSelection, dt, configSelection, EEselection, meanCyclicMotionHipEE, hipParalleltoBody, Leg, meanTouchdownIndex)
 %% Get quadruped properties 
 % Update link lengths, unit in meters
 quadruped.hip(selectFrontHind).length = linkLengths(1)/100;
@@ -38,7 +38,7 @@ tempLeg.(EEselection).jointTorque = inverseDynamics(EEselection, tempLeg, meanCy
 
 %% Regenerative breaking
 % no regenerative breaking, set negative power terms to zero
-jointPower = tempLeg.(EEselection).jointTorque .* tempLeg.(EEselection).qdot(1:end-2,1:end-1);
+jointPower = tempLeg.(EEselection).jointTorque .* tempLeg.(EEselection).qdot(:,1:end-1);
 for j = 1:length(jointPower)
     for k = 1:length(jointPower(1,:))
         if jointPower(j,k) < 0
@@ -50,8 +50,9 @@ end
 %% Load in penalty weights
 W_totalSwingTorque   = optimizationProperties.penaltyWeight.totalSwingTorque;
 W_totalStanceTorque   = optimizationProperties.penaltyWeight.totalStanceTorque;
-W_totalTorque   = optimizationProperties.penaltyWeight.totalTorque;
-W_totalTorqueHFE= optimizationProperties.penaltyWeight.totalTorqueHFE;
+W_totalTorque        = optimizationProperties.penaltyWeight.totalTorque;
+W_totalTorqueHFE  = optimizationProperties.penaltyWeight.totalTorqueHFE;
+W_swingTorqueHFE  = optimizationProperties.penaltyWeight.swingTorqueHFE;
 W_totalqdot     = optimizationProperties.penaltyWeight.totalqdot;
 W_totalPower    = optimizationProperties.penaltyWeight.totalPower;
 W_maxTorque     = optimizationProperties.penaltyWeight.maxTorque;
@@ -67,11 +68,12 @@ totalSwingTorque = sum(sum((torque.swing).^2));
 totalStanceTorque = sum(sum((torque.stance).^2)); 
 totalTorque    = sum(sum((tempLeg.(EEselection).jointTorque).^2)); 
 totalTorqueHFE = sum((tempLeg.(EEselection).jointTorque(:,2)).^2); 
+swingTorqueHFE = sum((torque.swing(:,2)).^2);
 totalqdot      = sum(sum((tempLeg.(EEselection).qdot).^2));
 totalPower     = sum(sum(jointPower));
 maxTorque      = max(max(abs(tempLeg.(EEselection).jointTorque)));
 maxqdot        = max(max(abs(tempLeg.(EEselection).qdot)));
-maxPower       = max(max(abs((tempLeg.(EEselection).jointTorque).*(tempLeg.(EEselection).qdot(1:end-2,1:end-1)))));
+maxPower       = max(max(abs((tempLeg.(EEselection).jointTorque).*(tempLeg.(EEselection).qdot(:,1:end-1)))));
 
 %% tracking error penalty
 % impose tracking error penalty if any point has tracking error above an
@@ -99,9 +101,21 @@ else
     jointBelowEEPenalty = 0;
 end
 
+%% KFE below HFE - otherwise spider config preferred
+% find max z position of KFE and penalize if close to or above origin
+
+maxHeightKFE = max(tempLeg.(EEselection).r.KFE(:,3));
+
+               
+% if non zero, this must be the largest penalty as it is an infeasible solution
+if (maxHeightKFE > 0)
+    KFEHeightPenalty = 100000000;
+else
+    KFEHeightPenalty = 0;
+end
 %% maximum allowable extension exceeded penalty
 if optimizationProperties.penaltyWeight.maximumExtension % if true, calculate and penalize for overzealous extension
-    offsetHFE2EEdes = tempLeg.(EEselection).r.HFE - meanCyclicMotionHipEE.(EEselection).position; % offset from HFE to desired EE position
+    offsetHFE2EEdes = tempLeg.(EEselection).r.HFE - meanCyclicMotionHipEE.(EEselection).position(1:end-2,:); % offset from HFE to desired EE position
     maxOffsetHFE2EEdes = max(sqrt(sum(offsetHFE2EEdes.^2,2))); % max euclidian distance from HFE to desired EE position
         if maxOffsetHFE2EEdes > allowableExtension*sum(linkLengths(2:end)/100)
             maximumExtensionPenalty = 100000000;
@@ -111,6 +125,7 @@ end
 
 penalty = W_totalTorque * totalTorque + ...
           W_totalTorqueHFE * totalTorqueHFE + ...
+          W_swingTorqueHFE * swingTorqueHFE + ...
           W_totalSwingTorque * totalSwingTorque + ...
           W_totalStanceTorque * totalStanceTorque + ...
           W_totalqdot * totalqdot     + ...
@@ -120,5 +135,6 @@ penalty = W_totalTorque * totalTorque + ...
           W_maxPower * maxPower       + ...
           trackingErrorPenalty + ...
           jointBelowEEPenalty + ...
-          maximumExtensionPenalty;
+          maximumExtensionPenalty + ...
+          KFEHeightPenalty;
 end

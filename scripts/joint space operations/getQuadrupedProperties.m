@@ -13,7 +13,7 @@ robot.ANYmal.xNom(1) = 0.34;
 robot.ANYmal.xNom(2) = 0.34;
 robot.ANYmal.yNom(1) = 0.19;
 robot.ANYmal.yNom(2) = 0.19;
-robot.ANYmal.zNom = -0.1; % offset from CoM to hip attachment in z direction
+robot.ANYmal.zNom = 0; % offset from CoM to hip attachment in z direction
 
 % row order:    LF LH RF RH
 % column order: x, y, z
@@ -28,8 +28,8 @@ robot.ANYmal.hip(1).length = 0.14;
 robot.ANYmal.hip(2).length = 0.14;
 robot.ANYmal.thigh(1).length = 0.25;
 robot.ANYmal.thigh(2).length = 0.25;
-robot.ANYmal.shank(1).length = 0.3;
-robot.ANYmal.shank(2).length = 0.3;
+robot.ANYmal.shank(1).length = 0.33;
+robot.ANYmal.shank(2).length = 0.33;
 robot.ANYmal.foot(1).length = 0.05;
 robot.ANYmal.foot(2).length = 0.05;
 robot.ANYmal.phalanges(1).length = 0.1;
