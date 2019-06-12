@@ -390,7 +390,7 @@ robot.mini.q4.minAngle = pi/2;
 robot.mini.q4.maxAngle = -pi/2;
 
 
-
+%% load in the parameters of the selected robot
 quadruped = robot.(robotSelection);
 % if linkCount == 2
 %     for i = 1:2
@@ -400,4 +400,3 @@ quadruped = robot.(robotSelection);
 % end
 quadruped.EE(1).mass = 0.2; 
 quadruped.EE(2).mass = 0.2; 
-

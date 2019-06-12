@@ -36,8 +36,8 @@ tempLeg.(EEselection).rigidBodyModel = buildRobotRigidBodyModel(actuateJointsDir
 %% Get joint torques using inverse dynamics
 tempLeg.(EEselection).jointTorque = inverseDynamics(EEselection, tempLeg, meanCyclicMotionHipEE, linkCount);
 
-%% Regenerative breaking
-% no regenerative breaking, set negative power terms to zero
+%% Energy recuperation 
+% no recuperation, set negative power terms to zero
 jointPower = tempLeg.(EEselection).jointTorque .* tempLeg.(EEselection).qdot(:,1:end-1);
 for j = 1:length(jointPower)
     for k = 1:length(jointPower(1,:))
@@ -73,7 +73,7 @@ totalqdot      = sum(sum((tempLeg.(EEselection).qdot).^2));
 totalPower     = sum(sum(jointPower));
 maxTorque      = max(max(abs(tempLeg.(EEselection).jointTorque)));
 maxqdot        = max(max(abs(tempLeg.(EEselection).qdot)));
-maxPower       = max(max(abs((tempLeg.(EEselection).jointTorque).*(tempLeg.(EEselection).qdot(:,1:end-1)))));
+maxPower       = max(max(jointPower));
 
 %% tracking error penalty
 % impose tracking error penalty if any point has tracking error above an

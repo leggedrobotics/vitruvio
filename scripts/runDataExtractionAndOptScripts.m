@@ -119,7 +119,7 @@ for i = 1:4
     [Leg.(EEselection).linkMass, Leg.(EEselection).EEMass, Leg.(EEselection).totalLinkMass] = getLinkMass(Leg, EEselection, linkCount);
 end
 
-%% Get cost of transport
+%% Get meta parameters
 Leg.CoM.velocity = base.velocity(floor(removalRatioStart*length(base.velocity))+1:floor((1-removalRatioEnd)*length(base.velocity)),:);
 Leg.metaParameters.CoT.total = 0;
 for i = 1:4
@@ -128,6 +128,7 @@ for i = 1:4
     Leg.metaParameters.CoT.(EEselection) = getCostOfTransport(Leg, power, quadruped, EEselection);
 %     add contribution of each leg to get the total CoT
     Leg.metaParameters.CoT.total = Leg.metaParameters.CoT.total + Leg.metaParameters.CoT.(EEselection); 
+    [Leg.metaParameters.deltaqMax.(EEselection), Leg.metaParameters.qdotMax.(EEselection), Leg.metaParameters.jointTorqueMax.(EEselection), Leg.metaParameters.jointPowerMax.(EEselection), Leg.(EEselection).energy, Leg.metaParameters.energyPerCycle.(EEselection)]  = getMaximumJointStates(Leg, power, EEselection, dt);
 end
 %% Optimize selected legs and compute their cost of transport
 if runOptimization
@@ -141,6 +142,7 @@ if runOptimization
          % compute CoT 
          power = Leg.(EEselection).jointPowerOpt;
          Leg.metaParameters.CoTOpt.(EEselection) = getCostOfTransport(Leg, power, quadruped, EEselection);
+        [Leg.metaParameters.deltaqMaxOpt.(EEselection), Leg.metaParameters.qdotMaxOpt.(EEselection), Leg.metaParameters.jointTorqueMaxOpt.(EEselection), Leg.metaParameters.jointPowerMaxOpt.(EEselection), Leg.(EEselection).energyOpt, Leg.metaParameters.energyPerCycleOpt.(EEselection)]  = getMaximumJointStates(Leg, power, EEselection, dt);
     end 
     if optimizeLH
         EEselection = 'LH';
@@ -151,7 +153,9 @@ if runOptimization
         % compute CoT
          power = Leg.(EEselection).jointPowerOpt;
          Leg.metaParameters.CoTOpt.(EEselection) = getCostOfTransport(Leg, power, quadruped, EEselection);
+        [Leg.metaParameters.deltaqMaxOpt.(EEselection), Leg.metaParameters.qdotMaxOpt.(EEselection), Leg.metaParameters.jointTorqueMaxOpt.(EEselection), Leg.metaParameters.jointPowerMaxOpt.(EEselection), Leg.(EEselection).energyOpt, Leg.metaParameters.energyPerCycleOpt.(EEselection)]  = getMaximumJointStates(Leg, power, EEselection, dt);         
     end
+    
     if optimizeRF
         EEselection = 'RF';
         fprintf('\nInitiating optimization of link lengths for %s\n', EEselection);
@@ -161,7 +165,9 @@ if runOptimization
         % compute CoT
          power = Leg.(EEselection).jointPowerOpt;
          Leg.metaParameters.CoTOpt.(EEselection) = getCostOfTransport(Leg, power, quadruped, EEselection);
+        [Leg.metaParameters.deltaqMaxOpt.(EEselection), Leg.metaParameters.qdotMaxOpt.(EEselection), Leg.metaParameters.jointTorqueMaxOpt.(EEselection), Leg.metaParameters.jointPowerMaxOpt.(EEselection), Leg.(EEselection).energyOpt, Leg.metaParameters.energyPerCycleOpt.(EEselection)]  = getMaximumJointStates(Leg, power, EEselection, dt);
     end
+    
     if optimizeRH
         EEselection = 'RH';
         fprintf('\nInitiating optimization of link lengths for %s\n', EEselection);
@@ -171,12 +177,15 @@ if runOptimization
         % compute CoT
          power = Leg.(EEselection).jointPowerOpt;
          Leg.metaParameters.CoTOpt.(EEselection) = getCostOfTransport(Leg, power, quadruped, EEselection);
+        [Leg.metaParameters.deltaqMaxOpt.(EEselection), Leg.metaParameters.qdotMaxOpt.(EEselection), Leg.metaParameters.jointTorqueMaxOpt.(EEselection), Leg.metaParameters.jointPowerMaxOpt.(EEselection), Leg.(EEselection).energyOpt, Leg.metaParameters.energyPerCycleOpt.(EEselection)]  = getMaximumJointStates(Leg, power, EEselection, dt);
     end 
+    
     % total cost of transport is the sum of each leg component
     if optimizeLF && optimizeLH && optimizeRF && optimizeRH
         for i = 1:4
             EEselection = EEnames(i,:);
             Leg.metaParameters.CoTOpt.total = Leg.metaParameters.CoTOpt.total + Leg.metaParameters.CoTOpt.(EEselection);
+
         end
     end
         

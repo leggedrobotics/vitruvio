@@ -1,4 +1,4 @@
-%clear;
+clear;
 close all;
 
 %% Toggle leg properties, visualization and optimization functions
@@ -15,8 +15,8 @@ numberOfLoopRepetitions = 1; % number of steps visualized for leg motion
 viewTrajectoryPlots = false;
 
 % Toggle optimization for each leg
-runOptimization = true;
-viewOptimizedLegPlot = true;
+runOptimization = false;
+viewOptimizedLegPlot = false;
 optimizeLF = true; 
 optimizeLH = false; 
 optimizeRF = false; 
@@ -28,8 +28,8 @@ optimizationProperties.viz.viewVisualization = false;
 optimizationProperties.viz.displayBestCurrentLinkLengths = false; % display chart while running ga
 
 % set number of generations and population size
-optimizationProperties.options.maxGenerations = 10;
-optimizationProperties.options.populationSize = 20;
+optimizationProperties.options.maxGenerations = 4;
+optimizationProperties.options.populationSize = 5;
 
 % set weights for fitness function terms
 optimizationProperties.penaltyWeight.totalSwingTorque  = 0;
@@ -43,12 +43,12 @@ optimizationProperties.penaltyWeight.maxTorque         = 0;
 optimizationProperties.penaltyWeight.maxqdot           = 0;
 optimizationProperties.penaltyWeight.maxPower          = 0; % only considers power terms > 0
 optimizationProperties.penaltyWeight.maximumExtension  = true; % large penalty incurred if leg extends beyond allowable amount
-optimizationProperties.allowableExtension              = 1; % penalize extension above this ratio of total possible extension
+optimizationProperties.allowableExtension              = 0.8; % penalize extension above this ratio of total possible extension
 
 % set bounds for link lengths as multipliers of initial values
 if linkCount == 2
-    optimizationProperties.bounds.upperBoundMultiplier = [1, 2, 2]; % [hip thigh shank]
-    optimizationProperties.bounds.lowerBoundMultiplier = [1, 0.3, 0.3]; % [hip thigh shank]
+    optimizationProperties.bounds.upperBoundMultiplier = [2, 2, 2]; % [hip thigh shank]
+    optimizationProperties.bounds.lowerBoundMultiplier = [0.1, 0.3, 0.3]; % [hip thigh shank]
 end
 if linkCount == 3
     optimizationProperties.bounds.upperBoundMultiplier = [1, 1.2, 1.2, 1.2]; % [hip thigh shank]
@@ -61,7 +61,7 @@ end
 
 %% Toggle robots and tasks to be simulated and optimized
 universalTrot   = false;
-universalStairs = false;
+universalStairs = true;
 speedyStairs    = false;
 speedyGallop    = false;
 massivoWalk     = false;
@@ -70,17 +70,19 @@ centaurWalk     = false;
 centaurStairs   = false;
 miniPronk       = false;
 ANYmalTrot      = false;
-ANYmalSlowTrot  = true;
+ANYmalSlowTrot  = false;
 
 numberOfRepetitions = 0; % number of times that leg is reoptimized
 
 %% run the simulation
 simulateSelectedTasks;
-
-plotOptimizedLeg.LF = optimizeLF;
-plotOptimizedLeg.LH = optimizeLH;
-plotOptimizedLeg.RF = optimizeRF;
-plotOptimizedLeg.RH = optimizeRH;
+plotOptimizedLeg.LF = false; plotOptimizedLeg.LH = false;  plotOptimizedLeg.RF = false; plotOptimizedLeg.RH = false; 
+if runOptimization
+    plotOptimizedLeg.LF = optimizeLF;
+    plotOptimizedLeg.LH = optimizeLH;
+    plotOptimizedLeg.RF = optimizeRF;
+    plotOptimizedLeg.RH = optimizeRH;
+end
 % additional plotting available via:
 % plotJointDataForAllLegs(classSelection, 'taskSelection', plotOptimizedLeg)
-plotJointDataForAllLegs(ANYmal, 'slowTrot', plotOptimizedLeg);
+% plotJointDataForAllLegs(ANYmal, 'slowTrot', plotOptimizedLeg);

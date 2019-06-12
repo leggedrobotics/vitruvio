@@ -5,7 +5,7 @@ function [jointPositions, r1, r2, r3, r4, r5, rEE] = inverseKinematics(l_hipAtta
  % Output: joint angles which match desired end-effector position
 
  %% Setup
-  tol = 0.001;
+  tol = 0.0001;
   it = 0;
   r_H_0EE_des = meanCyclicMotionHipEE.(EEselection).position; % desired EE position
 
@@ -75,7 +75,7 @@ function [jointPositions, r1, r2, r3, r4, r5, rEE] = inverseKinematics(l_hipAtta
          end 
       end  
       
-%       fprintf('Inverse kinematics terminated after %d iterations.\n',it);
+      %fprintf('Inverse kinematics terminated after %d iterations.\n',it);
       jointPositions(i,:) = q';
       rEE(i,:) = r_H_0EE; %% EE coordinates
       % x y z coordinates of each joint

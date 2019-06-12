@@ -299,15 +299,25 @@ for i = 1:length(Leg.(EEselection).q)
                        Leg.(EEselection).q(i,5)];    % DFE
     end
 end
-
+% define patch shift which allows for body visualization
+if (EEselection == 'LF')
+    patchShift = [0 0 0];
+elseif (EEselection == 'LH')
+    patchShift = [0.7 0 0];
+elseif (EEselection == 'RF')
+    patchShift = [0 0.3 0];
+elseif (EEselection == 'RH')
+    patchShift = [0.7 0.3 0];
+end
+    
 figure(1);
 if viewVisualization
     for j = 1: numberOfLoopRepetitions
         for i = 1:length(Leg.(EEselection).q)
             set(gcf, 'Position', get(0, 'Screensize'));
-            xlim([-0.7 0.7]);
-            ylim([-0.1 0.1]);
-            zlim([-0.8 0.3]);
+            xlim([-0.75 0.75]);
+            ylim([-0.5 0.5]);
+            zlim([-0.8 0.4]);
             figure(1);
             show(robot,config(i,:));
             hold on
@@ -316,6 +326,24 @@ if viewVisualization
                   meanCyclicMotionHipEE.(EEselection).position(:,2), ...
                   meanCyclicMotionHipEE.(EEselection).position(:,3),'r', 'LineWidth', 3)
             title(EEselection)
+            % define the vertices to show robot body on same figure
+            vert = patchShift + ...
+                   [0    0   -0.04;...
+                   -0.7  0   -0.04;...
+                   -0.7 -0.3 -0.04;...
+                    0   -0.3 -0.04;...
+                    0    0    0.04;...
+                   -0.7  0    0.04;...
+                   -0.7 -0.3  0.04;...
+                    0   -0.3  0.04];
+            % compute body rotation with rotation matrix about y axis
+            bodyRotation = [cos(-config(1,1)), 0, sin(-config(1,1));
+                            0                 1, 0;
+                            -sin(-config(1,1)), 0 cos(-config(1,1))];
+            % apply body rotation to obtain new vertices
+            vert = vert * bodyRotation;
+            fac = [1 2 6 5;2 3 7 6;3 4 8 7;4 1 5 8;1 2 3 4;5 6 7 8];
+            patch('Vertices',vert,'Faces',fac,'FaceColor','w', 'FaceAlpha', 0.8)
             hold off
         end
     end
