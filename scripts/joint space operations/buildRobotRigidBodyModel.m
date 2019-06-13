@@ -1,18 +1,16 @@
 %% Read in data for quadruped geometry
-function robot = buildRobotRigidBodyModel(actuateJointsDirectly, l_hipAttachmentOffset, linkCount, quadruped, Leg, meanCyclicMotionHipEE, EEselection, numberOfLoopRepetitions, viewVisualization, hipParalleltoBody) 
+function robot = buildRobotRigidBodyModel(actuateJointsDirectly, hipAttachmentOffset, linkCount, quadruped, Leg, meanCyclicMotionHipEE, EEselection, numberOfLoopRepetitions, viewVisualization, hipParalleltoBody) 
 
 %% get quadruped properties for selected end effector  
 if (EEselection == 'LF') | (EEselection == 'RF')
     selectFrontHind = 1;
     hipOffsetDirection = 1;
-    l_hipAttachmentOffset = l_hipAttachmentOffset.fore;
     else selectFrontHind = 2;
          hipOffsetDirection = -1;
-         l_hipAttachmentOffset = l_hipAttachmentOffset.hind;
 end
 % offset from nominal stance EE position to HAA along body x
-l_hipAttachmentOffsetX = l_hipAttachmentOffset*cos(meanCyclicMotionHipEE.body.eulerAngles(1,2)); 
-l_hipAttachmentOffsetZ = l_hipAttachmentOffset*sin(meanCyclicMotionHipEE.body.eulerAngles(1,2));  
+hipAttachmentOffsetX = hipAttachmentOffset*cos(meanCyclicMotionHipEE.body.eulerAngles(1,2)); 
+hipAttachmentOffsetZ = hipAttachmentOffset*sin(meanCyclicMotionHipEE.body.eulerAngles(1,2));  
 
 l_hip   = quadruped.hip(selectFrontHind).length; % offset from HAA to HFE
 l_thigh = quadruped.thigh(selectFrontHind).length;
@@ -41,9 +39,9 @@ zNom = quadruped.zNom; % equal for each hip attachment point
 
 % rotation about x by -pi/2 to align z with inertial y. Rotation about this
 % z gives the angle of attack of the base 
-T_body =             [1, 0, 0, l_hipAttachmentOffsetX;
+T_body =             [1, 0, 0, hipAttachmentOffsetX;
                       0, 0, 1,  0;
-                      0, -1, 0, l_hipAttachmentOffsetZ;
+                      0, -1, 0, hipAttachmentOffsetZ;
                       0, 0, 0, 1];
                
 % rotation about y by pi/2 to align z with HAA rotation axis

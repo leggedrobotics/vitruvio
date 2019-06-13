@@ -23,7 +23,7 @@ for i = 1:4
     xlabel('Time [s]')
     ylabel('Position [deg]')
     xlim([time(1),time(end)])
-    ylim([-5, 5])
+%     ylim([-5, 5])
     title([EEselection '\_HAA'])
     hold off
     
@@ -39,7 +39,7 @@ for i = 1:4
     xlabel('Time [s]')
     ylabel('Position [deg]')
     xlim([time(1),time(end)])
-    ylim([-30, 30])
+%     ylim([-30, 30])
     title([EEselection '\_HFE'])
     hold off
     
@@ -55,7 +55,7 @@ for i = 1:4
     xlabel('Time [s]')
     ylabel('Position [deg]')
     xlim([time(1),time(end)])
-    ylim([-35, 35])
+%     ylim([-35, 35])
     title([EEselection '\_KFE'])
     hold off
     
@@ -346,8 +346,11 @@ end
 % compute the consumed energy by adding previous terms 
 for i = 1:4
     EEselection = EEnames(i,:);
-    for i = 1:length(data.(EEselection).energy(:,1))-1;
+    for i = 1:length(data.(EEselection).energy(:,1))-1
         data.(EEselection).energy(i+1,:) = data.(EEselection).energy(i,:) + data.(EEselection).energy(i+1,:);
+        if plotOptimizedLeg.(EEselection)
+            data.(EEselection).energyOpt(i+1,:) = data.(EEselection).energyOpt(i,:) + data.(EEselection).energyOpt(i+1,:);
+        end
     end
 end
 

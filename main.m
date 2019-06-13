@@ -24,12 +24,12 @@ optimizeRH = false;
 
 %% set optimization properties
 % toggle visualization 
-optimizationProperties.viz.viewVisualization = false;
-optimizationProperties.viz.displayBestCurrentLinkLengths = false; % display chart while running ga
+optimizationProperties.viz.viewVisualization = true;
+optimizationProperties.viz.displayBestCurrentLinkLengths = true; % display chart while running ga
 
 % set number of generations and population size
-optimizationProperties.options.maxGenerations = 5;
-optimizationProperties.options.populationSize = 5;
+optimizationProperties.options.maxGenerations = 25;
+optimizationProperties.options.populationSize = 25;
 
 % set weights for fitness function terms
 optimizationProperties.penaltyWeight.totalSwingTorque  = 0;
@@ -47,16 +47,16 @@ optimizationProperties.allowableExtension              = 0.8; % penalize extensi
 
 % set bounds for link lengths as multipliers of initial values
 if linkCount == 2
-    optimizationProperties.bounds.upperBoundMultiplier = [2, 2, 2]; % [hip thigh shank]
-    optimizationProperties.bounds.lowerBoundMultiplier = [0.1, 0.3, 0.3]; % [hip thigh shank]
+    optimizationProperties.bounds.upperBoundMultiplier = [2,   2,   2,  -2]; % [hip thigh shank hipAttachmentOffset]
+    optimizationProperties.bounds.lowerBoundMultiplier = [0.1, 0.3, 0.1, 2]; % [hip thigh shank hipAttachmentOffset]
 end
 if linkCount == 3
-    optimizationProperties.bounds.upperBoundMultiplier = [1, 1.2, 1.2, 1.2]; % [hip thigh shank]
-    optimizationProperties.bounds.lowerBoundMultiplier = [1, 0.1, 0.1, 0.1]; % [hip thigh shank]
+    optimizationProperties.bounds.upperBoundMultiplier = [1, 1.2, 1.2, 1.2, -2]; % [hip thigh shank foot hipAttachmentOffset]
+    optimizationProperties.bounds.lowerBoundMultiplier = [1, 0.1, 0.1, 0.1, 2]; % [hip thigh shank foot hipAttachmentOffset ]
 end
 if linkCount == 4
-    optimizationProperties.bounds.upperBoundMultiplier = [1, 1.2, 1.2, 3, 3]; % [hip thigh shank]
-    optimizationProperties.bounds.lowerBoundMultiplier = [1, 0.1, 0.1, 0.1, 0.1]; % [hip thigh shank]
+    optimizationProperties.bounds.upperBoundMultiplier = [1, 1.2, 1.2, 3, 3, -2]; % [hip thigh shank foot phalanges hipAttachmentOffset]
+    optimizationProperties.bounds.lowerBoundMultiplier = [1, 0.1, 0.1, 0.1, 0.1, 2]; % [hip thigh shank foot phalanges hipAttachmentOffset]
 end
 
 %% Toggle robots and tasks to be simulated and optimized

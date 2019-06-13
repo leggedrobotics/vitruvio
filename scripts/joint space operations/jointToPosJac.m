@@ -1,15 +1,14 @@
-function [J_P, C_0EE, r_H_01, r_H_02, r_H_03, r_H_04, r_H_05, r_H_0EE]  = jointToPosJac(l_hipAttachmentOffset, linkCount, rotBodyY, q, quadruped, EEselection, hipParalleltoBody)
+function [J_P, C_0EE, r_H_01, r_H_02, r_H_03, r_H_04, r_H_05, r_H_0EE]  = jointToPosJac(hipAttachmentOffset, linkCount, rotBodyY, q, quadruped, EEselection, hipParalleltoBody)
   % Input: vector of generalized coordinates (joint angles)
   % Output: Jacobian of the end-effector translation which maps joint
   % velocities to end-effector linear velocities in hip attachmemt frame.
   
   if (EEselection == 'LF') | (EEselection == 'RF')
     selectFrontHind = 1;
-    l_hipAttachmentOffset = l_hipAttachmentOffset.fore;
     hipOffsetDirection = 1;
-    else selectFrontHind = 2;
-         hipOffsetDirection = -1;
-         l_hipAttachmentOffset = l_hipAttachmentOffset.hind;
+  else
+    selectFrontHind = 2;
+    hipOffsetDirection = -1;
   end
     
   % Compute the relative homogeneous transformation matrices.
@@ -28,7 +27,7 @@ function [J_P, C_0EE, r_H_01, r_H_02, r_H_03, r_H_04, r_H_05, r_H_0EE]  = jointT
      
   % transformation from hip attachment frame to HAA frame   
   % rotation about x of hip attachment frame (HAA rotation)
-  T_H1 = [1, 0,          0,          l_hipAttachmentOffset;
+  T_H1 = [1, 0,          0,          hipAttachmentOffset;
           0, cos(q(1)), -sin(q(1)),  0;
           0, sin(q(1)),  cos(q(1)),  0;
           0, 0,          0,          1];

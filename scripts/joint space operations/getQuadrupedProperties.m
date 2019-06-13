@@ -392,11 +392,10 @@ robot.mini.q4.maxAngle = -pi/2;
 
 %% load in the parameters of the selected robot
 quadruped = robot.(robotSelection);
-% if linkCount == 2
-%     for i = 1:2
-%         quadruped.thigh(i).length = quadruped.thigh(i).length + 0.1;
-%         quadruped.shank(i).length = quadruped.shank(i).length + 0.1;
-%     end
-% end
 quadruped.EE(1).mass = 0.2; 
 quadruped.EE(2).mass = 0.2; 
+% offset to hip attachment point. This translates the hip attachment point
+% along the x direction of the body. Here the initial offset is set such
+% that the hip is centered above the trajectory.
+quadruped.hipOffset(1) = quadruped.hip(1).length;
+quadruped.hipOffset(2) = -quadruped.hip(2).length;
