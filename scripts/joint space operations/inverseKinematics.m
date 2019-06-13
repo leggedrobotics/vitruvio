@@ -80,6 +80,8 @@ function [jointPositions, r1, r2, r3, r4, r5, rEE] = inverseKinematics(kTorsiona
          end 
          if linkCount == 4
              if i > 1
+                 qPrevious = jointPositions(i-1,:); % use joint angles from last time step to compute the joint deformation at the current time step
+                 EE_force = Leg.(EEselection).force(i,1:3);
                  q(4) = -q(3); % foot parallel to thigh requires qAFE = -qKFE 
                  [~, springDeformation] = computeFinalJointDeformation(kTorsionalSpring, qPrevious, EE_force, hipAttachmentOffset, linkCount, rotBodyY, quadruped, EEselection, hipParalleltoBody);
                  q(5) = jointPositions(1,5) + springDeformation; % initial value of the joint angle plus spring deformation

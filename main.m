@@ -3,7 +3,7 @@ close all;
 
 %% Toggle leg properties, visualization and optimization functions
 % number of links from 2 to 4. [thigh, shank, foot, phalanges]
-linkCount = 3;
+linkCount = 4;
 configSelection = 'X'; % X or M
 actuateJointsDirectly = true;
 % specify hip orientation

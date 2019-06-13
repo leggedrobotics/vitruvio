@@ -57,7 +57,7 @@ function qLiftoff = computeqLiftoffFinalJoint(thetaLiftoff_des, hipAttachmentOff
     k = 0.001;
     max_it = 20000;
     if linkCount == 4
-        q(4,1) = -q(4,3);
+        q(4,1) = -q(3,1);
     end         
   while (norm(dr)>tol && it < max_it)
      [J_P, ~, ~, ~, ~, r_H_04, r_H_05, r_H_0EE] = jointToPosJac(hipAttachmentOffset, linkCount, rotBodyY, q, quadruped, EEselection, hipParalleltoBody);
@@ -72,7 +72,7 @@ function qLiftoff = computeqLiftoffFinalJoint(thetaLiftoff_des, hipAttachmentOff
      end
      if linkCount == 4  
         r_H_0finalJoint = r_H_05;
-        q(4,1) = -q(4,3); % foot parallel to thigh requires qAFE = -qKFE 
+        q(4,1) = -q(3,1); % foot parallel to thigh requires qAFE = -qKFE 
      end
   end  
  fprintf('Inverse kinematics terminated after %d iterations.\n',it)
