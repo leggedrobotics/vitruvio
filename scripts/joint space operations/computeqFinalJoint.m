@@ -18,7 +18,7 @@ if configSelection == 'X' && selectFrontHind == 2
 end
 % loop the joint position data by two additional points to prevent loss of
 % information from finite differences
-qFinalJoint(end+1,:) = qFinalJoint(1,:);
-qFinalJoint(end+1,:) = qFinalJoint(2,:);
+% qFinalJoint(end+1,:) = qFinalJoint(1,:);
+% qFinalJoint(end+1,:) = qFinalJoint(2,:);
 end
 

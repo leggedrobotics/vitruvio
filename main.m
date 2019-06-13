@@ -10,12 +10,12 @@ actuateJointsDirectly = true;
 hipParalleltoBody = true; % if false, hip link is perpendicular to body x
 
 % Toggle trajectory plots and initial design viz
-viewVisualization = true; % initial leg design tracking trajectory plan
+viewVisualization = false; % initial leg design tracking trajectory plan
 numberOfLoopRepetitions = 1; % number of steps visualized for leg motion
 viewTrajectoryPlots = false;
 
 % Toggle optimization for each leg
-runOptimization = false;
+runOptimization = true;
 viewOptimizedLegPlot = false;
 optimizeLF = true; 
 optimizeLH = false; 
@@ -28,7 +28,7 @@ optimizationProperties.viz.viewVisualization = false;
 optimizationProperties.viz.displayBestCurrentLinkLengths = false; % display chart while running ga
 
 % set number of generations and population size
-optimizationProperties.options.maxGenerations = 4;
+optimizationProperties.options.maxGenerations = 5;
 optimizationProperties.options.populationSize = 5;
 
 % set weights for fitness function terms
@@ -61,7 +61,7 @@ end
 
 %% Toggle robots and tasks to be simulated and optimized
 universalTrot   = false;
-universalStairs = true;
+universalStairs = false;
 speedyStairs    = false;
 speedyGallop    = false;
 massivoWalk     = false;
@@ -70,7 +70,7 @@ centaurWalk     = false;
 centaurStairs   = false;
 miniPronk       = false;
 ANYmalTrot      = false;
-ANYmalSlowTrot  = false;
+ANYmalSlowTrot  = true;
 
 numberOfRepetitions = 0; % number of times that leg is reoptimized
 
@@ -85,4 +85,4 @@ if runOptimization
 end
 % additional plotting available via:
 % plotJointDataForAllLegs(classSelection, 'taskSelection', plotOptimizedLeg)
-% plotJointDataForAllLegs(ANYmal, 'slowTrot', plotOptimizedLeg);
+plotJointDataForAllLegs(ANYmal, 'slowTrot', plotOptimizedLeg);

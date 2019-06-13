@@ -13,7 +13,7 @@ robot.ANYmal.xNom(1) = 0.34;
 robot.ANYmal.xNom(2) = 0.34;
 robot.ANYmal.yNom(1) = 0.19;
 robot.ANYmal.yNom(2) = 0.19;
-robot.ANYmal.zNom = 0; % offset from CoM to hip attachment in z direction
+robot.ANYmal.zNom = 0.05; % offset from CoM to hip attachment in z direction Hip height 0.47m CoM at 0.42
 
 % row order:    LF LH RF RH
 % column order: x, y, z
