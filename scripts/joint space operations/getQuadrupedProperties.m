@@ -30,8 +30,8 @@ robot.ANYmal.thigh(1).length = 0.25;
 robot.ANYmal.thigh(2).length = 0.25;
 robot.ANYmal.shank(1).length = 0.33;
 robot.ANYmal.shank(2).length = 0.33;
-robot.ANYmal.foot(1).length = 0.05;
-robot.ANYmal.foot(2).length = 0.05;
+robot.ANYmal.foot(1).length = 0.15;
+robot.ANYmal.foot(2).length = 0.15;
 robot.ANYmal.phalanges(1).length = 0.1;
 robot.ANYmal.phalanges(2).length = 0.1;
 
@@ -390,7 +390,7 @@ robot.mini.q4.minAngle = pi/2;
 robot.mini.q4.maxAngle = -pi/2;
 
 
-%% load in the parameters of the selected robot
+%% load in the parameters of the selected robot into the struct quadruped which is then used by the rest of the program
 quadruped = robot.(robotSelection);
 quadruped.EE(1).mass = 0.2; 
 quadruped.EE(2).mass = 0.2; 

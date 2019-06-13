@@ -9,12 +9,11 @@ actuateJointsDirectly = true;
 % specify hip orientation
 hipParalleltoBody = true; % if false, hip link is perpendicular to body x
 % specify desired angle between final link and horizonal at liftoff
-thetaLiftoff_des = pi/3;
-kTorsionalSpring = 30;
+thetaLiftoff_des = pi/4;
 
 % Toggle trajectory plots and initial design viz
 viewVisualization = true; % initial leg design tracking trajectory plan
-numberOfLoopRepetitions = 2; % number of steps visualized for leg motion
+numberOfLoopRepetitions = 1; % number of steps visualized for leg motion
 viewTrajectoryPlots = false;
 
 % Toggle optimization for each leg

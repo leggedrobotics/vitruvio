@@ -1,4 +1,4 @@
-function Leg = runDataExtractionAndOptScripts(kTorsionalSpring, thetaLiftoff_des, actuateJointsDirectly, viewVisualization, numberOfLoopRepetitions, viewTrajectoryPlots, linkCount, runOptimization, viewOptimizedLegPlot, optimizeLF, optimizeLH, optimizeRF, optimizeRH, optimizationProperties, taskSelection, classSelection, configSelection, hipParalleltoBody)
+function Leg = runDataExtractionAndOptScripts(thetaLiftoff_des, actuateJointsDirectly, viewVisualization, numberOfLoopRepetitions, viewTrajectoryPlots, linkCount, runOptimization, viewOptimizedLegPlot, optimizeLF, optimizeLH, optimizeRF, optimizeRH, optimizationProperties, taskSelection, classSelection, configSelection, hipParalleltoBody)
 
 EEnames = ['LF'; 'RF'; 'LH'; 'RH'];
 linkNames = {'hip','thigh' 'shank' 'foot' 'phalanges'};
@@ -75,8 +75,6 @@ if (linkCount > 2)
 end
 
 %% qAFE, qDFE torque based heuristic computation
-% need to include EE orientation to solve this. Then the IK part does not
-% need to be changed.
 fprintf('Computing joint angles to for desired EE liftoff angle. \n');
 for i = 1:4
     EEselection = EEnames(i,:);
@@ -89,10 +87,9 @@ for i = 1:4
     % is then used to compute the torque at this joint.
     if (linkCount == 3) | (linkCount == 4)
         [qLiftoff.(EEselection)] = computeqLiftoffFinalJoint(thetaLiftoff_des, hipAttachmentOffset, linkCount, meanCyclicMotionHipEE, quadruped, EEselection, taskSelection, configSelection, hipParalleltoBody, Leg);
-        EE_force = Leg.(EEselection).force(1,1:3);
-        rotBodyY = -meanCyclicMotionHipEE.body.eulerAngles(i,2); % rotation of body about inertial y
-        qPrevious = qLiftoff.(EEselection);
-        [springTorque.(EEselection), springDeformation.(EEselection)] = computeFinalJointDeformation(kTorsionalSpring, qPrevious, EE_force, hipAttachmentOffset, linkCount, rotBodyY, quadruped, EEselection, hipParalleltoBody);
+        kTorsionalSpring = 0.1;
+        EE_force = 
+        [springTorque.(EEselection), springDeformation.(EEselection)] = computeFinalJointDeformation(kTorsionalSpring, qLiftoff, EE_force);
     else
         qLiftoff.(EEselection) = 0;
     end
@@ -107,7 +104,7 @@ for i = 1:4
     elseif (EEselection == 'LH') | (EEselection == 'RH')
         hipAttachmentOffset = l_hipAttachmentOffset.hind;
     end
-    [Leg.(EEselection).q, Leg.(EEselection).r.HAA, Leg.(EEselection).r.HFE, Leg.(EEselection).r.KFE, Leg.(EEselection).r.AFE, Leg.(EEselection).r.DFE, Leg.(EEselection).r.EE]  = inverseKinematics(kTorsionalSpring, qLiftoff,springDeformation, hipAttachmentOffset, linkCount, meanCyclicMotionHipEE, quadruped, EEselection, taskSelection, configSelection, hipParalleltoBody, Leg);
+    [Leg.(EEselection).q, Leg.(EEselection).r.HAA, Leg.(EEselection).r.HFE, Leg.(EEselection).r.KFE, Leg.(EEselection).r.AFE, Leg.(EEselection).r.DFE, Leg.(EEselection).r.EE]  = inverseKinematics(hipAttachmentOffset, linkCount, meanCyclicMotionHipEE, quadruped, EEselection, taskSelection, configSelection, hipParalleltoBody, Leg);
      Leg.(EEselection).r.EEdes = meanCyclicMotionHipEE.(EEselection).position; % save desired EE position in the same struct for easy comparison
 end
 

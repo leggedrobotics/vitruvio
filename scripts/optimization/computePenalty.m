@@ -54,16 +54,17 @@ tempLeg.(EEselection).jointTorque = inverseDynamics(EEselection, tempLeg, meanCy
 % no recuperation, set negative power terms to zero
 jointPowerInitial = tempLeg.(EEselection).jointTorque .* tempLeg.(EEselection).qdot(:,1:end-1);
 jointPower = tempLeg.(EEselection).jointTorque .* tempLeg.(EEselection).qdot(:,1:end-1);
-for j = 1:length(jointPower)
-    for k = 1:length(jointPower(1,:))
-        if jointPowerInitial(j,k) < 0
-              jointPowerInitial(j,k) = 0;
-        end
-        if jointPower(j,k) < 0
-              jointPower(j,k) = 0;
-        end
-    end
-end
+% for j = 1:length(jointPower)
+%     for k = 1:length(jointPower(1,:))
+%         if jointPowerInitial(j,k) < 0
+%               jointPowerInitial(j,k) = 0;
+%         end
+%         if jointPower(j,k) < 0
+%               jointPower(j,k) = 0;
+%         end
+%     end
+% end
+[tempLeg.metaParameters.deltaqMax.(EEselection), tempLeg.metaParameters.qdotMax.(EEselection), tempLeg.metaParameters.jointTorqueMax.(EEselection), tempLeg.metaParameters.jointPowerMax.(EEselection), tempLeg.(EEselection).energy, tempLeg.metaParameters.energyPerCycle.(EEselection)]  = getMaximumJointStates(tempLeg, jointPower, EEselection, dt);
 
 %% Load in penalty weights
 W_totalSwingTorque   = optimizationProperties.penaltyWeight.totalSwingTorque;
@@ -73,6 +74,7 @@ W_totalTorqueHFE  = optimizationProperties.penaltyWeight.totalTorqueHFE;
 W_swingTorqueHFE  = optimizationProperties.penaltyWeight.swingTorqueHFE;
 W_totalqdot     = optimizationProperties.penaltyWeight.totalqdot;
 W_totalPower    = optimizationProperties.penaltyWeight.totalPower;
+W_totalEnergy   = optimizationProperties.penaltyWeight.totalEnergy;
 W_maxTorque     = optimizationProperties.penaltyWeight.maxTorque;
 W_maxqdot       = optimizationProperties.penaltyWeight.maxqdot;
 W_maxPower      = optimizationProperties.penaltyWeight.maxPower;
@@ -81,42 +83,79 @@ allowableExtension = optimizationProperties.allowableExtension; % as ratio of to
 %% Compute penalty terms
 % For initial and new leg design. The penalty is then computed by
 % normalizing the penalty of the new design by the inital design.
-torqueInitial.swing  = Leg.(EEselection).jointTorque(1:meanTouchdownIndex.(EEselection), :);
-torque.swing  = tempLeg.(EEselection).jointTorque(1:meanTouchdownIndex.(EEselection), :);
-
-torqueInitial.stance = Leg.(EEselection).jointTorque(meanTouchdownIndex.(EEselection)+1:end, :);
-torque.stance = tempLeg.(EEselection).jointTorque(meanTouchdownIndex.(EEselection)+1:end, :);
-
-totalSwingTorqueInitial = sum(sum((torqueInitial.swing).^2)); 
-totalSwingTorque = sum(sum((torque.swing).^2)); 
-
-totalStanceTorqueInitial = sum(sum((torqueInitial.stance).^2));
-totalStanceTorque = sum(sum((torque.stance).^2));
-
-totalTorqueInitial    = sum(sum((Leg.(EEselection).jointTorque).^2)); 
-totalTorque    = sum(sum((tempLeg.(EEselection).jointTorque).^2)); 
-
-totalTorqueHFEInitial = sum((Leg.(EEselection).jointTorque(:,2)).^2); 
-totalTorqueHFE = sum((tempLeg.(EEselection).jointTorque(:,2)).^2); 
-
-swingTorqueHFEInitial = sum((torqueInitial.swing(:,2)).^2);
-swingTorqueHFE = sum((torque.swing(:,2)).^2);
-
-totalqdotInitial     = sum(sum((Leg.(EEselection).qdot).^2));
-totalqdot      = sum(sum((tempLeg.(EEselection).qdot).^2));
-
-totalPowerInitial    = sum(sum(jointPowerInitial));
-totalPower     = sum(sum(jointPower));
-
-maxTorqueInitial      = max(max(abs(Leg.(EEselection).jointTorque)));
-maxTorque      = max(max(abs(tempLeg.(EEselection).jointTorque)));
-
-maxqdotInitial       = max(max(abs(Leg.(EEselection).qdot)));
-maxqdot        = max(max(abs(tempLeg.(EEselection).qdot)));
-
-maxPowerInitial      = max(max(jointPowerInitial));
-maxPower       = max(max(jointPower));
-
+% initialize terms as zero then update if they are to be included in the
+% penalty function.
+totalTorque = 0;
+totalTorqueInitial = 1;
+totalTorqueHFE = 0;
+totalTorqueHFEInitial = 1;
+swingTorqueHFE = 0;
+swingTorqueHFEInitial = 1;
+totalSwingTorque = 0;
+totalSwingTorqueInitial = 1;
+totalStanceTorque = 0;
+totalStanceTorqueInitial = 1;
+totalqdot = 0;
+totalqdotInitial = 1;
+totalPower = 0;
+totalPowerInitial = 1;
+maxTorque = 0;
+maxTorqueInitial = 1;
+maxqdot = 0;
+maxqdotInitial = 1;
+maxPower = 0;
+maxPowerInitial = 1;
+totalEnergy = 0;
+totalEnergyInitial = 1;
+          
+if W_totalSwingTorque
+    torqueInitial.swing  = Leg.(EEselection).jointTorque(1:meanTouchdownIndex.(EEselection), :);
+    torque.swing  = tempLeg.(EEselection).jointTorque(1:meanTouchdownIndex.(EEselection), :);
+    totalSwingTorqueInitial = sum(sum((torqueInitial.swing).^2));
+    totalSwingTorque = sum(sum((torque.swing).^2)); 
+end
+if W_totalStanceTorque
+    torqueInitial.stance = Leg.(EEselection).jointTorque(meanTouchdownIndex.(EEselection)+1:end, :);
+    torque.stance = tempLeg.(EEselection).jointTorque(meanTouchdownIndex.(EEselection)+1:end, :);
+    totalStanceTorqueInitial = sum(sum((torqueInitial.stance).^2));
+    totalStanceTorque = sum(sum((torque.stance).^2));
+end
+if W_totalTorque
+    totalTorqueInitial    = sum(sum((Leg.(EEselection).jointTorque).^2)); 
+    totalTorque    = sum(sum((tempLeg.(EEselection).jointTorque).^2)); 
+end
+if W_totalTorqueHFE
+    totalTorqueHFEInitial = sum((Leg.(EEselection).jointTorque(:,2)).^2); 
+    totalTorqueHFE = sum((tempLeg.(EEselection).jointTorque(:,2)).^2); 
+end
+if W_swingTorqueHFE
+    swingTorqueHFEInitial = sum((torqueInitial.swing(:,2)).^2);
+    swingTorqueHFE = sum((torque.swing(:,2)).^2);
+end
+if W_totalqdot
+    totalqdotInitial     = sum(sum((Leg.(EEselection).qdot).^2));
+    totalqdot      = sum(sum((tempLeg.(EEselection).qdot).^2));
+end
+if W_totalPower
+    totalPowerInitial    = sum(sum(jointPowerInitial));
+    totalPower     = sum(sum(jointPower));
+end
+if W_totalEnergy
+    totalEnergyInitial    = sum(sum(Leg.(EEselection).energy));
+    totalEnergy    = sum(sum(tempLeg.(EEselection).energy));
+end
+if W_maxTorque
+    maxTorqueInitial      = max(max(abs(Leg.(EEselection).jointTorque)));
+    maxTorque      = max(max(abs(tempLeg.(EEselection).jointTorque)));
+end
+if W_maxqdot
+    maxqdotInitial       = max(max(abs(Leg.(EEselection).qdot)));
+    maxqdot        = max(max(abs(tempLeg.(EEselection).qdot)));
+end
+if W_maxPower
+    maxPowerInitial      = max(max(jointPowerInitial));
+    maxPower       = max(max(jointPower));
+end
 %% Compute constraint penalty terms
 % TRACKING ERROR PENALTY
 % impose tracking error penalty if any point has tracking error above an
@@ -176,6 +215,7 @@ penalty = W_totalTorque * (totalTorque/totalTorqueInitial) + ...
           W_maxTorque * (maxTorque/maxTorqueInitial)     + ...
           W_maxqdot * (maxqdot/maxqdotInitial)         + ...
           W_maxPower * (maxPower/maxPowerInitial)     + ...
+          W_totalEnergy * (totalEnergy/totalEnergyInitial)     + ...
           trackingErrorPenalty + ...
           jointBelowEEPenalty + ...
           maximumExtensionPenalty + ...
