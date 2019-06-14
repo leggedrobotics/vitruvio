@@ -22,8 +22,8 @@ for i = 1:4
     grid on
     xlabel('Time [s]')
     ylabel('Position [deg]')
-    xlim([time(1),time(end)])
-%     ylim([-5, 5])
+    xlim([time(1),2/3*time(end)])
+    ylim([-5, 5])
     title([EEselection '\_HAA'])
     hold off
     
@@ -38,8 +38,8 @@ for i = 1:4
     grid on
     xlabel('Time [s]')
     ylabel('Position [deg]')
-    xlim([time(1),time(end)])
-%     ylim([-30, 30])
+    xlim([time(1),2/3*time(end)])
+    ylim([-30, 30])
     title([EEselection '\_HFE'])
     hold off
     
@@ -54,8 +54,8 @@ for i = 1:4
     grid on
     xlabel('Time [s]')
     ylabel('Position [deg]')
-    xlim([time(1),time(end)])
-%     ylim([-35, 35])
+    xlim([time(1),2/3*time(end)])
+    ylim([-35, 35])
     title([EEselection '\_KFE'])
     hold off
     
@@ -70,7 +70,7 @@ for i = 1:4
         grid on
         xlabel('Time [s]')
         ylabel('Position [deg]')
-        xlim([time(1),time(end)])
+        xlim([time(1),2/3*time(end)])
         title([EEselection '\_AFE'])
         hold off
     end
@@ -85,7 +85,7 @@ for i = 1:4
         grid on
         xlabel('Time [s]')
         ylabel('Position [deg]')
-        xlim([time(1),time(end)])
+        xlim([time(1),2/3*time(end)])
         title([EEselection '\_DFE'])
         hold off
     end
@@ -107,7 +107,7 @@ for i = 1:4
     grid on
     xlabel('Time [s]')
     ylabel('Velocity [rad/s]')
-    xlim([time(1),time(end)])
+    xlim([time(1),2/3*time(end)])
     ylim([-1, 1])
     title([EEselection '\_HAA'])
     hold off
@@ -123,7 +123,7 @@ for i = 1:4
     grid on
     xlabel('Time [s]')
     ylabel('Velocity [rad/s]')
-    xlim([time(1),time(end)])
+    xlim([time(1),2/3*time(end)])
     ylim([-4, 3]);
     title([EEselection '\_HFE'])
     hold off
@@ -139,7 +139,7 @@ for i = 1:4
     grid on
     xlabel('Time [s]')
     ylabel('Velocity [rad/s]')
-    xlim([time(1),time(end)])
+    xlim([time(1),2/3*time(end)])
     ylim([-6, 6]);
     title([EEselection '\_KFE'])
     hold off
@@ -154,7 +154,7 @@ for i = 1:4
         grid on
         xlabel('Time [s]')
         ylabel('Velocity [rad/s]')
-        xlim([time(1),time(end)])
+        xlim([time(1),2/3*time(end)])
         title([EEselection '\_AFE'])
         hold off
     end
@@ -169,7 +169,7 @@ for i = 1:4
         end        
         xlabel('Time [s]')
         ylabel('Velocity [rad/s]')
-        xlim([time(1),time(end)])
+        xlim([time(1),2/3*time(end)])
         title([EEselection '\_DFE'])
         hold off
     end
@@ -191,7 +191,7 @@ for i = 1:4
     grid on
     xlabel('Time [s]')
     ylabel('Torque [Nm]')
-    xlim([time(1),time(end)])
+    xlim([time(1),2/3*time(end)])
     ylim([-20, 5])
     title([EEselection '\_HAA'])
     hold off
@@ -206,7 +206,7 @@ for i = 1:4
     grid on
     xlabel('Time [s]')
     ylabel('Torque [Nm]')
-    xlim([time(1),time(end)])
+    xlim([time(1),2/3*time(end)])
     ylim([-20, 15]);
     title([EEselection '\_HFE'])
     hold off
@@ -222,7 +222,7 @@ for i = 1:4
     grid on
     xlabel('Time [s]')
     ylabel('Torque [Nm]')
-    xlim([time(1),time(end)])
+    xlim([time(1),2/3*time(end)])
     ylim([-30, 40]);
     title([EEselection '\_KFE'])
     hold off
@@ -237,7 +237,7 @@ for i = 1:4
         grid on
         xlabel('Time [s]')
         ylabel('Torque [Nm]')
-        xlim([time(1),time(end)])
+        xlim([time(1),2/3*time(end)])
         title([EEselection '\_AFE'])
         hold off
     end
@@ -252,7 +252,7 @@ for i = 1:4
         grid on
         xlabel('Time [s]')
         ylabel('Torque [Nm]')
-        xlim([time(1),time(end)])
+        xlim([time(1),2/3*time(end)])
         title([EEselection '\_DFE'])
         hold off
     end
@@ -273,7 +273,7 @@ for i = 1:4
     grid on
     xlabel('Time [s]')
     ylabel('Power [W]')
-    xlim([time(1),time(end)])
+    xlim([time(1),2/3*time(end)])
     ylim([-3, 1.5])
     title([EEselection '\_HAA'])
     hold off
@@ -289,7 +289,7 @@ for i = 1:4
     grid on
     xlabel('Time [s]')
     ylabel('Power [W]')
-    xlim([time(1),time(end)])
+    xlim([time(1),2/3*time(end)])
     ylim([-40, 35]);
 
     title([EEselection '\_HFE'])
@@ -306,7 +306,7 @@ for i = 1:4
     grid on
     xlabel('Time [s]')
     ylabel('Power [W]')
-    xlim([time(1),time(end)])
+    xlim([time(1),2/3*time(end)])
     ylim([-15, 15]);
     title([EEselection '\_KFE'])
     hold off
@@ -321,7 +321,7 @@ for i = 1:4
         grid on
         xlabel('Time [s]')
         ylabel('Power [W]')
-        xlim([time(1),time(end)])
+        xlim([time(1),2/3*time(end)])
         title([EEselection '\_AFE'])
         hold off
     end
@@ -336,7 +336,7 @@ for i = 1:4
         grid on
         xlabel('Time [s]')
         ylabel('Power [W]')
-        xlim([time(1),time(end)])
+        xlim([time(1),2/3*time(end)])
         title([EEselection '\_DFE'])
         hold off
     end
@@ -369,7 +369,7 @@ for i = 1:4
     grid on
     xlabel('Time [s]')
     ylabel('Energy [J]')
-    xlim([time(1),time(end)])
+    xlim([time(1),2/3*time(end)])
     ylim([0,1])
     title([EEselection '\_HAA'])
     hold off
@@ -385,7 +385,7 @@ for i = 1:4
     grid on
     xlabel('Time [s]')
     ylabel('Energy [J]')
-    xlim([time(1),time(end)])
+    xlim([time(1),2/3*time(end)])
     ylim([0,6])
     title([EEselection '\_HFE'])
     hold off
@@ -401,7 +401,7 @@ for i = 1:4
     grid on
     xlabel('Time [s]')
     ylabel('Energy [J]')
-    xlim([time(1),time(end)])
+    xlim([time(1),2/3*time(end)])
     ylim([0,10])
     title([EEselection '\_KFE'])
     hold off
@@ -416,7 +416,7 @@ for i = 1:4
         grid on
         xlabel('Time [s]')
         ylabel('Energy [J]')
-        xlim([time(1),time(end)])
+        xlim([time(1),2/3*time(end)])
         ylim([0,4])
         title([EEselection '\_AFE'])
         hold off
@@ -432,7 +432,7 @@ for i = 1:4
         grid on
         xlabel('Time [s]')
         ylabel('Energy [J]')
-        xlim([time(1),time(end)])
+        xlim([time(1),2/3*time(end)])
         ylim([0,4])
         title([EEselection '\_DFE'])
         hold off

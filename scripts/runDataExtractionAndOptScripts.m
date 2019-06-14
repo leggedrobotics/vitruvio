@@ -1,4 +1,4 @@
-function Leg = runDataExtractionAndOptScripts(kTorsionalSpring, thetaLiftoff_des, actuateJointsDirectly, viewVisualization, numberOfLoopRepetitions, viewTrajectoryPlots, linkCount, runOptimization, viewOptimizedLegPlot, optimizeLF, optimizeLH, optimizeRF, optimizeRH, optimizationProperties, taskSelection, classSelection, configSelection, hipParalleltoBody)
+function Leg = runDataExtractionAndOptScripts(applyHeuristic, kTorsionalSpring, thetaLiftoff_des, actuateJointsDirectly, viewVisualization, numberOfLoopRepetitions, viewTrajectoryPlots, linkCount, runOptimization, viewOptimizedLegPlot, optimizeLF, optimizeLH, optimizeRF, optimizeRH, optimizationProperties, taskSelection, classSelection, configSelection, hipParalleltoBody)
 
 EEnames = ['LF'; 'RF'; 'LH'; 'RH'];
 linkNames = {'hip','thigh' 'shank' 'foot' 'phalanges'};
@@ -62,41 +62,46 @@ if viewTrajectoryPlots
 end
 
 %% qAFE, qDFE force based heuristic computation
+% computes the angle of the final joint at all time steps by deformation
+% approximated using the EE force in z at the timestep
 if (linkCount > 2)
-    fprintf('Computing AFE/DFE angle using force based heuristic.\n');
-    for i = 1:4
-        EEselection = EEnames(i,:);
-        if linkCount == 3
-            Leg.(EEselection).q(:,4) = computeqFinalJoint(Leg, EEselection, configSelection);
-        else
-            Leg.(EEselection).q(:,5) = computeqFinalJoint(Leg, EEselection, configSelection);
+    if applyHeuristic.forceAngle == true
+        fprintf('Computing AFE/DFE angle using force based heuristic.\n');
+        for i = 1:4
+            EEselection = EEnames(i,:);
+            if linkCount == 3
+                Leg.(EEselection).q(:,4) = computeqFinalJoint(Leg, EEselection, configSelection);
+            else
+                Leg.(EEselection).q(:,5) = computeqFinalJoint(Leg, EEselection, configSelection);
+            end
         end
     end
 end
 
 %% qAFE, qDFE torque based heuristic computation
-% need to include EE orientation to solve this. Then the IK part does not
-% need to be changed.
-fprintf('Computing joint angles to for desired EE liftoff angle. \n');
-for i = 1:4
-    EEselection = EEnames(i,:);
-    if (EEselection == 'LF') | (EEselection == 'RF')
-        hipAttachmentOffset = l_hipAttachmentOffset.fore;
-    elseif (EEselection == 'LH') | (EEselection == 'RH')
-        hipAttachmentOffset = l_hipAttachmentOffset.hind;
-    end
-    % if there is a qAFE or qDFE, compute the joint angle at liftoff. This
-    % is then used to compute the torque at this joint.
-    if (linkCount == 3) | (linkCount == 4)
+% compute the liftoff angle between the final link and the horizontal to
+% satisfy the input requirement of thetaLiftoff_des. If this heuristic is
+% used, the IK is solved using joint torque from previous timestep to
+% define the joint deformation at the current timestep.
+if (applyHeuristic.torqueAngle == true) && (linkCount > 2)
+    fprintf('Computing joint angles to for desired EE liftoff angle. \n');
+    for i = 1:4
+        EEselection = EEnames(i,:);
+        if (EEselection == 'LF') | (EEselection == 'RF')
+            hipAttachmentOffset = l_hipAttachmentOffset.fore;
+        elseif (EEselection == 'LH') | (EEselection == 'RH')
+            hipAttachmentOffset = l_hipAttachmentOffset.hind;
+        end
         [qLiftoff.(EEselection)] = computeqLiftoffFinalJoint(thetaLiftoff_des, hipAttachmentOffset, linkCount, meanCyclicMotionHipEE, quadruped, EEselection, taskSelection, configSelection, hipParalleltoBody, Leg);
         EE_force = Leg.(EEselection).force(1,1:3);
         rotBodyY = -meanCyclicMotionHipEE.body.eulerAngles(i,2); % rotation of body about inertial y
         qPrevious = qLiftoff.(EEselection);
-        [springTorque.(EEselection), springDeformation.(EEselection)] = computeFinalJointDeformation(kTorsionalSpring, qPrevious, EE_force, hipAttachmentOffset, linkCount, rotBodyY, quadruped, EEselection, hipParalleltoBody);
+        [springTorque.(EEselection), springDeformation.(EEselection)] = computeFinalJointDeformation(kTorsionalSpring, qPrevious, EE_force, hipAttachmentOffset, linkCount, rotBodyY, quadruped, EEselection, hipParalleltoBody);      
+    end
     else
         qLiftoff.(EEselection) = 0;
-    end
 end
+
 
 %% inverse kinematics
 fprintf('Computing joint angles using inverse kinematics.\n');
@@ -107,7 +112,7 @@ for i = 1:4
     elseif (EEselection == 'LH') | (EEselection == 'RH')
         hipAttachmentOffset = l_hipAttachmentOffset.hind;
     end
-    [Leg.(EEselection).q, Leg.(EEselection).r.HAA, Leg.(EEselection).r.HFE, Leg.(EEselection).r.KFE, Leg.(EEselection).r.AFE, Leg.(EEselection).r.DFE, Leg.(EEselection).r.EE]  = inverseKinematics(kTorsionalSpring, qLiftoff,springDeformation, hipAttachmentOffset, linkCount, meanCyclicMotionHipEE, quadruped, EEselection, taskSelection, configSelection, hipParalleltoBody, Leg);
+    [Leg.(EEselection).q, Leg.(EEselection).r.HAA, Leg.(EEselection).r.HFE, Leg.(EEselection).r.KFE, Leg.(EEselection).r.AFE, Leg.(EEselection).r.DFE, Leg.(EEselection).r.EE]  = inverseKinematics(applyHeuristic, kTorsionalSpring, qLiftoff, hipAttachmentOffset, linkCount, meanCyclicMotionHipEE, quadruped, EEselection, taskSelection, configSelection, hipParalleltoBody, Leg);
      Leg.(EEselection).r.EEdes = meanCyclicMotionHipEE.(EEselection).position; % save desired EE position in the same struct for easy comparison
 end
 
@@ -160,6 +165,7 @@ end
 %% Get meta parameters
 Leg.CoM.velocity = base.velocity(floor(removalRatioStart*length(base.velocity))+1:floor((1-removalRatioEnd)*length(base.velocity)),:);
 Leg.metaParameters.CoT.total = 0;
+Leg.metaParameters.energyPerCycleTotal = 0;
 for i = 1:4
     EEselection = EEnames(i,:);
     power = Leg.(EEselection).jointPower;
@@ -168,8 +174,9 @@ for i = 1:4
     Leg.metaParameters.CoT.total = Leg.metaParameters.CoT.total + Leg.metaParameters.CoT.(EEselection); 
     [Leg.metaParameters.deltaqMax.(EEselection), Leg.metaParameters.qdotMax.(EEselection), Leg.metaParameters.jointTorqueMax.(EEselection), Leg.metaParameters.jointPowerMax.(EEselection), Leg.(EEselection).energy, Leg.metaParameters.energyPerCycle.(EEselection)]  = getMaximumJointStates(Leg, power, EEselection, dt);
     [Leg.metaParameters.swingDuration.(EEselection), Leg.metaParameters.stanceDuration.(EEselection), Leg.metaParameters.swingDurationRatio.(EEselection)] = computePhaseDurations(tLiftoff, tTouchdown, EEselection);
-
+    Leg.metaParameters.energyPerCycleTotal = Leg.metaParameters.energyPerCycleTotal + sum(Leg.metaParameters.energyPerCycle.(EEselection));
 end
+
 %% Optimize selected legs and compute their cost of transport
 if runOptimization
     Leg.metaParameters.CoTOpt.total = 0;
