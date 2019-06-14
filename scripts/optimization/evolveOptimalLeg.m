@@ -1,7 +1,8 @@
-function [legDesignParameters, penaltyMin, output] = evolveOptimalLeg(upperBnd, lowerBnd, actuateJointsDirectly, hipAttachmentOffset, linkCount, optimizationProperties, initialLinkLengths, taskSelection, quadruped, configSelection, EEselection, dt, meanCyclicMotionHipEE, hipParalleltoBody, Leg, meanTouchdownIndex)
+function [legDesignParameters, penaltyMin, output] = evolveOptimalLeg(heuristic, upperBnd, lowerBnd, actuateJointsDirectly, hipAttachmentOffset, linkCount, optimizationProperties, initialLinkLengths, taskSelection, quadruped, configSelection, EEselection, dt, meanCyclicMotionHipEE, hipParalleltoBody, Leg, meanTouchdownIndex)
 if (EEselection == 'LF') | (EEselection == 'RF')
-         selectFrontHind = 1;
-    else selectFrontHind = 2;
+    selectFrontHind = 1;
+else 
+    selectFrontHind = 2;
 end
 % Set initial values for link lengths
 linkLengths = initialLinkLengths;
@@ -17,7 +18,7 @@ if optimizationProperties.viz.displayBestCurrentLinkLengths
 end
 
 %% Run optimization
-costFcn = @(legDesignParameters)computePenalty(legDesignParameters, actuateJointsDirectly, linkCount, optimizationProperties, quadruped, selectFrontHind, taskSelection, dt, configSelection, EEselection, meanCyclicMotionHipEE, hipParalleltoBody, Leg, meanTouchdownIndex);
+costFcn = @(legDesignParameters)computePenalty(heuristic, legDesignParameters, actuateJointsDirectly, linkCount, optimizationProperties, quadruped, selectFrontHind, taskSelection, dt, configSelection, EEselection, meanCyclicMotionHipEE, hipParalleltoBody, Leg, meanTouchdownIndex);
 disp(['Running optimization. Population: ' num2str(opts.PopulationSize) ...
       ', Max Generations: ' num2str(opts.MaxGenerations)])
 for i = 1:length(legDesignParameters)

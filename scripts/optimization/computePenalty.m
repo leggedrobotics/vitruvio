@@ -1,9 +1,14 @@
-function penalty = computePenalty(legDesignParameters, actuateJointsDirectly, linkCount, optimizationProperties, quadruped, selectFrontHind, taskSelection, dt, configSelection, EEselection, meanCyclicMotionHipEE, hipParalleltoBody, Leg, meanTouchdownIndex)
 % the optimization returns new leg design parameters with unit cm. Convert
 % lengths back to m to run the simulation and obtain results with base
 % units.
+
+function penalty = computePenalty(heuristic, legDesignParameters, actuateJointsDirectly, linkCount, optimizationProperties, quadruped, selectFrontHind, taskSelection, dt, configSelection, EEselection, meanCyclicMotionHipEE, hipParalleltoBody, Leg, meanTouchdownIndex)
+
+kTorsionalSpring = heuristic.torqueAngle.kTorsionalSpring;
+thetaLiftoff_des = heuristic.torqueAngle.thetaLiftoff_des;
 linkLengths = legDesignParameters(1:linkCount+1)/100;
 hipAttachmentOffset = legDesignParameters(linkCount+2)/100;
+
 % Update quadruped properties with newly computed leg design parameters, unit in meters
 quadruped.hip(selectFrontHind).length = linkLengths(1);
 quadruped.thigh(selectFrontHind).length = linkLengths(2);
@@ -26,17 +31,19 @@ if linkCount == 4
     quadruped.phalanges(selectFrontHind).mass = quadruped.legDensity * pi*(quadruped.phalanges(selectFrontHind).radius)^2 * linkLengths(5);
 end
 
-%% Inverse kinematics to calculate joint angles for each leg joint as well as xyz coordinates of joints
-% Compute qAFE and qDFE based on heuristics when applicable.
-if (linkCount > 2)
-    if linkCount == 3
-        tempLeg.(EEselection).q(:,4) = computeqFinalJoint(Leg, EEselection, configSelection);
-    elseif linkCount == 4
-        tempLeg.(EEselection).q(:,5) = computeqFinalJoint(Leg, EEselection, configSelection);
-    end
+%% qAFE, qDFE torque based heuristic computation
+if (heuristic.torqueAngle.apply == true) && (linkCount > 2)
+    [qLiftoff.(EEselection)] = computeqLiftoffFinalJoint(heuristic, hipAttachmentOffset, linkCount, meanCyclicMotionHipEE, quadruped, EEselection, taskSelection, configSelection, hipParalleltoBody, Leg);
+    EE_force = Leg.(EEselection).force(1,1:3);
+    rotBodyY = -meanCyclicMotionHipEE.body.eulerAngles(1,2); % rotation of body about inertial y
+    qPrevious = qLiftoff.(EEselection);
+    [springTorque.(EEselection), springDeformation.(EEselection)] = computeFinalJointDeformation(heuristic, qPrevious, EE_force, hipAttachmentOffset, linkCount, rotBodyY, quadruped, EEselection, hipParalleltoBody);      
+else
+    qLiftoff.(EEselection) = 0; % if the heuristic does not apply
 end
-% inverse kinematics
-[tempLeg.(EEselection).q, tempLeg.(EEselection).r.HAA, tempLeg.(EEselection).r.HFE, tempLeg.(EEselection).r.KFE, tempLeg.(EEselection).r.AFE, tempLeg.(EEselection).r.DFE, tempLeg.(EEselection).r.EE] = inverseKinematics(hipAttachmentOffset, linkCount, meanCyclicMotionHipEE, quadruped, EEselection, taskSelection, configSelection, hipParalleltoBody, Leg);
+
+%% inverse kinematics
+[tempLeg.(EEselection).q, tempLeg.(EEselection).r.HAA, tempLeg.(EEselection).r.HFE, tempLeg.(EEselection).r.KFE, tempLeg.(EEselection).r.AFE, tempLeg.(EEselection).r.DFE, tempLeg.(EEselection).r.EE] = inverseKinematics(heuristic, qLiftoff, hipAttachmentOffset, linkCount, meanCyclicMotionHipEE, quadruped, EEselection, taskSelection, configSelection, hipParalleltoBody, Leg);
 
 %% Build robot model with joint angles from inverse kinematics tempLeg
 numberOfLoopRepetitions = 1;
@@ -54,16 +61,6 @@ tempLeg.(EEselection).jointTorque = inverseDynamics(EEselection, tempLeg, meanCy
 % no recuperation, set negative power terms to zero
 jointPowerInitial = tempLeg.(EEselection).jointTorque .* tempLeg.(EEselection).qdot(:,1:end-1);
 jointPower = tempLeg.(EEselection).jointTorque .* tempLeg.(EEselection).qdot(:,1:end-1);
-% for j = 1:length(jointPower)
-%     for k = 1:length(jointPower(1,:))
-%         if jointPowerInitial(j,k) < 0
-%               jointPowerInitial(j,k) = 0;
-%         end
-%         if jointPower(j,k) < 0
-%               jointPower(j,k) = 0;
-%         end
-%     end
-% end
 [tempLeg.metaParameters.deltaqMax.(EEselection), tempLeg.metaParameters.qdotMax.(EEselection), tempLeg.metaParameters.jointTorqueMax.(EEselection), tempLeg.metaParameters.jointPowerMax.(EEselection), tempLeg.(EEselection).energy, tempLeg.metaParameters.energyPerCycle.(EEselection)]  = getMaximumJointStates(tempLeg, jointPower, EEselection, dt);
 
 %% Load in penalty weights
@@ -81,10 +78,7 @@ W_maxPower      = optimizationProperties.penaltyWeight.maxPower;
 allowableExtension = optimizationProperties.allowableExtension; % as ratio of total possible extension
 
 %% Compute penalty terms
-% For initial and new leg design. The penalty is then computed by
-% normalizing the penalty of the new design by the inital design.
-% initialize terms as zero then update if they are to be included in the
-% penalty function.
+% Initialize penalty terms
 totalTorque = 0;
 totalTorqueInitial = 1;
 totalTorqueHFE = 0;
@@ -107,7 +101,8 @@ maxPower = 0;
 maxPowerInitial = 1;
 totalEnergy = 0;
 totalEnergyInitial = 1;
-          
+
+% compute penalty terms          
 if W_totalSwingTorque
     torqueInitial.swing  = Leg.(EEselection).jointTorque(1:meanTouchdownIndex.(EEselection), :);
     torque.swing  = tempLeg.(EEselection).jointTorque(1:meanTouchdownIndex.(EEselection), :);
@@ -162,7 +157,7 @@ end
 % allowable threshhold
 trackingError = meanCyclicMotionHipEE.(EEselection).position-tempLeg.(EEselection).r.EE;
 if max(abs(trackingError)) > 0.01
-    trackingErrorPenalty = 100000;
+    trackingErrorPenalty = 10;
 else
     trackingErrorPenalty = 0;
 end
@@ -178,7 +173,7 @@ lowestJoint =  min([min(tempLeg.(EEselection).r.HAA(:,3)), ...
                 
 % if non zero, this must be the largest penalty as it is an infeasible solution
 if (lowestJoint < min(min(tempLeg.(EEselection).r.EE(:,3))))
-    jointBelowEEPenalty = 1000000;
+    jointBelowEEPenalty = 10;
 else
     jointBelowEEPenalty = 0;
 end
@@ -188,7 +183,7 @@ end
 maxHeightKFE = max(tempLeg.(EEselection).r.KFE(:,3));
 % if non zero, this must be the largest penalty as it is an infeasible solution
 if (maxHeightKFE > 0)
-    KFEHeightPenalty = 1000000;
+    KFEHeightPenalty = 10;
 else
     KFEHeightPenalty = 0;
 end
@@ -198,7 +193,7 @@ if optimizationProperties.penaltyWeight.maximumExtension % if true, calculate an
     offsetHFE2EEdes = tempLeg.(EEselection).r.HFE - meanCyclicMotionHipEE.(EEselection).position(1:end-2,:); % offset from HFE to desired EE position at all time steps
     maxOffsetHFE2EEdes = max(sqrt(sum(offsetHFE2EEdes.^2,2))); % max euclidian distance from HFE to desired EE position
         if maxOffsetHFE2EEdes > allowableExtension*sum(linkLengths(2:end))
-            maximumExtensionPenalty = 100000000;
+            maximumExtensionPenalty = 10;
         else 
             maximumExtensionPenalty = 0;
     end

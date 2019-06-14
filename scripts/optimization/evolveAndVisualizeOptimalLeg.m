@@ -1,23 +1,17 @@
-%% compute and visualize the optimal design
-% takes task and robot selection to load corresponding towr motion data
-% then computes motion of EE relative to hip, and evolves the link lengths
-% to minimize sum of joint torques over full motion for this relative
-% motion
+% this function calls evolveOptimalLeg which starts the optimization by calling computePenalty 
 
-% this function calls evolveOptimalLeg which runs the simulation
-% runFastJointTorqueSim for each set of link lengths 
-
-function [jointTorqueOpt, qOpt, qdotOpt, qdotdotOpt, rOpt, jointPowerOpt, linkLengthsOpt, hipAttachmentOffsetOpt, penaltyMin, elapsedTime, elapsedTimePerFuncEval, output, linkMassOpt, totalLinkMassOpt] = evolveAndVisualizeOptimalLeg(actuateJointsDirectly, hipAttachmentOffset, linkCount, optimizationProperties, EEselection, meanCyclicMotionHipEE, quadruped, configSelection, dt, taskSelection, hipParalleltoBody, Leg, meanTouchdownIndex)
+function [jointTorqueOpt, qOpt, qdotOpt, qdotdotOpt, rOpt, jointPowerOpt, linkLengthsOpt, hipAttachmentOffsetOpt, penaltyMin, elapsedTime, elapsedTimePerFuncEval, output, linkMassOpt, totalLinkMassOpt] = evolveAndVisualizeOptimalLeg(heuristic, actuateJointsDirectly, hipAttachmentOffset, linkCount, optimizationProperties, EEselection, meanCyclicMotionHipEE, quadruped, configSelection, dt, taskSelection, hipParalleltoBody, Leg, meanTouchdownIndex)
 if (EEselection == 'LF') | (EEselection == 'RF')
     selectFrontHind = 1;
-    else selectFrontHind = 2;
+else 
+    selectFrontHind = 2;
 end
 %% initialize link length values
 % link lengths in cm so that optimizer can consider only integer values 
 initialLinkLengths(1) = quadruped.hip(selectFrontHind).length*100; 
 initialLinkLengths(2) = quadruped.thigh(selectFrontHind).length*100;
 initialLinkLengths(3) = quadruped.shank(selectFrontHind).length*100;
-if (linkCount == 3) || (linkCount == 4)
+if (linkCount == 3) | (linkCount == 4)
     initialLinkLengths(4) = quadruped.foot(selectFrontHind).length*100;
 end
 if (linkCount == 4)
@@ -33,9 +27,9 @@ disp(lowerBnd);
 fprintf('Upper bound on link lengths [m]:')
 disp(upperBnd);
 
-%% evolve optimal link lengths by running ga
+%% evolve optimal leg design and return optimized design parameters
 tic;
-[legDesignParameters, penaltyMin, output] = evolveOptimalLeg(upperBnd, lowerBnd, actuateJointsDirectly, hipAttachmentOffset, linkCount, optimizationProperties, initialLinkLengths, taskSelection, quadruped, configSelection, EEselection, dt, meanCyclicMotionHipEE, hipParalleltoBody, Leg, meanTouchdownIndex);
+[legDesignParameters, penaltyMin, output] = evolveOptimalLeg(heuristic, upperBnd, lowerBnd, actuateJointsDirectly, hipAttachmentOffset, linkCount, optimizationProperties, initialLinkLengths, taskSelection, quadruped, configSelection, EEselection, dt, meanCyclicMotionHipEE, hipParalleltoBody, Leg, meanTouchdownIndex);
 elapsedTime = toc;
 elapsedTimePerFuncEval = elapsedTime/output.funccount;
 fprintf('Optimized leg design parameters [m]:')
@@ -59,26 +53,30 @@ end
 quadruped.hip(selectFrontHind).mass = quadruped.legDensity * pi*(quadruped.hip(selectFrontHind).radius)^2   * linkLengths(1);
 quadruped.thigh(selectFrontHind).mass = quadruped.legDensity * pi*(quadruped.thigh(selectFrontHind).radius)^2 * linkLengths(2);
 quadruped.shank(selectFrontHind).mass = quadruped.legDensity * pi*(quadruped.shank(selectFrontHind).radius)^2 * linkLengths(3);
-if (linkCount == 3) || (linkCount == 4)
+if (linkCount == 3) | (linkCount == 4)
     quadruped.foot(selectFrontHind).mass = quadruped.legDensity * pi*(quadruped.foot(selectFrontHind).radius)^2 * linkLengths(4);
 end
 if (linkCount ==4)
     quadruped.phalanges(selectFrontHind).mass = quadruped.legDensity * pi*(quadruped.phalanges(selectFrontHind).radius)^2 * linkLengths(5);
 end
 %% visualize the optimized design
-numberOfLoopRepetitions = 3;
+numberOfLoopRepetitions = optimizationProperties.viz.numberOfCyclesVisualized;
 viewVisualization = optimizationProperties.viz.viewVisualization;
-% Compute qAFE and qDFE based on heuristics when applicable.
-if (linkCount > 2)
-    if linkCount == 3
-        tempLeg.(EEselection).q(:,4) = computeqFinalJoint(Leg, EEselection, configSelection);
-    elseif linkCount == 4
-        tempLeg.(EEselection).q(:,5) = computeqFinalJoint(Leg, EEselection, configSelection);
-    end
+
+%% qAFE, qDFE torque based heuristic computation
+% computation of parameters for first time step used to initialize the IK
+if (heuristic.torqueAngle.apply == true) && (linkCount > 2)
+    [qLiftoff.(EEselection)] = computeqLiftoffFinalJoint(heuristic, hipAttachmentOffset, linkCount, meanCyclicMotionHipEE, quadruped, EEselection, taskSelection, configSelection, hipParalleltoBody, Leg);
+    EE_force = Leg.(EEselection).force(1,1:3);
+    rotBodyY = -meanCyclicMotionHipEE.body.eulerAngles(1,2); % rotation of body about inertial y
+    qPrevious = qLiftoff.(EEselection);
+    [springTorque.(EEselection), springDeformation.(EEselection)] = computeFinalJointDeformation(heuristic, qPrevious, EE_force, hipAttachmentOffset, linkCount, rotBodyY, quadruped, EEselection, hipParalleltoBody);      
+else
+    qLiftoff.(EEselection) = 0; % if the heuristic does not apply
 end
 
 % inverse kinematics
-[tempLeg.(EEselection).q, tempLeg.(EEselection).r.HAA, tempLeg.(EEselection).r.HFE, tempLeg.(EEselection).r.KFE, tempLeg.(EEselection).r.AFE, tempLeg.(EEselection).r.DFE, tempLeg.(EEselection).r.EE] = inverseKinematics(hipAttachmentOffset, linkCount, meanCyclicMotionHipEE, quadruped, EEselection, taskSelection, configSelection, hipParalleltoBody, Leg);
+[tempLeg.(EEselection).q, tempLeg.(EEselection).r.HAA, tempLeg.(EEselection).r.HFE, tempLeg.(EEselection).r.KFE, tempLeg.(EEselection).r.AFE, tempLeg.(EEselection).r.DFE, tempLeg.(EEselection).r.EE] = inverseKinematics(heuristic, qLiftoff, hipAttachmentOffset, linkCount, meanCyclicMotionHipEE, quadruped, EEselection, taskSelection, configSelection, hipParalleltoBody, Leg);
 % build rigid body model
 tempLeg.(EEselection).rigidBodyModel = buildRobotRigidBodyModel(actuateJointsDirectly, hipAttachmentOffset, linkCount, quadruped, tempLeg, meanCyclicMotionHipEE, EEselection, numberOfLoopRepetitions, viewVisualization, hipParalleltoBody);
 

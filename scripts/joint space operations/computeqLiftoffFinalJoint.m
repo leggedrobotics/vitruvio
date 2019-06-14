@@ -1,9 +1,10 @@
-function qLiftoff = computeqLiftoffFinalJoint(thetaLiftoff_des, hipAttachmentOffset, linkCount, meanCyclicMotionHipEE, quadruped, EEselection, taskSelection, configSelection, hipParalleltoBody, Leg);
+function qLiftoff = computeqLiftoffFinalJoint(heuristic, hipAttachmentOffset, linkCount, meanCyclicMotionHipEE, quadruped, EEselection, taskSelection, configSelection, hipParalleltoBody, Leg);
  % solve the angle of all joints such that the angle beetween the final link and the ground at liftoff is as desired. 
  %% Setup
   tol = 0.0001;
   it = 0;
   r_H_0EE_des = meanCyclicMotionHipEE.(EEselection).position(1,:); % desired EE position
+  thetaLiftoff_des = heuristic.torqueAngle.thetaLiftoff_des;
   % get length of the final link, either foot or phalanges.
   if linkCount == 3
       if (EEselection == 'LF') | (EEselection == 'RF')
@@ -23,7 +24,6 @@ function qLiftoff = computeqLiftoffFinalJoint(thetaLiftoff_des, hipAttachmentOff
   % the desired position of the final joint (AFE or DFE) is determined by
   % the desired EE position and the desired liftoff angle between the
   % horizonal and the final link.
-  
   r_H_0finalJoint_des = [r_H_0EE_des(1,1) - finalLinkLength*cos(thetaLiftoff_des), ...
                          r_H_0EE_des(1,2), ...
                          r_H_0EE_des(1,3) + finalLinkLength*sin(thetaLiftoff_des)];
@@ -61,12 +61,10 @@ function qLiftoff = computeqLiftoffFinalJoint(thetaLiftoff_des, hipAttachmentOff
     end         
   while (norm(dr)>tol && it < max_it)
      [J_P, ~, ~, ~, ~, r_H_04, r_H_05, r_H_0EE] = jointToPosJac(hipAttachmentOffset, linkCount, rotBodyY, q, quadruped, EEselection, hipParalleltoBody);
-     %drEE = r_H_0EE_des(1,:)' - r_H_0EE;
      dr = r_H_0finalJoint_des' -  r_H_0finalJoint;
-     % how can i incorporate both error terms? 
      dq = pinv(J_P, lambda)*dr;
      q = q + k*dq;
-     it = it+1;  
+     it = it+1; 
      if linkCount == 3 
         r_H_0finalJoint = r_H_04;
      end
@@ -75,7 +73,7 @@ function qLiftoff = computeqLiftoffFinalJoint(thetaLiftoff_des, hipAttachmentOff
         q(4,1) = -q(3,1); % foot parallel to thigh requires qAFE = -qKFE 
      end
   end  
- fprintf('Inverse kinematics terminated after %d iterations.\n',it)
+%  fprintf('Inverse kinematics terminated after %d iterations.\n',it)
  
  % Now we have the joint angles to get the final joint in the desired
  % position. We just need to rotate this joint until the end effector is in

@@ -3,20 +3,21 @@ close all;
 
 %% Toggle leg properties, visualization and optimization functions
 % number of links from 2 to 4. [thigh, shank, foot, phalanges]
-linkCount = 2;
+linkCount = 4;
 configSelection = 'X'; % X or M
 actuateJointsDirectly = true;
 % specify hip orientation
 hipParalleltoBody = true; % if false, hip link is perpendicular to body x
 
 %% AFE and DFE heuristics
-thetaLiftoff_des = pi/3; % specify desired angle between final link and horizonal at liftoff
-kTorsionalSpring = 30; % spring constant for torsional spring at final joint [N/rad]
-applyHeuristic.forceAngle = false;
-applyHeuristic.torqueAngle = false;
+% When no heuristic is specified, the angle of the final joint closest to 
+% the starting q0 is obtained.
+heuristic.torqueAngle.thetaLiftoff_des = pi/2; % specify desired angle between final link and horizonal at liftoff
+heuristic.torqueAngle.kTorsionalSpring = 30; % spring constant for torsional spring at final joint [Nm/rad]
+heuristic.torqueAngle.apply = true;
 
 %% Toggle trajectory plots and initial design viz
-viewVisualization = false; % initial leg design tracking trajectory plan
+viewVisualization = true; % initial leg design tracking trajectory plan
 numberOfLoopRepetitions = 1; % number of steps visualized for leg motion
 viewTrajectoryPlots = false;
 
@@ -31,11 +32,12 @@ optimizeRH = false;
 %% Set optimization properties
 % toggle visualization 
 optimizationProperties.viz.viewVisualization = true;
+optimizationProperties.viz.numberOfCyclesVisualized = 3;
 optimizationProperties.viz.displayBestCurrentLinkLengths = true; % display chart while running ga
 
 % Set number of generations and population size
-optimizationProperties.options.maxGenerations = 10;
-optimizationProperties.options.populationSize = 25;
+optimizationProperties.options.maxGenerations = 3;
+optimizationProperties.options.populationSize = 5;
 
 % Set weights for fitness function terms
 optimizationProperties.penaltyWeight.totalSwingTorque  = 0;
@@ -70,14 +72,14 @@ end
 universalTrot   = false;
 universalStairs = false;
 speedyStairs    = false;
-speedyGallop    = false;
+speedyGallop    = true;
 massivoWalk     = false;
 massivoStairs   = false;
 centaurWalk     = false;
 centaurStairs   = false;
 miniPronk       = false;
 ANYmalTrot      = false;
-ANYmalSlowTrot  = true;
+ANYmalSlowTrot  = false;
 
 numberOfRepetitions = 0; % number of times that leg is reoptimized
 

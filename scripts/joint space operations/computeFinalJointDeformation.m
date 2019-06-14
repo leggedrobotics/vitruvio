@@ -1,5 +1,5 @@
-function [springTorque, springDeformation] = computeFinalJointDeformation(kTorsionalSpring, qPrevious, EE_force, hipAttachmentOffset, linkCount, rotBodyY, quadruped, EEselection, hipParalleltoBody)
-
+function [springTorque, springDeformation] = computeFinalJointDeformation(heuristic, qPrevious, EE_force, hipAttachmentOffset, linkCount, rotBodyY, quadruped, EEselection, hipParalleltoBody)
+kTorsionalSpring = heuristic.torqueAngle.kTorsionalSpring;
 % compute jacobian to obtain position of AFE, DFE, and EE.
 [~, ~, ~, ~, ~, r_H_04, r_H_05, r_H_0EE]  = jointToPosJac(hipAttachmentOffset, linkCount, rotBodyY, qPrevious, quadruped, EEselection, hipParalleltoBody);
 
