@@ -1,18 +1,16 @@
 %% Read in data for quadruped geometry
-function robot = buildRobotRigidBodyModel(actuateJointsDirectly, l_hipAttachmentOffset, linkCount, quadruped, Leg, meanCyclicMotionHipEE, EEselection, numberOfLoopRepetitions, viewVisualization, hipParalleltoBody) 
+function robot = buildRobotRigidBodyModel(actuateJointsDirectly, hipAttachmentOffset, linkCount, quadruped, Leg, meanCyclicMotionHipEE, EEselection, numberOfLoopRepetitions, viewVisualization, hipParalleltoBody) 
 
 %% get quadruped properties for selected end effector  
 if (EEselection == 'LF') | (EEselection == 'RF')
     selectFrontHind = 1;
     hipOffsetDirection = 1;
-    l_hipAttachmentOffset = l_hipAttachmentOffset.fore;
     else selectFrontHind = 2;
          hipOffsetDirection = -1;
-         l_hipAttachmentOffset = l_hipAttachmentOffset.hind;
 end
 % offset from nominal stance EE position to HAA along body x
-l_hipAttachmentOffsetX = l_hipAttachmentOffset*cos(meanCyclicMotionHipEE.body.eulerAngles(1,2)); 
-l_hipAttachmentOffsetZ = l_hipAttachmentOffset*sin(meanCyclicMotionHipEE.body.eulerAngles(1,2));  
+hipAttachmentOffsetX = hipAttachmentOffset*cos(meanCyclicMotionHipEE.body.eulerAngles(1,2)); 
+hipAttachmentOffsetZ = hipAttachmentOffset*sin(meanCyclicMotionHipEE.body.eulerAngles(1,2));  
 
 l_hip   = quadruped.hip(selectFrontHind).length; % offset from HAA to HFE
 l_thigh = quadruped.thigh(selectFrontHind).length;
@@ -41,9 +39,9 @@ zNom = quadruped.zNom; % equal for each hip attachment point
 
 % rotation about x by -pi/2 to align z with inertial y. Rotation about this
 % z gives the angle of attack of the base 
-T_body =             [1, 0, 0, l_hipAttachmentOffsetX;
+T_body =             [1, 0, 0, hipAttachmentOffsetX;
                       0, 0, 1,  0;
-                      0, -1, 0, l_hipAttachmentOffsetZ;
+                      0, -1, 0, hipAttachmentOffsetZ;
                       0, 0, 0, 1];
                
 % rotation about y by pi/2 to align z with HAA rotation axis
@@ -299,23 +297,55 @@ for i = 1:length(Leg.(EEselection).q)
                        Leg.(EEselection).q(i,5)];    % DFE
     end
 end
+% define patch shift which allows for body visualization
+bodyLength = 2*quadruped.xNom(1);
+bodyWidth = 2*quadruped.yNom(1);
 
+if (EEselection == 'LF')
+    patchShift = [0 0 0];
+elseif (EEselection == 'LH')
+    patchShift = [bodyLength 0 0];
+elseif (EEselection == 'RF')
+    patchShift = [0 bodyWidth 0];
+elseif (EEselection == 'RH')
+    patchShift = [bodyLength bodyWidth 0];
+end
+    
 figure(1);
 if viewVisualization
     for j = 1: numberOfLoopRepetitions
         for i = 1:length(Leg.(EEselection).q)
             set(gcf, 'Position', get(0, 'Screensize'));
-            xlim([-0.7 0.7]);
-            ylim([-0.1 0.1]);
-            zlim([-0.8 0.3]);
+            xlim([-0.75 0.75]);
+            ylim([-0.5 0.5]);
+            zlim([-0.8 0.4]);
             figure(1);
             show(robot,config(i,:));
+
             hold on
             % plot desired trajectory to observe tracking
             plot3(meanCyclicMotionHipEE.(EEselection).position(:,1), ...
                   meanCyclicMotionHipEE.(EEselection).position(:,2), ...
                   meanCyclicMotionHipEE.(EEselection).position(:,3),'r', 'LineWidth', 3)
             title(EEselection)
+            % define the vertices to show robot body on same figure
+            vert = patchShift + ...
+                   [0           0           -0.04;...
+                   -bodyLength  0           -0.04;...
+                   -bodyLength -bodyWidth   -0.04;...
+                    0          -bodyWidth   -0.04;...
+                    0           0            0.04;...
+                   -bodyLength  0            0.04;...
+                   -bodyLength -bodyWidth    0.04;...
+                    0          -bodyWidth    0.04];
+            % compute body rotation with rotation matrix about y axis
+            bodyRotation = [cos(-config(1,1)), 0, sin(-config(1,1));
+                            0                 1, 0;
+                            -sin(-config(1,1)), 0 cos(-config(1,1))];
+            % apply body rotation to obtain new vertices
+            vert = vert * bodyRotation;
+            fac = [1 2 6 5;2 3 7 6;3 4 8 7;4 1 5 8;1 2 3 4;5 6 7 8];
+            patch('Vertices',vert,'Faces',fac,'FaceColor','w', 'FaceAlpha', 0.8)
             hold off
         end
     end

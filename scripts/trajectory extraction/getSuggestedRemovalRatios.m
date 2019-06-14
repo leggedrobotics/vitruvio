@@ -35,5 +35,8 @@ suggestedRemovalRatioEnd.ANYmalTrot = 0.5;
 suggestedRemovalRatioStart.ANYmalSlowTrot = 0.1;
 suggestedRemovalRatioEnd.ANYmalSlowTrot = 0.1;
 
+suggestedRemovalRatioStart.ANYmalslowTrotSmooth = 0.1;
+suggestedRemovalRatioEnd.ANYmalslowTrotSmooth = 0.1;
+
 removalRatioStart = suggestedRemovalRatioStart.(taskSelection);
 removalRatioEnd = suggestedRemovalRatioEnd.(taskSelection);

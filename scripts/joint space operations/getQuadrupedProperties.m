@@ -13,7 +13,7 @@ robot.ANYmal.xNom(1) = 0.34;
 robot.ANYmal.xNom(2) = 0.34;
 robot.ANYmal.yNom(1) = 0.19;
 robot.ANYmal.yNom(2) = 0.19;
-robot.ANYmal.zNom = 0; % offset from CoM to hip attachment in z direction
+robot.ANYmal.zNom = 0.05; % offset from CoM to hip attachment in z direction Hip height 0.47m CoM at 0.42
 
 % row order:    LF LH RF RH
 % column order: x, y, z
@@ -30,8 +30,8 @@ robot.ANYmal.thigh(1).length = 0.25;
 robot.ANYmal.thigh(2).length = 0.25;
 robot.ANYmal.shank(1).length = 0.33;
 robot.ANYmal.shank(2).length = 0.33;
-robot.ANYmal.foot(1).length = 0.05;
-robot.ANYmal.foot(2).length = 0.05;
+robot.ANYmal.foot(1).length = 0.15;
+robot.ANYmal.foot(2).length = 0.15;
 robot.ANYmal.phalanges(1).length = 0.1;
 robot.ANYmal.phalanges(2).length = 0.1;
 
@@ -390,14 +390,12 @@ robot.mini.q4.minAngle = pi/2;
 robot.mini.q4.maxAngle = -pi/2;
 
 
-
+%% load in the parameters of the selected robot into the struct quadruped which is then used by the rest of the program
 quadruped = robot.(robotSelection);
-% if linkCount == 2
-%     for i = 1:2
-%         quadruped.thigh(i).length = quadruped.thigh(i).length + 0.1;
-%         quadruped.shank(i).length = quadruped.shank(i).length + 0.1;
-%     end
-% end
 quadruped.EE(1).mass = 0.2; 
 quadruped.EE(2).mass = 0.2; 
-
+% offset to hip attachment point. This translates the hip attachment point
+% along the x direction of the body. Here the initial offset is set such
+% that the hip is centered above the trajectory.
+quadruped.hipOffset(1) = quadruped.hip(1).length;
+quadruped.hipOffset(2) = -quadruped.hip(2).length;

@@ -8,7 +8,8 @@ for i = 1:numberOfRepetitions+1
     if universalTrot
         taskSelection = 'universalTrot'; 
         classSelection = 'universal';
-        universal.trot(i) = runDataExtractionAndOptScripts(actuateJointsDirectly, viewVisualization, numberOfLoopRepetitions, viewTrajectoryPlots, linkCount, runOptimization, viewOptimizedLegPlot, optimizeLF, optimizeLH, optimizeRF, optimizeRH, optimizationProperties, taskSelection, classSelection, configSelection, hipParalleltoBody);
+        universal.trot(i) = runDataExtractionAndOptScripts(heuristic, actuateJointsDirectly, viewVisualization, numberOfLoopRepetitions, viewTrajectoryPlots, linkCount, runOptimization, viewOptimizedLegPlot, optimizeLF, optimizeLH, optimizeRF, optimizeRH, optimizationProperties, taskSelection, classSelection, configSelection, hipParalleltoBody);
+        universal.trot(i).metaParameters = orderfields(universal.trot(i).metaParameters);
         for j = 1:4
             EEselection = EEnames(j,:);
             universal.trot(i).(EEselection) = orderfields(universal.trot(i).(EEselection));
@@ -18,7 +19,8 @@ for i = 1:numberOfRepetitions+1
     if universalStairs
         taskSelection = 'universalStairs'; 
         classSelection = 'universal';
-        universal.stairs(i) = runDataExtractionAndOptScripts(actuateJointsDirectly, viewVisualization, numberOfLoopRepetitions, viewTrajectoryPlots, linkCount, runOptimization, viewOptimizedLegPlot, optimizeLF, optimizeLH, optimizeRF, optimizeRH, optimizationProperties, taskSelection, classSelection, configSelection, hipParalleltoBody);
+        universal.stairs(i) = runDataExtractionAndOptScripts(heuristic, actuateJointsDirectly, viewVisualization, numberOfLoopRepetitions, viewTrajectoryPlots, linkCount, runOptimization, viewOptimizedLegPlot, optimizeLF, optimizeLH, optimizeRF, optimizeRH, optimizationProperties, taskSelection, classSelection, configSelection, hipParalleltoBody);
+        universal.stairs(i).metaParameters = orderfields(universal.stairs(i).metaParameters);        
         for j = 1:4
             EEselection = EEnames(j,:);
             universal.stairs(i).(EEselection) = orderfields(universal.stairs(i).(EEselection));
@@ -28,7 +30,8 @@ for i = 1:numberOfRepetitions+1
     if speedyGallop
         taskSelection = 'speedyGallop'; 
         classSelection = 'speedy';
-        speedy.gallop(i) = runDataExtractionAndOptScripts(actuateJointsDirectly, viewVisualization, numberOfLoopRepetitions, viewTrajectoryPlots, linkCount, runOptimization, viewOptimizedLegPlot, optimizeLF, optimizeLH, optimizeRF, optimizeRH, optimizationProperties, taskSelection, classSelection, configSelection, hipParalleltoBody);
+        speedy.gallop(i) = runDataExtractionAndOptScripts(heuristic, actuateJointsDirectly, viewVisualization, numberOfLoopRepetitions, viewTrajectoryPlots, linkCount, runOptimization, viewOptimizedLegPlot, optimizeLF, optimizeLH, optimizeRF, optimizeRH, optimizationProperties, taskSelection, classSelection, configSelection, hipParalleltoBody);
+        speedy.gallop(i).metaParameters = orderfields(speedy.gallop(i).metaParameters);
         for j = 1:4
             EEselection = EEnames(j,:);
             speedy.gallop(i).(EEselection) = orderfields(speedy.gallop(i).(EEselection));
@@ -38,8 +41,9 @@ for i = 1:numberOfRepetitions+1
     if speedyStairs
         taskSelection = 'speedyStairs'; 
         classSelection = 'speedy';
-        speedy.stairs(i) = runDataExtractionAndOptScripts(actuateJointsDirectly, viewVisualization, numberOfLoopRepetitions, viewTrajectoryPlots, linkCount, runOptimization, viewOptimizedLegPlot, optimizeLF, optimizeLH, optimizeRF, optimizeRH, optimizationProperties, taskSelection, classSelection, configSelection, hipParalleltoBody);
-          for j = 1:4
+        speedy.stairs(i) = runDataExtractionAndOptScripts(heuristic, actuateJointsDirectly, viewVisualization, numberOfLoopRepetitions, viewTrajectoryPlots, linkCount, runOptimization, viewOptimizedLegPlot, optimizeLF, optimizeLH, optimizeRF, optimizeRH, optimizationProperties, taskSelection, classSelection, configSelection, hipParalleltoBody);
+        speedy.stairs(i).metaParameters = orderfields(speedy.stairs(i).metaParameters);         
+        for j = 1:4
             EEselection = EEnames(j,:);
             speedy.stairs(i).(EEselection) = orderfields(speedy.stairs(i).(EEselection));
           end
@@ -48,7 +52,8 @@ for i = 1:numberOfRepetitions+1
     if massivoWalk
         taskSelection = 'massivoWalk'; 
         classSelection = 'massivo';
-        massivo.walk(i) = runDataExtractionAndOptScripts(actuateJointsDirectly, viewVisualization, numberOfLoopRepetitions, viewTrajectoryPlots, linkCount, runOptimization, viewOptimizedLegPlot, optimizeLF, optimizeLH, optimizeRF, optimizeRH, optimizationProperties, taskSelection, classSelection, configSelection, hipParalleltoBody);
+        massivo.walk(i) = runDataExtractionAndOptScripts(heuristic, actuateJointsDirectly, viewVisualization, numberOfLoopRepetitions, viewTrajectoryPlots, linkCount, runOptimization, viewOptimizedLegPlot, optimizeLF, optimizeLH, optimizeRF, optimizeRH, optimizationProperties, taskSelection, classSelection, configSelection, hipParalleltoBody);
+        massivo.walk(i).metaParameters = orderfields(massivo.walk(i).metaParameters);                 
         for j = 1:4
             EEselection = EEnames(j,:);
             massivo.walk(i).(EEselection) = orderfields(massivo.walk(i).(EEselection));
@@ -58,7 +63,8 @@ for i = 1:numberOfRepetitions+1
     if massivoStairs
         taskSelection = 'massivoStairs'; 
         classSelection = 'massivo';
-        massivo.stairs(i) = runDataExtractionAndOptScripts(actuateJointsDirectly, viewVisualization, numberOfLoopRepetitions, viewTrajectoryPlots, linkCount, runOptimization, viewOptimizedLegPlot, optimizeLF, optimizeLH, optimizeRF, optimizeRH, optimizationProperties, taskSelection, classSelection, configSelection, hipParalleltoBody);
+        massivo.stairs(i) = runDataExtractionAndOptScripts(heuristic, actuateJointsDirectly, viewVisualization, numberOfLoopRepetitions, viewTrajectoryPlots, linkCount, runOptimization, viewOptimizedLegPlot, optimizeLF, optimizeLH, optimizeRF, optimizeRH, optimizationProperties, taskSelection, classSelection, configSelection, hipParalleltoBody);
+        massivo.stairs(i).metaParameters = orderfields(massivo.stairs(i).metaParameters);                         
         for j = 1:4
             EEselection = EEnames(j,:);
             massivo.stairs(i).(EEselection) = orderfields(massivo.stairs(i).(EEselection));
@@ -68,7 +74,8 @@ for i = 1:numberOfRepetitions+1
     if centaurWalk
         taskSelection = 'centaurWalk'; 
         classSelection = 'centaur';
-        centaur.walk(i) = runDataExtractionAndOptScripts(actuateJointsDirectly, viewVisualization, numberOfLoopRepetitions, viewTrajectoryPlots, linkCount, runOptimization, viewOptimizedLegPlot, optimizeLF, optimizeLH, optimizeRF, optimizeRH, optimizationProperties, taskSelection, classSelection, configSelection, hipParalleltoBody);
+        centaur.walk(i) = runDataExtractionAndOptScripts(heuristic, actuateJointsDirectly, viewVisualization, numberOfLoopRepetitions, viewTrajectoryPlots, linkCount, runOptimization, viewOptimizedLegPlot, optimizeLF, optimizeLH, optimizeRF, optimizeRH, optimizationProperties, taskSelection, classSelection, configSelection, hipParalleltoBody);
+        centaur.walk(i).metaParameters = orderfields(centaur.walk(i).metaParameters);                                 
         for j = 1:4
             EEselection = EEnames(j,:);
             centaur.walk(i).(EEselection) = orderfields(centaur.walk(i).(EEselection));
@@ -78,7 +85,8 @@ for i = 1:numberOfRepetitions+1
     if centaurStairs
         taskSelection = 'centaurStairs'; 
         classSelection = 'centaur';
-        centaur.stairs(i) = runDataExtractionAndOptScripts(actuateJointsDirectly, viewVisualization, numberOfLoopRepetitions, viewTrajectoryPlots, linkCount, runOptimization, viewOptimizedLegPlot, optimizeLF, optimizeLH, optimizeRF, optimizeRH, optimizationProperties, taskSelection, classSelection, configSelection, hipParalleltoBody);
+        centaur.stairs(i) = runDataExtractionAndOptScripts(heuristic, actuateJointsDirectly, viewVisualization, numberOfLoopRepetitions, viewTrajectoryPlots, linkCount, runOptimization, viewOptimizedLegPlot, optimizeLF, optimizeLH, optimizeRF, optimizeRH, optimizationProperties, taskSelection, classSelection, configSelection, hipParalleltoBody);
+        centaur.stairs(i).metaParameters = orderfields(centaur.stairs(i).metaParameters);                                       
         for j = 1:4
             EEselection = EEnames(j,:);
             centaur.stairs(i).(EEselection) = orderfields(centaur.stairs(i).(EEselection));
@@ -88,7 +96,8 @@ for i = 1:numberOfRepetitions+1
     if miniPronk
         taskSelection = 'miniPronk'; 
         classSelection = 'mini';
-        mini.pronk(i) = runDataExtractionAndOptScripts(actuateJointsDirectly, viewVisualization, numberOfLoopRepetitions, viewTrajectoryPlots, linkCount, runOptimization, viewOptimizedLegPlot, optimizeLF, optimizeLH, optimizeRF, optimizeRH, optimizationProperties, taskSelection, classSelection, configSelection, hipParalleltoBody);
+        mini.pronk(i) = runDataExtractionAndOptScripts(heuristic, actuateJointsDirectly, viewVisualization, numberOfLoopRepetitions, viewTrajectoryPlots, linkCount, runOptimization, viewOptimizedLegPlot, optimizeLF, optimizeLH, optimizeRF, optimizeRH, optimizationProperties, taskSelection, classSelection, configSelection, hipParalleltoBody);
+        mini.pronk(i).metaParameters = orderfields(mini.pronk(i).metaParameters);                                               
         for j = 1:4
             EEselection = EEnames(j,:);
             mini.pronk(i).(EEselection) = orderfields(mini.pronk(i).(EEselection));
@@ -98,7 +107,8 @@ for i = 1:numberOfRepetitions+1
     if ANYmalTrot
         taskSelection = 'ANYmalTrot'; 
         classSelection = 'ANYmal';
-        ANYmal.trot(i) = runDataExtractionAndOptScripts(actuateJointsDirectly, viewVisualization, numberOfLoopRepetitions, viewTrajectoryPlots, linkCount, runOptimization, viewOptimizedLegPlot, optimizeLF, optimizeLH, optimizeRF, optimizeRH, optimizationProperties, taskSelection, classSelection, configSelection, hipParalleltoBody);
+        ANYmal.trot(i) = runDataExtractionAndOptScripts(heuristic, actuateJointsDirectly, viewVisualization, numberOfLoopRepetitions, viewTrajectoryPlots, linkCount, runOptimization, viewOptimizedLegPlot, optimizeLF, optimizeLH, optimizeRF, optimizeRH, optimizationProperties, taskSelection, classSelection, configSelection, hipParalleltoBody);
+        ANYmal.trot(i).metaParameters = orderfields(ANYmal.trot(i).metaParameters);                                                       
         for j = 1:4
             EEselection = EEnames(j,:);
             ANYmal.trot(i).(EEselection) = orderfields(ANYmal.trot(i).(EEselection));
@@ -107,7 +117,8 @@ for i = 1:numberOfRepetitions+1
     if ANYmalSlowTrot
         taskSelection = 'ANYmalSlowTrot'; 
         classSelection = 'ANYmal';
-        ANYmal.slowTrot(i) = runDataExtractionAndOptScripts(actuateJointsDirectly, viewVisualization, numberOfLoopRepetitions, viewTrajectoryPlots, linkCount, runOptimization, viewOptimizedLegPlot, optimizeLF, optimizeLH, optimizeRF, optimizeRH, optimizationProperties, taskSelection, classSelection, configSelection, hipParalleltoBody);
+        ANYmal.slowTrot(i) = runDataExtractionAndOptScripts(heuristic, actuateJointsDirectly, viewVisualization, numberOfLoopRepetitions, viewTrajectoryPlots, linkCount, runOptimization, viewOptimizedLegPlot, optimizeLF, optimizeLH, optimizeRF, optimizeRH, optimizationProperties, taskSelection, classSelection, configSelection, hipParalleltoBody);
+        ANYmal.slowTrot(i).metaParameters = orderfields(ANYmal.slowTrot(i).metaParameters);                                                              
         for j = 1:4
             EEselection = EEnames(j,:);
             ANYmal.slowTrot(i).(EEselection) = orderfields(ANYmal.slowTrot(i).(EEselection));

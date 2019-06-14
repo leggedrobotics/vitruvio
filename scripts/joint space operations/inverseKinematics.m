@@ -1,11 +1,11 @@
-function [jointPositions, r1, r2, r3, r4, r5, rEE] = inverseKinematics(l_hipAttachmentOffset, linkCount, meanCyclicMotionHipEE, quadruped, EEselection, taskSelection, configSelection, hipParalleltoBody, Leg)
+function [jointPositions, r1, r2, r3, r4, r5, rEE] = inverseKinematics(heuristic, qLiftoff, hipAttachmentOffset, linkCount, meanCyclicMotionHipEE, quadruped, EEselection, taskSelection, configSelection, hipParalleltoBody, Leg)
 
  % Input: desired end-effector position, quadruped properties
  %        initial guess for joint angles, threshold for the stopping-criterion
  % Output: joint angles which match desired end-effector position
 
  %% Setup
-  tol = 0.001;
+  tol = 0.0001;
   it = 0;
   r_H_0EE_des = meanCyclicMotionHipEE.(EEselection).position; % desired EE position
 
@@ -13,17 +13,25 @@ function [jointPositions, r1, r2, r3, r4, r5, rEE] = inverseKinematics(l_hipAtta
   q0 = getInitialJointAnglesForDesiredConfig(taskSelection, EEselection, configSelection);
   q = [q0'];
   if linkCount == 3
-      q = [q; 0];
+      if heuristic.torqueAngle.apply == true
+          q = qLiftoff.(EEselection);
+      else
+          q = [q; 0];
+      end
   end
   if linkCount == 4
-      q = [q; 0; 0];
+      if heuristic.torqueAngle.apply == true
+          q = qLiftoff.(EEselection);
+      else
+           q = [q; 0; 0];
+      end
   end
  
   jointPositions = zeros(length(meanCyclicMotionHipEE.(EEselection).position(:,1)),linkCount+2);
   lambda = 0.001; % damping factor -> values below lambda are set to zero in matrix inversion
   % Initialize error -> only position because we don't have orientation data
   rotBodyY = 0;
-  [~, ~, ~, ~, ~, ~, ~, r_H_0EE] = jointToPosJac(l_hipAttachmentOffset, linkCount, rotBodyY, q, quadruped, EEselection, hipParalleltoBody);
+  [J_P, ~, r_H_01, r_H_02, r_H_03, r_H_04, r_H_05, r_H_0EE] = jointToPosJac(hipAttachmentOffset, linkCount, rotBodyY, q, quadruped, EEselection, hipParalleltoBody);
   
   % preallocate arrays for joint coordinates
   r1 = zeros(length(meanCyclicMotionHipEE.(EEselection).position(:,1)), 3);
@@ -32,13 +40,6 @@ function [jointPositions, r1, r2, r3, r4, r5, rEE] = inverseKinematics(l_hipAtta
   r4 = r1;
   r5 = r1;
   r6 = r1;
-
-  if linkCount == 3 % heuristic for final joint angle
-      qAFE = -Leg.(EEselection).q(:,4);
-  end
-  if linkCount == 4 % heuristic for final joint angle
-      qDFE = -Leg.(EEselection).q(:,5);
-  end
 
   %% Iterative inverse kinematics
   for i = 1:length(meanCyclicMotionHipEE.(EEselection).position(:,1))
@@ -53,29 +54,37 @@ function [jointPositions, r1, r2, r3, r4, r5, rEE] = inverseKinematics(l_hipAtta
             k = 0.001;
             max_it = 10000;
         end 
-        if linkCount == 3
-            q(4) = qAFE(i);
-        end
-        if linkCount == 4
-            q(4) = -q(3);
-            q(5) = qDFE(i);
-        end         
+
       while (norm(dr)>tol && it < max_it)
-         [J_P, ~, r_H_01, r_H_02, r_H_03, r_H_04, r_H_05, r_H_0EE] = jointToPosJac(l_hipAttachmentOffset, linkCount, rotBodyY, q, quadruped, EEselection, hipParalleltoBody);
+         [J_P, ~, r_H_01, r_H_02, r_H_03, r_H_04, r_H_05, r_H_0EE] = jointToPosJac(hipAttachmentOffset, linkCount, rotBodyY, q, quadruped, EEselection, hipParalleltoBody);
          dr = r_H_0EE_des(i,:)' - r_H_0EE;
          dq = pinv(J_P, lambda)*dr;
          q = q + k*dq;
          it = it+1;    
          if linkCount == 3
-             q(4) = qAFE(i);
+            if i > 1
+                if heuristic.torqueAngle.apply == true
+                    qPrevious = jointPositions(i-1,:); % use joint angles from last time step to compute the joint deformation at the current time step
+                    EE_force = Leg.(EEselection).force(i,1:3);
+                    [~, springDeformation] = computeFinalJointDeformation(heuristic, qPrevious, EE_force, hipAttachmentOffset, linkCount, rotBodyY, quadruped, EEselection, hipParalleltoBody);
+                    q(4) = jointPositions(1,4) + springDeformation;
+                end
+            end
          end 
          if linkCount == 4
-             q(4) = -q(3); % foot parallel to thigh requires qAFE = -qKFE 
-             q(5) = qDFE(i);
+             if i > 1
+                 if heuristic.torqueAngle.apply == true
+                     qPrevious = jointPositions(i-1,:); % use joint angles from last time step to compute the joint deformation at the current time step
+                     EE_force = Leg.(EEselection).force(i,1:3);
+                     q(4) = -q(3); % foot parallel to thigh requires qAFE = -qKFE 
+                     [~, springDeformation] = computeFinalJointDeformation(heuristic, qPrevious, EE_force, hipAttachmentOffset, linkCount, rotBodyY, quadruped, EEselection, hipParalleltoBody);
+                     q(5) = jointPositions(1,5) + springDeformation; % initial value of the joint angle plus spring deformation
+                 end
+             end
          end 
       end  
       
-%       fprintf('Inverse kinematics terminated after %d iterations.\n',it);
+      %fprintf('Inverse kinematics terminated after %d iterations.\n',it);
       jointPositions(i,:) = q';
       rEE(i,:) = r_H_0EE; %% EE coordinates
       % x y z coordinates of each joint
