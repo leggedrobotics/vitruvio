@@ -392,8 +392,8 @@ robot.mini.q4.maxAngle = -pi/2;
 
 %% load in the parameters of the selected robot into the struct quadruped which is then used by the rest of the program
 quadruped = robot.(robotSelection);
-quadruped.EE(1).mass = 0.2; 
-quadruped.EE(2).mass = 0.2; 
+quadruped.EE(1).mass = 0.19; 
+quadruped.EE(2).mass = 0.19; 
 % offset to hip attachment point. This translates the hip attachment point
 % along the x direction of the body. Here the initial offset is set such
 % that the hip is centered above the trajectory.

@@ -97,15 +97,17 @@ motion.base.position = [ts_base_pos.Data(:,1) ts_base_pos.Data(:,2) ts_base_pos.
 motion.base.velocity = [ts_base_vel.Data(:,1) ts_base_vel.Data(:,2) ts_base_vel.Data(:,3)];
 motion.base.acceleration = ts_base_acc.Data(:,1);
 
-save('ANYmalSlowTrot.mat', '-struct','motion') 
+save('testBag.mat', '-struct','motion') 
 % %% error
 % % 
-% m = 29.52;   % weight of the robot
-% g = 9.81; % gravity acceleration
-% F_ext = foot_LF.force(:,3) + foot_RF.force(:,3) + foot_LH.force(:,3) + foot_RH.force(:,3);
-% base_zdd_dynamics = 1/m*F_ext - g;
-% % calculate Root mean square error
-% base_zdd_error = base_zdd_dynamics - base_zdd;
-% norm_sqare = norm(base_zdd_error)^2;
-% n = size(t,1); % number of sampled points
-% RMSE = sqrt(norm_sqare/n) 
+m = 29.52;   % weight of the robot
+g = 9.81; % gravity acceleration
+startPoint = 150;
+endPoint = 350;
+F_ext = motion.EE.LF.force(startPoint:endPoint,3) + motion.EE.RF.force(startPoint:endPoint,3) + motion.EE.LH.force(startPoint:endPoint,3) + motion.EE.RH.force(startPoint:endPoint,3);
+base_zdd_dynamics = 1/m*F_ext - g;
+% calculate Root mean square error
+base_zdd_error = base_zdd_dynamics - base_zdd(startPoint:endPoint);
+norm_square = norm(base_zdd_error)^2;
+n = size(motion.t(startPoint:endPoint),1); % number of sampled points
+RMSE = sqrt(norm_square/n) 

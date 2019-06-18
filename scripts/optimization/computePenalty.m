@@ -2,7 +2,7 @@
 % lengths back to m to run the simulation and obtain results with base
 % units.
 
-function penalty = computePenalty(heuristic, legDesignParameters, actuateJointsDirectly, linkCount, optimizationProperties, quadruped, selectFrontHind, taskSelection, dt, configSelection, EEselection, meanCyclicMotionHipEE, hipParalleltoBody, Leg, meanTouchdownIndex)
+function penalty = computePenalty(imposeJointLimits, heuristic, legDesignParameters, actuateJointsDirectly, linkCount, optimizationProperties, quadruped, selectFrontHind, taskSelection, dt, configSelection, EEselection, meanCyclicMotionHipEE, hipParalleltoBody, Leg, meanTouchdownIndex)
 
 kTorsionalSpring = heuristic.torqueAngle.kTorsionalSpring;
 thetaLiftoff_des = heuristic.torqueAngle.thetaLiftoff_des;
@@ -58,7 +58,8 @@ tempLeg.(EEselection).rigidBodyModel = buildRobotRigidBodyModel(actuateJointsDir
 tempLeg.(EEselection).jointTorque = inverseDynamics(EEselection, tempLeg, meanCyclicMotionHipEE, linkCount);
 
 %% Energy recuperation 
-% no recuperation, set negative power terms to zero
+% here we assume no recuperation of energy possible. This means the
+% negative power terms are set to zero.
 jointPowerInitial = tempLeg.(EEselection).jointTorque .* tempLeg.(EEselection).qdot(:,1:end-1);
 jointPower = tempLeg.(EEselection).jointTorque .* tempLeg.(EEselection).qdot(:,1:end-1);
 [tempLeg.metaParameters.deltaqMax.(EEselection), tempLeg.metaParameters.qdotMax.(EEselection), tempLeg.metaParameters.jointTorqueMax.(EEselection), tempLeg.metaParameters.jointPowerMax.(EEselection), tempLeg.(EEselection).energy, tempLeg.metaParameters.energyPerCycle.(EEselection)]  = getMaximumJointStates(tempLeg, jointPower, EEselection, dt);
@@ -76,6 +77,15 @@ W_maxTorque     = optimizationProperties.penaltyWeight.maxTorque;
 W_maxqdot       = optimizationProperties.penaltyWeight.maxqdot;
 W_maxPower      = optimizationProperties.penaltyWeight.maxPower;
 allowableExtension = optimizationProperties.allowableExtension; % as ratio of total possible extension
+if imposeJointLimits.maxTorque
+    maxTorqueLimit     = optimizationProperties.bounds.maxTorqueLimit;
+end
+if imposeJointLimits.maxqdot
+    maxqdotLimit     = optimizationProperties.bounds.maxqdotLimit;
+end
+if imposeJointLimits.maxPower
+    maxPowerLimit     = optimizationProperties.bounds.maxPowerLimit;
+end
 
 %% Compute penalty terms
 % Initialize penalty terms
@@ -151,11 +161,62 @@ if W_maxPower
     maxPowerInitial      = max(max(jointPowerInitial));
     maxPower       = max(max(jointPower));
 end
+
+maxTorqueHAA = max(max(abs(tempLeg.(EEselection).jointTorque(:,1))));
+maxTorqueHFE = max(max(abs(tempLeg.(EEselection).jointTorque(:,2))));
+maxTorqueKFE = max(max(abs(tempLeg.(EEselection).jointTorque(:,3))));
+maxTorqueAFE = 0;
+maxTorqueDFE = 0;
+
+maxqdotHAA   = max(max(abs(tempLeg.(EEselection).qdot(:,1))));
+maxqdotHFE   = max(max(abs(tempLeg.(EEselection).qdot(:,2))));
+maxqdotKFE   = max(max(abs(tempLeg.(EEselection).qdot(:,3))));
+maxqdotAFE   = 0;
+maxqdotDFE   = 0;
+
+maxPowerHAA  = max(max(jointPower(:,1)));
+maxPowerHFE  = max(max(jointPower(:,2)));
+maxPowerKFE  = max(max(jointPower(:,3)));
+maxPowerAFE  = 0;
+maxPowerDFE  = 0;
+
+if linkCount == 3
+    maxTorqueAFE = max(max(abs(tempLeg.(EEselection).jointTorque(:,4))));
+    maxqdotAFE   = max(max(abs(tempLeg.(EEselection).qdot(:,4))));
+    maxPowerAFE  = max(max(jointPower(:,4)));
+end
+if linkCount == 4
+    maxTorqueAFE = max(max(abs(tempLeg.(EEselection).jointTorque(:,4))));
+    maxTorqueDFE = max(max(abs(tempLeg.(EEselection).jointTorque(:,5))));
+    maxqdotAFE   = max(max(abs(tempLeg.(EEselection).qdot(:,4))));
+    maxqdotDFE   = max(max(abs(tempLeg.(EEselection).qdot(:,5))));
+    maxPowerAFE  = max(max(jointPower(:,4)));
+    maxPowerDFE  = max(max(jointPower(:,5)));
+end
+
+maxJointTorque = [maxTorqueHAA, maxTorqueHFE, maxTorqueKFE, maxTorqueAFE, maxTorqueDFE];
+maxJointqdot   = [maxqdotHAA, maxqdotHFE, maxqdotKFE, maxqdotAFE, maxqdotDFE];
+maxJointPower  = [maxPowerHAA, maxPowerHFE, maxPowerKFE, maxPowerAFE, maxPowerDFE];
+
+%% Compute max joint torque, speed and power limit violation penalties
+torqueLimitPenalty = 0; speedLimitPenalty = 0; powerLimitPenalty = 0;
+if (imposeJointLimits.maxTorque) && (any(maxJointTorque-maxTorqueLimit>0))
+    torqueLimitPenalty = 5;
+end
+
+if (imposeJointLimits.maxqdot) && (any(maxJointqdot-maxqdotLimit>0))
+    speedLimitPenalty = 5;
+end
+
+if (imposeJointLimits.maxPower) && (any(maxJointPower-maxPowerLimit>0))
+    powerLimitPenalty = 5;
+end
+
 %% Compute constraint penalty terms
 % TRACKING ERROR PENALTY
 % impose tracking error penalty if any point has tracking error above an
 % allowable threshhold
-trackingError = meanCyclicMotionHipEE.(EEselection).position-tempLeg.(EEselection).r.EE;
+trackingError = meanCyclicMotionHipEE.(EEselection).position(1:end-2,:)-tempLeg.(EEselection).r.EE;
 if max(abs(trackingError)) > 0.01
     trackingErrorPenalty = 10;
 else
@@ -214,5 +275,8 @@ penalty = W_totalTorque * (totalTorque/totalTorqueInitial) + ...
           trackingErrorPenalty + ...
           jointBelowEEPenalty + ...
           maximumExtensionPenalty + ...
-          KFEHeightPenalty;
+          KFEHeightPenalty + ...
+          torqueLimitPenalty + ...
+          speedLimitPenalty + ...
+          powerLimitPenalty;
 end

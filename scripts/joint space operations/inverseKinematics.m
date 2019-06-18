@@ -45,11 +45,11 @@ function [jointPositions, r1, r2, r3, r4, r5, rEE] = inverseKinematics(heuristic
   for i = 1:length(meanCyclicMotionHipEE.(EEselection).position(:,1))
        % to keep system right handed, input body rotation as negative. A
        % negative value then means positive angle of attack.
-        rotBodyY = -meanCyclicMotionHipEE.body.eulerAngles(i,2); % rotation of body about inertial y
+        rotBodyY = -meanCyclicMotionHipEE.body.eulerAngles.(EEselection)(i,2); % rotation of body about inertial y
         it = 0; % reset iteration count
         dr = r_H_0EE_des(i,:)' - r_H_0EE;
         k = 0.2;
-        max_it = 200;
+        max_it = 2000;
         if i < 2 % fine update for first point, then can make update more coarse
             k = 0.001;
             max_it = 10000;
@@ -84,7 +84,6 @@ function [jointPositions, r1, r2, r3, r4, r5, rEE] = inverseKinematics(heuristic
          end 
       end  
       
-      %fprintf('Inverse kinematics terminated after %d iterations.\n',it);
       jointPositions(i,:) = q';
       rEE(i,:) = r_H_0EE; %% EE coordinates
       % x y z coordinates of each joint
@@ -97,6 +96,7 @@ function [jointPositions, r1, r2, r3, r4, r5, rEE] = inverseKinematics(heuristic
   % We can remove the final two points that were looped around. This
   % ensures the position, vel, accel vectors all have the same length after
   % applying finite difference and the data exactly captures one cycle.
+  rEE = rEE(1:end-2,:);
   r1 = r1(1:end-2,:);
   r2 = r2(1:end-2,:);
   r3 = r3(1:end-2,:);

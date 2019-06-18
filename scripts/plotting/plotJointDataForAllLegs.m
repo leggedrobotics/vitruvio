@@ -4,7 +4,8 @@ EEnames = ['LF'; 'RF'; 'LH'; 'RH'];
 data = classSelection.(taskSelection);
 dt = 0.01;
 
-figure()
+%% joint Position
+figure('name', 'Joint Position', 'DefaultAxesFontSize', 10)
 jointCount = length(data.LF.jointTorque(1,:));
 for i = 1:4
     EEselection = EEnames(i,:);
@@ -22,8 +23,8 @@ for i = 1:4
     grid on
     xlabel('Time [s]')
     ylabel('Position [deg]')
-    xlim([time(1),2/3*time(end)])
-    ylim([-5, 5])
+%     xlim([time(1), time(end)])
+%     ylim([-5, 5])
     title([EEselection '\_HAA'])
     hold off
     
@@ -38,8 +39,8 @@ for i = 1:4
     grid on
     xlabel('Time [s]')
     ylabel('Position [deg]')
-    xlim([time(1),2/3*time(end)])
-    ylim([-30, 30])
+%     xlim([time(1), time(end)])
+%     ylim([-30, 30])
     title([EEselection '\_HFE'])
     hold off
     
@@ -54,8 +55,8 @@ for i = 1:4
     grid on
     xlabel('Time [s]')
     ylabel('Position [deg]')
-    xlim([time(1),2/3*time(end)])
-    ylim([-35, 35])
+%     xlim([time(1), time(end)])
+%     ylim([-35, 35])
     title([EEselection '\_KFE'])
     hold off
     
@@ -70,7 +71,7 @@ for i = 1:4
         grid on
         xlabel('Time [s]')
         ylabel('Position [deg]')
-        xlim([time(1),2/3*time(end)])
+%         xlim([time(1), time(end)])
         title([EEselection '\_AFE'])
         hold off
     end
@@ -85,14 +86,14 @@ for i = 1:4
         grid on
         xlabel('Time [s]')
         ylabel('Position [deg]')
-        xlim([time(1),2/3*time(end)])
+%         xlim([time(1), time(end)])
         title([EEselection '\_DFE'])
         hold off
     end
 end
 
 %% Joint velocity plots
-figure()
+figure('name', 'Joint Velocity', 'DefaultAxesFontSize', 10)
 for i = 1:4
     EEselection = EEnames(i,:);
     time = 0:dt:3*length(data.(EEselection).jointTorque)*dt-dt;    
@@ -107,7 +108,7 @@ for i = 1:4
     grid on
     xlabel('Time [s]')
     ylabel('Velocity [rad/s]')
-    xlim([time(1),2/3*time(end)])
+%     xlim([time(1), time(end)])
     ylim([-1, 1])
     title([EEselection '\_HAA'])
     hold off
@@ -123,8 +124,8 @@ for i = 1:4
     grid on
     xlabel('Time [s]')
     ylabel('Velocity [rad/s]')
-    xlim([time(1),2/3*time(end)])
-    ylim([-4, 3]);
+%     xlim([time(1), time(end)])
+%     ylim([-4, 3]);
     title([EEselection '\_HFE'])
     hold off
     
@@ -139,8 +140,8 @@ for i = 1:4
     grid on
     xlabel('Time [s]')
     ylabel('Velocity [rad/s]')
-    xlim([time(1),2/3*time(end)])
-    ylim([-6, 6]);
+%     xlim([time(1), time(end)])
+%     ylim([-6, 6]);
     title([EEselection '\_KFE'])
     hold off
     if (jointCount == 4 || jointCount == 5) 
@@ -154,7 +155,7 @@ for i = 1:4
         grid on
         xlabel('Time [s]')
         ylabel('Velocity [rad/s]')
-        xlim([time(1),2/3*time(end)])
+%         xlim([time(1), time(end)])
         title([EEselection '\_AFE'])
         hold off
     end
@@ -169,14 +170,14 @@ for i = 1:4
         end        
         xlabel('Time [s]')
         ylabel('Velocity [rad/s]')
-        xlim([time(1),2/3*time(end)])
+%         xlim([time(1), time(end)])
         title([EEselection '\_DFE'])
         hold off
     end
 end
 
 %% Joint torque plots
-figure()
+figure('name', 'Joint Torque', 'DefaultAxesFontSize', 10)
 for i = 1:4
     EEselection = EEnames(i,:);
     time = 0:dt:3*length(data.(EEselection).jointTorque)*dt-dt;    
@@ -191,8 +192,8 @@ for i = 1:4
     grid on
     xlabel('Time [s]')
     ylabel('Torque [Nm]')
-    xlim([time(1),2/3*time(end)])
-    ylim([-20, 5])
+%     xlim([time(1), time(end)])
+%     ylim([-20, 5])
     title([EEselection '\_HAA'])
     hold off
     % Hip flexion/extension
@@ -206,8 +207,8 @@ for i = 1:4
     grid on
     xlabel('Time [s]')
     ylabel('Torque [Nm]')
-    xlim([time(1),2/3*time(end)])
-    ylim([-20, 15]);
+%     xlim([time(1), time(end)])
+%     ylim([-20, 15]);
     title([EEselection '\_HFE'])
     hold off
     
@@ -222,8 +223,8 @@ for i = 1:4
     grid on
     xlabel('Time [s]')
     ylabel('Torque [Nm]')
-    xlim([time(1),2/3*time(end)])
-    ylim([-30, 40]);
+%     xlim([time(1), time(end)])
+%     ylim([-30, 40]);
     title([EEselection '\_KFE'])
     hold off
     if (jointCount == 4 || jointCount == 5) 
@@ -237,7 +238,7 @@ for i = 1:4
         grid on
         xlabel('Time [s]')
         ylabel('Torque [Nm]')
-        xlim([time(1),2/3*time(end)])
+%         xlim([time(1), time(end)])
         title([EEselection '\_AFE'])
         hold off
     end
@@ -252,13 +253,13 @@ for i = 1:4
         grid on
         xlabel('Time [s]')
         ylabel('Torque [Nm]')
-        xlim([time(1),2/3*time(end)])
+%         xlim([time(1), time(end)])
         title([EEselection '\_DFE'])
         hold off
     end
 end
 %% Joint power plots
-figure()
+figure('name', 'Joint Power', 'DefaultAxesFontSize', 10)
 for i = 1:4
     EEselection = EEnames(i,:);
     time = 0:dt:3*length(data.(EEselection).jointTorque)*dt-dt;    
@@ -273,8 +274,8 @@ for i = 1:4
     grid on
     xlabel('Time [s]')
     ylabel('Power [W]')
-    xlim([time(1),2/3*time(end)])
-    ylim([-3, 1.5])
+%     xlim([time(1), time(end)])
+%     ylim([-3, 1.5])
     title([EEselection '\_HAA'])
     hold off
     
@@ -289,8 +290,8 @@ for i = 1:4
     grid on
     xlabel('Time [s]')
     ylabel('Power [W]')
-    xlim([time(1),2/3*time(end)])
-    ylim([-40, 35]);
+%     xlim([time(1), time(end)])
+%     ylim([-40, 35]);
 
     title([EEselection '\_HFE'])
     hold off
@@ -306,8 +307,8 @@ for i = 1:4
     grid on
     xlabel('Time [s]')
     ylabel('Power [W]')
-    xlim([time(1),2/3*time(end)])
-    ylim([-15, 15]);
+%     xlim([time(1), time(end)])
+%     ylim([-15, 15]);
     title([EEselection '\_KFE'])
     hold off
     if (jointCount == 4 || jointCount == 5) 
@@ -321,7 +322,7 @@ for i = 1:4
         grid on
         xlabel('Time [s]')
         ylabel('Power [W]')
-        xlim([time(1),2/3*time(end)])
+%         xlim([time(1), time(end)])
         title([EEselection '\_AFE'])
         hold off
     end
@@ -336,7 +337,7 @@ for i = 1:4
         grid on
         xlabel('Time [s]')
         ylabel('Power [W]')
-        xlim([time(1),2/3*time(end)])
+%         xlim([time(1), time(end)])
         title([EEselection '\_DFE'])
         hold off
     end
@@ -354,7 +355,7 @@ for i = 1:4
     end
 end
 
-figure()
+figure('name', 'Joint Energy Consumption', 'DefaultAxesFontSize', 10)
 for i = 1:4
     EEselection = EEnames(i,:);
     time = 0:dt:3*length(data.(EEselection).jointTorque)*dt-dt;    
@@ -369,8 +370,8 @@ for i = 1:4
     grid on
     xlabel('Time [s]')
     ylabel('Energy [J]')
-    xlim([time(1),2/3*time(end)])
-    ylim([0,1])
+%     xlim([time(1), time(end)])
+%     ylim([0,1])
     title([EEselection '\_HAA'])
     hold off
     
@@ -385,8 +386,8 @@ for i = 1:4
     grid on
     xlabel('Time [s]')
     ylabel('Energy [J]')
-    xlim([time(1),2/3*time(end)])
-    ylim([0,6])
+%     xlim([time(1), time(end)])
+%     ylim([0,6])
     title([EEselection '\_HFE'])
     hold off
     
@@ -401,8 +402,8 @@ for i = 1:4
     grid on
     xlabel('Time [s]')
     ylabel('Energy [J]')
-    xlim([time(1),2/3*time(end)])
-    ylim([0,10])
+%     xlim([time(1), time(end)])
+%     ylim([0,10])
     title([EEselection '\_KFE'])
     hold off
     if (jointCount == 4 || jointCount == 5) 
@@ -416,8 +417,8 @@ for i = 1:4
         grid on
         xlabel('Time [s]')
         ylabel('Energy [J]')
-        xlim([time(1),2/3*time(end)])
-        ylim([0,4])
+%         xlim([time(1), time(end)])
+%         ylim([0,4])
         title([EEselection '\_AFE'])
         hold off
     end
@@ -432,8 +433,106 @@ for i = 1:4
         grid on
         xlabel('Time [s]')
         ylabel('Energy [J]')
-        xlim([time(1),2/3*time(end)])
-        ylim([0,4])
+%         xlim([time(1), time(end)])
+%         ylim([0,4])
+        title([EEselection '\_DFE'])
+        hold off
+    end
+end
+
+%% Overlay velocity torque plots
+figure('name', 'Joint Velocity and Torque', 'DefaultAxesFontSize', 10)
+for i = 1:4
+    EEselection = EEnames(i,:);
+    time = 0:dt:3*length(data.(EEselection).jointTorque)*dt-dt;    
+    %Hip abduction/adduction
+    subplot(jointCount, 4, i);
+    hold on
+    plot(time, [data.(EEselection).jointTorque(:,1); data.(EEselection).jointTorque(:,1); data.(EEselection).jointTorque(:,1)],'r', 'LineWidth', 2);
+    plot(time, [data.(EEselection).qdot(:,1); data.(EEselection).qdot(:,1); data.(EEselection).qdot(:,1)],'b', 'LineWidth', 2);
+    if plotOptimizedLeg.(EEselection)
+        plot(time, [data.(EEselection).jointTorqueOpt(:,1); data.(EEselection).jointTorqueOpt(:,1); data.(EEselection).jointTorqueOpt(:,1)],'b', 'LineWidth', 2);
+        legend('torque', 'velocity')   
+    end    
+    grid on
+    xlabel('Time [s]')
+    ylabel('Torque [Nm]')
+%     xlim([time(1), time(end)])
+%     ylim([-20, 5])
+    yyaxis right
+    ylabel('Velocity [rad/s]')
+%     ylim([-1 1])
+    title([EEselection '\_HAA'])
+    hold off
+    % Hip flexion/extension
+    subplot(jointCount, 4, 4+i);
+    hold on
+    plot(time, [data.(EEselection).jointTorque(:,2); data.(EEselection).jointTorque(:,2); data.(EEselection).jointTorque(:,2)],'r', 'LineWidth', 2);
+    plot(time, [data.(EEselection).qdot(:,2); data.(EEselection).qdot(:,2); data.(EEselection).qdot(:,2)],'b', 'LineWidth', 2);
+
+    if plotOptimizedLeg.(EEselection)
+        plot(time, [data.(EEselection).jointTorqueOpt(:,2); data.(EEselection).jointTorqueOpt(:,2); data.(EEselection).jointTorqueOpt(:,2)],'b', 'LineWidth', 2);
+        legend('torque', 'velocity')   
+    end     
+    grid on
+    xlabel('Time [s]')
+    ylabel('Torque [Nm]')
+%     xlim([time(1), time(end)])
+%     ylim([-20, 15]);
+    yyaxis right
+    ylabel('Velocity [rad/s]')
+%     ylim([-4, 3]);
+    title([EEselection '\_HFE'])
+    hold off
+    
+    % Knee flexion/extension
+    subplot(jointCount, 4, 8+i);
+    hold on
+    plot(time, [data.(EEselection).jointTorque(:,3); data.(EEselection).jointTorque(:,3); data.(EEselection).jointTorque(:,3)],'r', 'LineWidth', 2);
+    plot(time, [data.(EEselection).qdot(:,3); data.(EEselection).qdot(:,3); data.(EEselection).qdot(:,3)],'b', 'LineWidth', 2);    
+    if plotOptimizedLeg.(EEselection)
+        plot(time, [data.(EEselection).jointTorqueOpt(:,3); data.(EEselection).jointTorqueOpt(:,3); data.(EEselection).jointTorqueOpt(:,3)],'b', 'LineWidth', 2);
+        legend('torque', 'velocity')   
+    end     
+    grid on
+    xlabel('Time [s]')
+    ylabel('Torque [Nm]')
+    %xlim([time(1), time(end)])
+    %ylim([-30, 40]);
+    yyaxis right
+    ylabel('Velocity [rad/s]')
+    %ylim([-6, 6]);
+    title([EEselection '\_KFE'])
+    hold off
+    if (jointCount == 4 || jointCount == 5) 
+        subplot(jointCount, 4, 12+i);
+        hold on
+        plot(time, [data.(EEselection).jointTorque(:,4); data.(EEselection).jointTorque(:,4); data.(EEselection).jointTorque(:,4)],'r', 'LineWidth', 2);
+        if plotOptimizedLeg.(EEselection)
+            plot(time, [data.(EEselection).jointTorqueOpt(:,4); data.(EEselection).jointTorqueOpt(:,4); data.(EEselection).jointTorqueOpt(:,4)],'b', 'LineWidth', 2);
+        legend('torque', 'velocity')   
+        end         
+        grid on
+        xlabel('Time [s]')
+        ylabel('Torque [Nm]')
+        yylabel('Velocity [rad/s]')
+        %xlim([time(1), time(end)])
+        title([EEselection '\_AFE'])
+        hold off
+    end
+    if jointCount == 5
+        subplot(jointCount, 4, 16+i);
+        hold on
+        plot(time, [data.(EEselection).jointTorque(:,5); data.(EEselection).jointTorque(:,5); data.(EEselection).jointTorque(:,5)],'r', 'LineWidth', 2);
+        if plotOptimizedLeg.(EEselection)
+            plot(time, [data.(EEselection).jointTorqueOpt(:,5); data.(EEselection).jointTorqueOpt(:,5); data.(EEselection).jointTorqueOpt(:,5)],'b', 'LineWidth', 2);
+        legend('torque', 'velocity')   
+        end        
+        grid on
+        xlabel('Time [s]')
+        ylabel('Torque [Nm]')
+        yylabel('Velocity [rad/s]')
+        %xlim([time(1), time(end)])
         title([EEselection '\_DFE'])
         hold off
     end

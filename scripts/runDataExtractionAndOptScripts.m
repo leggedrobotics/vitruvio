@@ -1,9 +1,7 @@
-function Leg = runDataExtractionAndOptScripts(heuristic, actuateJointsDirectly, viewVisualization, numberOfLoopRepetitions, viewTrajectoryPlots, linkCount, runOptimization, viewOptimizedLegPlot, optimizeLF, optimizeLH, optimizeRF, optimizeRH, optimizationProperties, taskSelection, classSelection, configSelection, hipParalleltoBody)
+function Leg = runDataExtractionAndOptScripts(averageStepsForCyclicalMotion, imposeJointLimits, heuristic, actuateJointsDirectly, viewVisualization, numberOfLoopRepetitions, viewTrajectoryPlots, linkCount, runOptimization, viewOptimizedLegPlot, optimizeLF, optimizeLH, optimizeRF, optimizeRH, optimizationProperties, taskSelection, classSelection, configSelection, hipParalleltoBody)
 
 EEnames = ['LF'; 'RF'; 'LH'; 'RH'];
 linkNames = {'hip','thigh' 'shank' 'foot' 'phalanges'};
-l_hipAttachmentOffset.fore = -0.14; % this will become an optimization parameter but for now is hard coded. Need one for hind and one for front legs.
-l_hipAttachmentOffset.hind = 0.14;
 fprintf('Loading data for task %s.\n', taskSelection);
 
 % Get suggested removal ratio for cropping motion data to useful steady state motion
@@ -11,6 +9,7 @@ fprintf('Loading data for task %s.\n', taskSelection);
 
 % Load motion and force data from .mat file
 load(taskSelection);
+dt = t(2) - t(1);
 
 %% Load corresponding robot parameters
 fprintf('Loading quadruped properties for %s.\n', classSelection);
@@ -32,25 +31,43 @@ end
 fprintf('Computing motion of end effectors relative to hip attachment points. \n');
 [relativeMotionHipEE, IF_hip, C_IBody] = getRelativeMotionEEHips(quat, quadruped, base, EE, dt);
 
+%% Get deviation from neighbouring point
+for i = 1:4
+    EEselection = EEnames(i,:);
+    [neighbouringPointDeviation.(EEselection), neighbouringPointDeviationMax.(EEselection)] = getDeviationFromNeighbouringPoint(relativeMotionHipEE, EEselection);
+    Leg.metaParameters.neighbouringPointDeviation.(EEselection) = neighbouringPointDeviation.(EEselection);
+    Leg.metaParameters.neighbouringPointDeviationMax.(EEselection) = neighbouringPointDeviationMax.(EEselection);
+end
+%% If points are spread too far apart, interpolate to add more points
+allowableDeviation = 0.03;
+if max([neighbouringPointDeviationMax.LF, neighbouringPointDeviationMax.LH, neighbouringPointDeviationMax.RF, neighbouringPointDeviationMax.RH]) > allowableDeviation
+    fprintf('Interpolating points to reduce distance between neighbouring points. \n');
+    for i = 1:4
+        EEselection = EEnames(i,:);
+        [relativeMotionHipEE.(EEselection).position, relativeMotionHipEE.(EEselection).velocity, EE.(EEselection).force, C_IBody] = generateAdditionalPoints(relativeMotionHipEE, EE, C_IBody, EEselection);
+     end
+    dt = dt/2;
+    t = [0:dt:t(end)]';
+end
+% recompute the deviation from neighbouring point
+for i = 1:4
+    EEselection = EEnames(i,:);
+    [neighbouringPointDeviation.(EEselection), neighbouringPointDeviationMax.(EEselection)] = getDeviationFromNeighbouringPoint(relativeMotionHipEE, EEselection);
+    Leg.metaParameters.neighbouringPointDeviation.(EEselection) = neighbouringPointDeviation.(EEselection);
+    Leg.metaParameters.neighbouringPointDeviationMax.(EEselection) = neighbouringPointDeviationMax.(EEselection);
+end
 %% Get the liftoff and touchdown timings for each end effector
-dt = t(2) - t(1);
 fprintf('Computing end effector liftoff and touchdown timings. \n');
 [tLiftoff, tTouchdown, minStepCount] = getEELiftoffTouchdownTimings(t, EE);
 
 %% Get the mean cyclic position and forces for each end effector
 fprintf('Computing average relative motion of end effectors over one step. \n');
-[meanCyclicMotionHipEE, cyclicMotionHipEE, meanCyclicC_IBody, samplingStart, samplingEnd, meanTouchdownIndex] = getHipEECyclicData(quadruped, tLiftoff, relativeMotionHipEE, EE, removalRatioStart, removalRatioEnd, dt, minStepCount, C_IBody, EEnames);
+[meanCyclicMotionHipEE, cyclicMotionHipEE, meanCyclicC_IBody, samplingStart, samplingEnd, meanTouchdownIndex] = Copy_of_getHipEECyclicData(averageStepsForCyclicalMotion, quadruped, tLiftoff, relativeMotionHipEE, EE, removalRatioStart, removalRatioEnd, dt, minStepCount, C_IBody, EEnames);
 for i = 1:4
     EEselection = EEnames(i,:);
     Leg.(EEselection).force = meanCyclicMotionHipEE.(EEselection).force;
 end
 
-% this is a temporary solution to the issue of phase shift between end
-% effector and body, particularly for speedy gallop. For stair climbing robots, the body rotates but the
-% rotation is neglected for flat ground.
-if abs(mean(meanCyclicMotionHipEE.body.eulerAngles(:,2))) < 0.2
-    meanCyclicMotionHipEE.body.eulerAngles = zeros(length(meanCyclicMotionHipEE.body.eulerAngles),3);
-end
 %% Get reachable positions for link lengths and joint limits
 fprintf('Computing range of motion dependent on link lengths and joint limits. \n');
 reachablePositions = getRangeofMotion(quadruped);
@@ -85,18 +102,17 @@ if (heuristic.torqueAngle.apply == true) && (linkCount > 2)
         qLiftoff.(EEselection) = 0;
 end
 
-
 %% inverse kinematics
 fprintf('Computing joint angles using inverse kinematics.\n');
 for i = 1:4
     EEselection = EEnames(i,:);
     if (EEselection == 'LF') | (EEselection == 'RF')
-        hipAttachmentOffset = l_hipAttachmentOffset.fore;
+        hipAttachmentOffset = -quadruped.hip(1).length; % initial design keeps hip centered above trajectory but this value can be optimized
     elseif (EEselection == 'LH') | (EEselection == 'RH')
-        hipAttachmentOffset = l_hipAttachmentOffset.hind;
+        hipAttachmentOffset = quadruped.hip(2).length;
     end
     [Leg.(EEselection).q, Leg.(EEselection).r.HAA, Leg.(EEselection).r.HFE, Leg.(EEselection).r.KFE, Leg.(EEselection).r.AFE, Leg.(EEselection).r.DFE, Leg.(EEselection).r.EE]  = inverseKinematics(heuristic, qLiftoff, hipAttachmentOffset, linkCount, meanCyclicMotionHipEE, quadruped, EEselection, taskSelection, configSelection, hipParalleltoBody, Leg);
-     Leg.(EEselection).r.EEdes = meanCyclicMotionHipEE.(EEselection).position; % save desired EE position in the same struct for easy comparison
+     Leg.(EEselection).r.EEdes = meanCyclicMotionHipEE.(EEselection).position(1:end-2,:); % save desired EE position in the same struct for easy comparison
 end
 
 %% Build robot rigid body model
@@ -104,9 +120,9 @@ fprintf('Creating and visualizing robot rigid body model. \n');
 for i = 1:4
     EEselection = EEnames(i,:);
     if (EEselection == 'LF') | (EEselection == 'RF')
-        hipAttachmentOffset = l_hipAttachmentOffset.fore;
+        hipAttachmentOffset = -quadruped.hip(1).length;
     elseif (EEselection == 'LH') | (EEselection == 'RH')
-        hipAttachmentOffset = l_hipAttachmentOffset.hind;
+        hipAttachmentOffset = quadruped.hip(2).length;
     end
     Leg.(EEselection).rigidBodyModel = buildRobotRigidBodyModel(actuateJointsDirectly, hipAttachmentOffset, linkCount, quadruped, Leg, meanCyclicMotionHipEE, EEselection, numberOfLoopRepetitions, viewVisualization, hipParalleltoBody);
 end
@@ -139,9 +155,9 @@ for i = 1:4
     EEselection = EEnames(i,:);
     [Leg.(EEselection).linkMass, Leg.(EEselection).EEMass, Leg.(EEselection).totalLinkMass] = getLinkMass(Leg, EEselection, linkCount);
     if (EEselection == 'LF') | (EEselection == 'RF')
-        Leg.(EEselection).hipOffset = quadruped.hipOffset(1);
+        Leg.(EEselection).hipOffset = quadruped.hipOffset(1); 
     else
-         Leg.(EEselection).hipOffset = quadruped.hipOffset(2);
+        Leg.(EEselection).hipOffset = quadruped.hipOffset(2);
     end
 end
 
@@ -149,6 +165,7 @@ end
 Leg.CoM.velocity = base.velocity(floor(removalRatioStart*length(base.velocity))+1:floor((1-removalRatioEnd)*length(base.velocity)),:);
 Leg.metaParameters.CoT.total = 0;
 Leg.metaParameters.energyPerCycleTotal = 0;
+Leg.metaParameters.energyPerCycleTotalOpt = 0;
 for i = 1:4
     EEselection = EEnames(i,:);
     power = Leg.(EEselection).jointPower;
@@ -162,13 +179,23 @@ end
 
 %% Optimize selected legs and compute their cost of transport
 if runOptimization
+    if imposeJointLimits.maxTorque
+        [optimizationProperties.bounds.maxTorqueLimit, ~, ~] = getActuatorLimits(classSelection);
+    end
+    if imposeJointLimits.maxqdot
+        [~, optimizationProperties.bounds.maxqdotLimit, ~] = getActuatorLimits(classSelection);
+    end
+    if imposeJointLimits.maxPower
+        [~, ~, optimizationProperties.bounds.maxPowerLimit] = getActuatorLimits(classSelection);
+    end
     Leg.metaParameters.CoTOpt.total = 0;
+
     if optimizeLF
         EEselection = 'LF';
         hipAttachmentOffset = l_hipAttachmentOffset.fore;
         fprintf('\nInitiating optimization of link lengths for %s\n', EEselection);
          % evolve leg
-        [Leg.(EEselection).jointTorqueOpt, Leg.(EEselection).qOpt, Leg.(EEselection).qdotOpt, Leg.(EEselection).qdotdotOpt, Leg.(EEselection).rOpt,  Leg.(EEselection).jointPowerOpt, Leg.(EEselection).linkLengthsOpt, Leg.(EEselection).hipOffsetOpt, Leg.(EEselection).penaltyMinOpt, Leg.metaParameters.elapsedTime.(EEselection), Leg.metaParameters.(EEselection).elapsedTimePerFuncEval, Leg.metaParameters.(EEselection).output, Leg.(EEselection).linkMassOpt, Leg.(EEselection).totalLinkMassOpt] = evolveAndVisualizeOptimalLeg(heuristic, actuateJointsDirectly, hipAttachmentOffset, linkCount, optimizationProperties, EEselection, meanCyclicMotionHipEE, quadruped, configSelection, dt, taskSelection, hipParalleltoBody, Leg, meanTouchdownIndex);
+        [Leg.(EEselection).jointTorqueOpt, Leg.(EEselection).qOpt, Leg.(EEselection).qdotOpt, Leg.(EEselection).qdotdotOpt, Leg.(EEselection).rOpt,  Leg.(EEselection).jointPowerOpt, Leg.(EEselection).linkLengthsOpt, Leg.(EEselection).hipOffsetOpt, Leg.(EEselection).penaltyMinOpt, Leg.metaParameters.elapsedTime.(EEselection), Leg.metaParameters.elapsedTimePerFuncEval.(EEselection), Leg.metaParameters.(EEselection).output, Leg.(EEselection).linkMassOpt, Leg.(EEselection).totalLinkMassOpt] = evolveAndVisualizeOptimalLeg(imposeJointLimits, heuristic, actuateJointsDirectly, hipAttachmentOffset, linkCount, optimizationProperties, EEselection, meanCyclicMotionHipEE, quadruped, configSelection, dt, taskSelection, hipParalleltoBody, Leg, meanTouchdownIndex);
          Leg.(EEselection).qOpt = Leg.(EEselection).qOpt(1:end-2,:); % after solving finite difference we can remove the additional looped around terms from the position vector,
          % compute CoT 
          power = Leg.(EEselection).jointPowerOpt;
@@ -181,7 +208,7 @@ if runOptimization
         hipAttachmentOffset = l_hipAttachmentOffset.hind;        
         fprintf('\nInitiating optimization of link lengths for %s\n', EEselection);
         % evolve leg
-        [Leg.(EEselection).jointTorqueOpt, Leg.(EEselection).qOpt, Leg.(EEselection).qdotOpt, Leg.(EEselection).qdotdotOpt, Leg.(EEselection).rOpt,  Leg.(EEselection).jointPowerOpt, Leg.(EEselection).linkLengthsOpt, Leg.(EEselection).hipOffsetOpt, Leg.(EEselection).penaltyMinOpt, Leg.metaParameters.elapsedTime.(EEselection), Leg.(EEselection).metaParameters.elapsedTimePerFuncEval, Leg.(EEselection).metaParameters.output, Leg.(EEselection).linkMassOpt,  Leg.(EEselection).totalLinkMassOpt] = evolveAndVisualizeOptimalLeg(heuristic, actuateJointsDirectly, hipAttachmentOffset, linkCount, optimizationProperties, EEselection, meanCyclicMotionHipEE, quadruped, configSelection, dt, taskSelection, hipParalleltoBody, Leg, meanTouchdownIndex);
+        [Leg.(EEselection).jointTorqueOpt, Leg.(EEselection).qOpt, Leg.(EEselection).qdotOpt, Leg.(EEselection).qdotdotOpt, Leg.(EEselection).rOpt,  Leg.(EEselection).jointPowerOpt, Leg.(EEselection).linkLengthsOpt, Leg.(EEselection).hipOffsetOpt, Leg.(EEselection).penaltyMinOpt, Leg.metaParameters.elapsedTime.(EEselection), Leg.metaParameters.elapsedTimePerFuncEval.(EEselection), Leg.(EEselection).metaParameters.output, Leg.(EEselection).linkMassOpt,  Leg.(EEselection).totalLinkMassOpt] = evolveAndVisualizeOptimalLeg(imposeJointLimits, heuristic, actuateJointsDirectly, hipAttachmentOffset, linkCount, optimizationProperties, EEselection, meanCyclicMotionHipEE, quadruped, configSelection, dt, taskSelection, hipParalleltoBody, Leg, meanTouchdownIndex);
          Leg.(EEselection).qOpt = Leg.(EEselection).qOpt(1:end-2,:); % after solving finite difference we can remove the additional looped around terms from the position vectors
         % compute CoT
          power = Leg.(EEselection).jointPowerOpt;
@@ -194,7 +221,7 @@ if runOptimization
         hipAttachmentOffset = l_hipAttachmentOffset.fore;      
         fprintf('\nInitiating optimization of link lengths for %s\n', EEselection);
         % evolve leg
-        [Leg.(EEselection).jointTorqueOpt, Leg.(EEselection).qOpt, Leg.(EEselection).qdotOpt, Leg.(EEselection).qdotdotOpt, Leg.(EEselection).rOpt,  Leg.(EEselection).jointPowerOpt, Leg.(EEselection).linkLengthsOpt, Leg.(EEselection).hipOffsetOpt, Leg.(EEselection).penaltyMinOpt, Leg.metaParameters.elapsedTime.(EEselection), Leg.(EEselection).metaParameters.elapsedTimePerFuncEval, Leg.(EEselection).metaParameters.output, Leg.(EEselection).linkMassOpt,  Leg.(EEselection).totalLinkMassOpt] = evolveAndVisualizeOptimalLeg(heuristic, actuateJointsDirectly, hipAttachmentOffset, linkCount, optimizationProperties, EEselection, meanCyclicMotionHipEE, quadruped, configSelection, dt, taskSelection, hipParalleltoBody, Leg, meanTouchdownIndex);
+        [Leg.(EEselection).jointTorqueOpt, Leg.(EEselection).qOpt, Leg.(EEselection).qdotOpt, Leg.(EEselection).qdotdotOpt, Leg.(EEselection).rOpt,  Leg.(EEselection).jointPowerOpt, Leg.(EEselection).linkLengthsOpt, Leg.(EEselection).hipOffsetOpt, Leg.(EEselection).penaltyMinOpt, Leg.metaParameters.elapsedTime.(EEselection), Leg.metaParameters.elapsedTimePerFuncEval.(EEselection), Leg.(EEselection).metaParameters.output, Leg.(EEselection).linkMassOpt,  Leg.(EEselection).totalLinkMassOpt] = evolveAndVisualizeOptimalLeg(imposeJointLimits, heuristic, actuateJointsDirectly, hipAttachmentOffset, linkCount, optimizationProperties, EEselection, meanCyclicMotionHipEE, quadruped, configSelection, dt, taskSelection, hipParalleltoBody, Leg, meanTouchdownIndex);
          Leg.(EEselection).qOpt = Leg.(EEselection).qOpt(1:end-2,:); % after solving finite difference we can remove the additional looped around terms from the position vectors
         % compute CoT
          power = Leg.(EEselection).jointPowerOpt;
@@ -207,7 +234,7 @@ if runOptimization
         hipAttachmentOffset = l_hipAttachmentOffset.hind;
         fprintf('\nInitiating optimization of link lengths for %s\n', EEselection);
         % evolve leg
-        [Leg.(EEselection).jointTorqueOpt, Leg.(EEselection).qOpt, Leg.(EEselection).qdotOpt, Leg.(EEselection).qdotdotOpt, Leg.(EEselection).rOpt,  Leg.(EEselection).jointPowerOpt, Leg.(EEselection).linkLengthsOpt, Leg.(EEselection).hipOffsetOpt, Leg.(EEselection).penaltyMinOpt, Leg.metaParameters.elapsedTime.(EEselection), Leg.metaParameters.(EEselection).elapsedTimePerFuncEval, Leg.(EEselection).metaParameters.output, Leg.(EEselection).linkMassOpt,  Leg.(EEselection).totalLinkMassOpt] = evolveAndVisualizeOptimalLeg(heuristic, actuateJointsDirectly, hipAttachmentOffset, linkCount, optimizationProperties, EEselection, meanCyclicMotionHipEE, quadruped, configSelection, dt, taskSelection, hipParalleltoBody, Leg, meanTouchdownIndex);
+        [Leg.(EEselection).jointTorqueOpt, Leg.(EEselection).qOpt, Leg.(EEselection).qdotOpt, Leg.(EEselection).qdotdotOpt, Leg.(EEselection).rOpt,  Leg.(EEselection).jointPowerOpt, Leg.(EEselection).linkLengthsOpt, Leg.(EEselection).hipOffsetOpt, Leg.(EEselection).penaltyMinOpt, Leg.metaParameters.elapsedTime.(EEselection), Leg.metaParameters.elapsedTimePerFuncEval.(EEselection), Leg.(EEselection).metaParameters.output, Leg.(EEselection).linkMassOpt,  Leg.(EEselection).totalLinkMassOpt] = evolveAndVisualizeOptimalLeg(imposeJointLimits, heuristic, actuateJointsDirectly, hipAttachmentOffset, linkCount, optimizationProperties, EEselection, meanCyclicMotionHipEE, quadruped, configSelection, dt, taskSelection, hipParalleltoBody, Leg, meanTouchdownIndex);
          Leg.(EEselection).qOpt = Leg.(EEselection).qOpt(1:end-2,:); % after solving finite difference we can remove the additional looped around terms from the position vectors
         % compute CoT
          power = Leg.(EEselection).jointPowerOpt;
@@ -220,7 +247,6 @@ if runOptimization
         for i = 1:4
             EEselection = EEnames(i,:);
             Leg.metaParameters.CoTOpt.total = Leg.metaParameters.CoTOpt.total + Leg.metaParameters.CoTOpt.(EEselection);
-
         end
     end
         

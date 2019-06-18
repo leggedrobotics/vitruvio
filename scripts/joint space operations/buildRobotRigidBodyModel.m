@@ -9,8 +9,8 @@ if (EEselection == 'LF') | (EEselection == 'RF')
          hipOffsetDirection = -1;
 end
 % offset from nominal stance EE position to HAA along body x
-hipAttachmentOffsetX = hipAttachmentOffset*cos(meanCyclicMotionHipEE.body.eulerAngles(1,2)); 
-hipAttachmentOffsetZ = hipAttachmentOffset*sin(meanCyclicMotionHipEE.body.eulerAngles(1,2));  
+hipAttachmentOffsetX = hipAttachmentOffset*cos(meanCyclicMotionHipEE.body.eulerAngles.(EEselection)(1,2)); 
+hipAttachmentOffsetZ = hipAttachmentOffset*sin(meanCyclicMotionHipEE.body.eulerAngles.(EEselection)(1,2));  
 
 l_hip   = quadruped.hip(selectFrontHind).length; % offset from HAA to HFE
 l_thigh = quadruped.thigh(selectFrontHind).length;
@@ -170,6 +170,23 @@ elseif linkCount == 4
     I_EE =         [0.00000001, body6.Mass*l_phalanges^2,     body6.Mass*l_phalanges^2,     0, 0, 0]; 
 end
 
+%% inertia of links without actuators in joints
+body0.Inertia = [0 0 0 0 0 0]; % base    
+body1.Inertia =  I_hip;     
+body2.Inertia =  I_thigh; 
+body3.Inertia =  I_shank;
+if linkCount == 2
+    body4.Inertia = I_EE;
+elseif linkCount == 3
+    body4.Inertia = I_foot;
+    body5.Inertia = I_EE;
+elseif linkCount == 4
+    body4.Inertia = I_foot;
+    body5.Inertia = I_phalanges;
+    body6.Inertia = I_EE;
+end
+
+%% actuator inertia
 if actuateJointsDirectly
     I_HAA = [0 0 0 0 0 0]; % HAA does not contribute an inertia
     I_HFE = [0.00000001, body8.Mass*l_hip^2, body8.Mass*l_hip^2, 0, 0, 0]; 
@@ -180,23 +197,7 @@ if actuateJointsDirectly
     if linkCount == 4
         I_DFE = [0.00000001, body11.Mass*l_phalanges^2, body11.Mass*l_phalanges^2, 0, 0, 0]; 
     end
-end
-
-body0.Inertia = [0 0 0 0 0 0]; % base    
-body1.Inertia =  I_hip;     
-body2.Inertia =  I_thigh; 
-body3.Inertia =  I_shank;
-if linkCount == 2
-    body4.Inertia = I_EE; % EE inertia accounted for in body3
-elseif linkCount == 3
-    body4.Inertia = I_foot;
-    body5.Inertia = I_EE;
-elseif linkCount == 4
-    body4.Inertia = I_foot;
-    body5.Inertia = I_phalanges;
-    body6.Inertia = I_EE;
-end
-if actuateJointsDirectly
+    
     body7.Inertia  = I_HAA;
     body8.Inertia  = I_HFE;
     body9.Inertia  = I_KFE;
@@ -206,8 +207,27 @@ if actuateJointsDirectly
         body10.Inertia = I_AFE;
         body11.Inertia = I_DFE;
     end
+        %% OVERWRITE INERTIA TERMS WITH THOSE FROM ANYMAL URDF FOR VALIDATION PURPOSES
+        % inertia = [Ixx Iyy Izz Iyz Ixz Ixy] relative to body frame in kg/m^2
+        body0.Inertia = [0 0 0 0 0 0]; % base    
+        body1.Inertia = [0.002318  0.002060 0.002439 -0.000001 0.000009  0.000333];     
+        body2.Inertia = [0.013479 0.013250 0.002229 -0.000003 0.000038 -0.001623]; 
+        body3.Inertia = [0.003769371790899 0.004004464676349 0.000418471691904 -0.000077334500762 -0.000152069372983 -0.000321835608300] + I_EE;
+        if linkCount == 2
+            body4.Inertia = [0 0 0 0 0 0];
+        end
+        % actuator inertias are bundled in with link inertias
+        body7.Inertia  = [0 0 0 0 0 0];
+        body8.Inertia  = [0 0 0 0 0 0];
+        body9.Inertia  = [0 0 0 0 0 0];
+        if linkCount == 3
+            body10.Inertia = [0 0 0 0 0 0];
+        elseif linkCount == 4
+            body10.Inertia = [0 0 0 0 0 0];
+            body11.Inertia = [0 0 0 0 0 0];
+        end
 end
-
+%% 
 % center of mass and mass terms do not affect inertia but are used 
 % to compute torque due to gravitational force. Default is [0 0 0] when not
 % specified.
@@ -278,18 +298,18 @@ robot.Gravity = [0 0 -9.8];
 %% Display robot 
 for i = 1:length(Leg.(EEselection).q)
     if (linkCount == 2)
-        config(i,:) = [-meanCyclicMotionHipEE.body.eulerAngles(i,2), ... %body rotation about inertial y
+        config(i,:) = [-meanCyclicMotionHipEE.body.eulerAngles.(EEselection)(i,2), ... %body rotation about inertial y
                        Leg.(EEselection).q(i,1), ... % HAA
                        Leg.(EEselection).q(i,2), ... % HFE
                        Leg.(EEselection).q(i,3)]; % KFE
     elseif (linkCount == 3)
-        config(i,:) = [-meanCyclicMotionHipEE.body.eulerAngles(i,2), ... %body rotation about inertial y
+        config(i,:) = [-meanCyclicMotionHipEE.body.eulerAngles.(EEselection)(i,2), ... %body rotation about inertial y
                        Leg.(EEselection).q(i,1), ... % HAA
                        Leg.(EEselection).q(i,2), ... % HFE
                        Leg.(EEselection).q(i,3), ... % KFE
                        Leg.(EEselection).q(i,4)];    % AFE    
     elseif (linkCount == 4)
-        config(i,:) = [-meanCyclicMotionHipEE.body.eulerAngles(i,2), ... %body rotation about inertial y
+        config(i,:) = [-meanCyclicMotionHipEE.body.eulerAngles.(EEselection)(i,2), ... %body rotation about inertial y
                        Leg.(EEselection).q(i,1), ... % HAA
                        Leg.(EEselection).q(i,2), ... % HFE
                        Leg.(EEselection).q(i,3), ... % KFE
@@ -323,10 +343,10 @@ if viewVisualization
             show(robot,config(i,:));
 
             hold on
-            % plot desired trajectory to observe tracking
-            plot3(meanCyclicMotionHipEE.(EEselection).position(:,1), ...
-                  meanCyclicMotionHipEE.(EEselection).position(:,2), ...
-                  meanCyclicMotionHipEE.(EEselection).position(:,3),'r', 'LineWidth', 3)
+            %plot desired trajectory to observe tracking
+            plot3(meanCyclicMotionHipEE.(EEselection).position(1:end-2,1), ...
+                  meanCyclicMotionHipEE.(EEselection).position(1:end-2,2), ...
+                  meanCyclicMotionHipEE.(EEselection).position(1:end-2,3),'r', 'LineWidth', 3)
             title(EEselection)
             % define the vertices to show robot body on same figure
             vert = patchShift + ...
@@ -339,9 +359,9 @@ if viewVisualization
                    -bodyLength -bodyWidth    0.04;...
                     0          -bodyWidth    0.04];
             % compute body rotation with rotation matrix about y axis
-            bodyRotation = [cos(-config(1,1)), 0, sin(-config(1,1));
+            bodyRotation = [cos(-config(i,1)), 0, sin(-config(i,1));
                             0                 1, 0;
-                            -sin(-config(1,1)), 0 cos(-config(1,1))];
+                            -sin(-config(i,1)), 0 cos(-config(i,1))];
             % apply body rotation to obtain new vertices
             vert = vert * bodyRotation;
             fac = [1 2 6 5;2 3 7 6;3 4 8 7;4 1 5 8;1 2 3 4;5 6 7 8];

@@ -1,6 +1,6 @@
 % this function calls evolveOptimalLeg which starts the optimization by calling computePenalty 
 
-function [jointTorqueOpt, qOpt, qdotOpt, qdotdotOpt, rOpt, jointPowerOpt, linkLengthsOpt, hipAttachmentOffsetOpt, penaltyMin, elapsedTime, elapsedTimePerFuncEval, output, linkMassOpt, totalLinkMassOpt] = evolveAndVisualizeOptimalLeg(heuristic, actuateJointsDirectly, hipAttachmentOffset, linkCount, optimizationProperties, EEselection, meanCyclicMotionHipEE, quadruped, configSelection, dt, taskSelection, hipParalleltoBody, Leg, meanTouchdownIndex)
+function [jointTorqueOpt, qOpt, qdotOpt, qdotdotOpt, rOpt, jointPowerOpt, linkLengthsOpt, hipAttachmentOffsetOpt, penaltyMin, elapsedTime, elapsedTimePerFuncEval, output, linkMassOpt, totalLinkMassOpt] = evolveAndVisualizeOptimalLeg(imposeJointLimits, heuristic, actuateJointsDirectly, hipAttachmentOffset, linkCount, optimizationProperties, EEselection, meanCyclicMotionHipEE, quadruped, configSelection, dt, taskSelection, hipParalleltoBody, Leg, meanTouchdownIndex)
 if (EEselection == 'LF') | (EEselection == 'RF')
     selectFrontHind = 1;
 else 
@@ -20,8 +20,20 @@ end
 initialHipAttachmentOffset = hipAttachmentOffset*100;
 
 %% print statement
+% Ensure bounds are ordered correctly such that lower bound is always <=
+% upper bound
+
 upperBnd = [round(optimizationProperties.bounds.upperBoundMultiplier(1:linkCount+1).*initialLinkLengths)/100, round(optimizationProperties.bounds.upperBoundMultiplier(linkCount+2)*initialHipAttachmentOffset)/100];
 lowerBnd = [round(optimizationProperties.bounds.lowerBoundMultiplier(1:linkCount+1).*initialLinkLengths)/100, round(optimizationProperties.bounds.lowerBoundMultiplier(linkCount+2)*initialHipAttachmentOffset)/100];
+
+for i = 1:length(upperBnd)
+    if (lowerBnd(i) > upperBnd(i))
+        lowerBndTemp(i) = lowerBnd(i);
+        lowerBnd(i) = upperBnd(i);
+        upperBnd(i) = lowerBndTemp(i);
+    end
+end
+
 fprintf('\nLower bound on link lengths [m]:')
 disp(lowerBnd);
 fprintf('Upper bound on link lengths [m]:')
@@ -29,7 +41,7 @@ disp(upperBnd);
 
 %% evolve optimal leg design and return optimized design parameters
 tic;
-[legDesignParameters, penaltyMin, output] = evolveOptimalLeg(heuristic, upperBnd, lowerBnd, actuateJointsDirectly, hipAttachmentOffset, linkCount, optimizationProperties, initialLinkLengths, taskSelection, quadruped, configSelection, EEselection, dt, meanCyclicMotionHipEE, hipParalleltoBody, Leg, meanTouchdownIndex);
+[legDesignParameters, penaltyMin, output] = evolveOptimalLeg(imposeJointLimits, heuristic, upperBnd, lowerBnd, actuateJointsDirectly, hipAttachmentOffset, linkCount, optimizationProperties, initialLinkLengths, taskSelection, quadruped, configSelection, EEselection, dt, meanCyclicMotionHipEE, hipParalleltoBody, Leg, meanTouchdownIndex);
 elapsedTime = toc;
 elapsedTimePerFuncEval = elapsedTime/output.funccount;
 fprintf('Optimized leg design parameters [m]:')
