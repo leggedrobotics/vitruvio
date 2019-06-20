@@ -1,7 +1,13 @@
-function [neighbouringPointDistance, neighbouringPointDistanceMax] = getDeviationFromNeighbouringPoint(relativeMotionHipEE, EEselection)
-    for i = 1:length(relativeMotionHipEE.(EEselection).position)-1
-        neighbouringPointOffset(i,:) = relativeMotionHipEE.(EEselection).position(i,:)-relativeMotionHipEE.(EEselection).position(i+1,:);
-        neighbouringPointDistance(i,:) = norm(neighbouringPointOffset(i));
+function [neighbouringPointDeviation, neighbouringPointDeviationMax] = getDeviationFromNeighbouringPoint(relativeMotionHipEE, EEselection)
+        % compute offset between neighbouring points as well as between the
+        % end point and first point of the cycle
+        neighbouringPointOffset = relativeMotionHipEE.(EEselection).position(1:end-1,:) - relativeMotionHipEE.(EEselection).position(2:end,:);
+
+    for i = 1:length(neighbouringPointOffset)-1
+        neighbouringPointDeviation(i,:) = norm(neighbouringPointOffset(i));
     end
-    neighbouringPointDistanceMax = max(neighbouringPointDistance);
+    [neighbouringPointDeviationMax, index] = max(neighbouringPointDeviation);
 end
+
+
+        

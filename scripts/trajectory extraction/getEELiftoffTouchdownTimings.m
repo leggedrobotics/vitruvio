@@ -1,6 +1,6 @@
 %% getEELiftoffTouchdownTimings
-function [tLiftoff, tTouchdown, minStepCount] = getEELiftoffTouchdownTimings(t, EE)
-
+function [tLiftoff, tTouchdown, minStepCount] = getEELiftoffTouchdownTimings(Leg, EE)
+t = Leg.time;
 %% LF
 j = 1;
 k = 1;

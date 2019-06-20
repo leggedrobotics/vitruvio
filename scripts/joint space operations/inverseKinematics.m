@@ -5,7 +5,7 @@ function [jointPositions, r1, r2, r3, r4, r5, rEE] = inverseKinematics(heuristic
  % Output: joint angles which match desired end-effector position
 
  %% Setup
-  tol = 0.0001;
+  tol = 0.0001; % [m]
   it = 0;
   r_H_0EE_des = meanCyclicMotionHipEE.(EEselection).position; % desired EE position
 

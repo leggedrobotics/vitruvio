@@ -2,32 +2,30 @@ clear;
 close all;
 
 %% Data extraction
-% if averageStepsForCyclicalMotion is true, the motion is segmented into individual steps which are averaged
+% if true, the motion is segmented into individual steps which are averaged
 % to create an average cycle. This works well when the motion is very cyclical.
-% If false the individual steps are not averaged. This should be selected
-% when the generated motion is irregular.
-averageStepsForCyclicalMotion = false; 
+% If false the individual steps are not averaged.
+averageStepsForCyclicalMotion = true; 
 
 %% Toggle leg properties, visualization and optimization functions
 % number of links from 2 to 4. [thigh, shank, foot, phalanges]
-linkCount = 4;
+linkCount = 2;
 configSelection = 'X'; % X or M
-actuateJointsDirectly = false;
-
+actuateJointsDirectly = true;
 % specify hip orientation
 hipParalleltoBody = true; % if false, hip link is perpendicular to body x
 
 %% AFE and DFE heuristics
 % When no heuristic is specified, the angle of the final joint closest to 
 % the starting q0 is obtained.
-heuristic.torqueAngle.thetaLiftoff_des = pi/4; % specify desired angle between final link and horizonal at liftoff
-heuristic.torqueAngle.kTorsionalSpring = 10; % spring constant for torsional spring at final joint [Nm/rad]
+heuristic.torqueAngle.thetaLiftoff_des = pi/2; % specify desired angle between final link and horizonal at liftoff
+heuristic.torqueAngle.kTorsionalSpring = 30; % spring constant for torsional spring at final joint [Nm/rad]
 heuristic.torqueAngle.apply = true;
 
 %% Toggle trajectory plots and initial design viz
 viewVisualization = true; % initial leg design tracking trajectory plan
 numberOfLoopRepetitions = 1; % number of steps visualized for leg motion
-viewTrajectoryPlots = false;
+viewTrajectoryPlots = f;
 
 %% Toggle optimization for each leg
 runOptimization = false;
@@ -83,7 +81,7 @@ imposeJointLimits.maxqdot   = false;
 imposeJointLimits.maxPower  = false;
 
 %% Toggle robots and tasks to be simulated and optimized
-universalTrot   = false;
+universalTrot   = true;
 universalStairs = false;
 speedyStairs    = false;
 speedyGallop    = false;
@@ -94,7 +92,7 @@ centaurStairs   = false;
 miniPronk       = false;
 ANYmalTrot      = false;
 ANYmalSlowTrot  = false; % stance torque a high
-ANYmalSlowTrotGoodMotionBadForce = true;
+ANYmalSlowTrotGoodMotionBadForce = false;
 ANYmalSlowTrotOriginal = false; % stance torque good but motion not the same as in measured
 
 numberOfRepetitions = 0; % number of times that leg is reoptimized
@@ -112,5 +110,5 @@ if runOptimization
 end
 % additional plotting available via:
 % plotJointDataForAllLegs(classSelection, 'taskSelection', plotOptimizedLeg)
- % plotJointDataForAllLegs(ANYmal, 'slowTrot', [], [], plotOptimizedLeg);
+ % plotJointDataForAllLegs(ANYmal, 'slowTrot', plotOptimizedLeg);
 fprintf('Done.\n');

@@ -144,11 +144,11 @@ if actuateJointsDirectly
     body10 = robotics.RigidBody('body10'); % AFE
     body11 = robotics.RigidBody('body11'); % DFE
 
-    body7.Mass  = 1.1; % HAA
-    body8.Mass  = 1.1; % HFE
-    body9.Mass  = 1.1; % KFE
-    body10.Mass = 1.1; % AFE
-    body11.Mass = 1.1; % DFE
+    body7.Mass  = 1.09; % HAA
+    body8.Mass  = 1.09; % HFE
+    body9.Mass  = 1.09; % KFE
+    body10.Mass = 1.09; % AFE
+    body11.Mass = 1.09; % DFE
 end
 
 

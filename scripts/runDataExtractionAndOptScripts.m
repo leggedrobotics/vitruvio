@@ -10,6 +10,7 @@ fprintf('Loading data for task %s.\n', taskSelection);
 % Load motion and force data from .mat file
 load(taskSelection);
 dt = t(2) - t(1);
+Leg.time = t;
 
 %% Load corresponding robot parameters
 fprintf('Loading quadruped properties for %s.\n', classSelection);
@@ -38,31 +39,37 @@ for i = 1:4
     Leg.metaParameters.neighbouringPointDeviation.(EEselection) = neighbouringPointDeviation.(EEselection);
     Leg.metaParameters.neighbouringPointDeviationMax.(EEselection) = neighbouringPointDeviationMax.(EEselection);
 end
+
 %% If points are spread too far apart, interpolate to add more points
-allowableDeviation = 0.03;
-if max([neighbouringPointDeviationMax.LF, neighbouringPointDeviationMax.LH, neighbouringPointDeviationMax.RF, neighbouringPointDeviationMax.RH]) > allowableDeviation
-    fprintf('Interpolating points to reduce distance between neighbouring points. \n');
+allowableDeviation = 0.008; % [m]
+absoluteMaxPointDeviation = max([neighbouringPointDeviationMax.LF, neighbouringPointDeviationMax.LH, neighbouringPointDeviationMax.RF, neighbouringPointDeviationMax.RH]);
+if absoluteMaxPointDeviation > allowableDeviation
+    numberOfTimesPointsAreDoubled = ceil(log(absoluteMaxPointDeviation/allowableDeviation)/log(2)); % because deviation decreases by factor of 2^n
+    fprintf('Interpolating points to reduce distance between neighbouring points to less than %2.3fm. \n', allowableDeviation);
+    for j = 1:numberOfTimesPointsAreDoubled
+        for i = 1:4
+            EEselection = EEnames(i,:);
+            [relativeMotionHipEE.(EEselection).position, relativeMotionHipEE.(EEselection).velocity, EE.(EEselection).force, C_IBody] = generateAdditionalPoints(relativeMotionHipEE, EE, C_IBody, EEselection);
+         end
+        dt = dt/2;
+        Leg.time = [0:dt:t(end)]';
+    end
+    % recompute the deviation from neighbouring point
     for i = 1:4
         EEselection = EEnames(i,:);
-        [relativeMotionHipEE.(EEselection).position, relativeMotionHipEE.(EEselection).velocity, EE.(EEselection).force, C_IBody] = generateAdditionalPoints(relativeMotionHipEE, EE, C_IBody, EEselection);
-     end
-    dt = dt/2;
-    t = [0:dt:t(end)]';
+        [neighbouringPointDeviation.(EEselection), neighbouringPointDeviationMax.(EEselection)] = getDeviationFromNeighbouringPoint(relativeMotionHipEE, EEselection);
+        Leg.metaParameters.neighbouringPointDeviation.(EEselection) = neighbouringPointDeviation.(EEselection);
+        Leg.metaParameters.neighbouringPointDeviationMax.(EEselection) = neighbouringPointDeviationMax.(EEselection);
+    end
 end
-% recompute the deviation from neighbouring point
-for i = 1:4
-    EEselection = EEnames(i,:);
-    [neighbouringPointDeviation.(EEselection), neighbouringPointDeviationMax.(EEselection)] = getDeviationFromNeighbouringPoint(relativeMotionHipEE, EEselection);
-    Leg.metaParameters.neighbouringPointDeviation.(EEselection) = neighbouringPointDeviation.(EEselection);
-    Leg.metaParameters.neighbouringPointDeviationMax.(EEselection) = neighbouringPointDeviationMax.(EEselection);
-end
+
 %% Get the liftoff and touchdown timings for each end effector
 fprintf('Computing end effector liftoff and touchdown timings. \n');
-[tLiftoff, tTouchdown, minStepCount] = getEELiftoffTouchdownTimings(t, EE);
+[tLiftoff, tTouchdown, minStepCount] = getEELiftoffTouchdownTimings(Leg, EE);
 
 %% Get the mean cyclic position and forces for each end effector
 fprintf('Computing average relative motion of end effectors over one step. \n');
-[meanCyclicMotionHipEE, cyclicMotionHipEE, meanCyclicC_IBody, samplingStart, samplingEnd, meanTouchdownIndex] = Copy_of_getHipEECyclicData(averageStepsForCyclicalMotion, quadruped, tLiftoff, relativeMotionHipEE, EE, removalRatioStart, removalRatioEnd, dt, minStepCount, C_IBody, EEnames);
+[meanCyclicMotionHipEE, cyclicMotionHipEE, meanCyclicC_IBody, samplingStart, samplingEnd, meanTouchdownIndex] = getHipEECyclicData(averageStepsForCyclicalMotion, quadruped, tLiftoff, relativeMotionHipEE, EE, removalRatioStart, removalRatioEnd, dt, minStepCount, C_IBody, EEnames);
 for i = 1:4
     EEselection = EEnames(i,:);
     Leg.(EEselection).force = meanCyclicMotionHipEE.(EEselection).force;
@@ -88,13 +95,13 @@ if (heuristic.torqueAngle.apply == true) && (linkCount > 2)
     for i = 1:4
         EEselection = EEnames(i,:);
         if (EEselection == 'LF') | (EEselection == 'RF')
-            hipAttachmentOffset = l_hipAttachmentOffset.fore;
+            hipAttachmentOffset = -quadruped.hip(1).length;
         elseif (EEselection == 'LH') | (EEselection == 'RH')
-            hipAttachmentOffset = l_hipAttachmentOffset.hind;
+            hipAttachmentOffset = quadruped.hip(2).length;
         end
         [qLiftoff.(EEselection)] = computeqLiftoffFinalJoint(heuristic, hipAttachmentOffset, linkCount, meanCyclicMotionHipEE, quadruped, EEselection, taskSelection, configSelection, hipParalleltoBody, Leg);
         EE_force = Leg.(EEselection).force(1,1:3);
-        rotBodyY = -meanCyclicMotionHipEE.body.eulerAngles(1,2); % rotation of body about inertial y
+        rotBodyY = -meanCyclicMotionHipEE.body.eulerAngles.(EEselection)(1,2); % rotation of body about inertial y
         qPrevious = qLiftoff.(EEselection);
         [springTorque.(EEselection), springDeformation.(EEselection)] = computeFinalJointDeformation(heuristic, qPrevious, EE_force, hipAttachmentOffset, linkCount, rotBodyY, quadruped, EEselection, hipParalleltoBody);      
     end
@@ -132,7 +139,7 @@ end
 fprintf('Computing joint velocities and accelerations. \n');
 for i = 1:4
     EEselection = EEnames(i,:);
-    [Leg.(EEselection).qdot, Leg.(EEselection).qdotdot] = getJointVelocitiesUsingFiniteDifference(linkCount, EEselection, meanCyclicMotionHipEE, Leg, quadruped, dt);
+    [Leg.(EEselection).qdot, Leg.(EEselection).qdotdot] = getJointVelocitiesUsingFiniteDifference(EEselection, Leg);
     Leg.(EEselection).q = Leg.(EEselection).q(1:end-2,:); % no longer need the two additional points for position after solving for joint speed and acceleration
 end
 

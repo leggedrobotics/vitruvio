@@ -51,7 +51,7 @@ function qLiftoff = computeqLiftoffFinalJoint(heuristic, hipAttachmentOffset, li
   end
 
   %% Iterative inverse kinematics
-    rotBodyY = -meanCyclicMotionHipEE.body.eulerAngles(1,2); % rotation of body about inertial y
+    rotBodyY = -meanCyclicMotionHipEE.body.eulerAngles.(EEselection)(1,2); % rotation of body about inertial y
     %drEE = r_H_0EE_des(1,:)' - r_H_0EE; 
     dr = r_H_0finalJoint_des' -  r_H_0finalJoint;
     k = 0.001;
