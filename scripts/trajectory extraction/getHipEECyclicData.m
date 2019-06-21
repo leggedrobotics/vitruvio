@@ -1,7 +1,7 @@
 % collects position of EE for each timestep from liftoff to next liftoff
 % for a subset of the cycles when the motion is steady and averages the result
 
-function [meanCyclicMotionHipEE, cyclicMotionHipEE, meanCyclicC_IBody, samplingStart, samplingEnd, meanTouchdownIndex] = getHipEECyclicData(averageStepsForCyclicalMotion, quadruped, tLiftoff, relativeMotionHipEE, EE, removalRatioStart, removalRatioEnd, dt, minStepCount, C_IBody, EEnames)
+function [meanCyclicMotionHipEE, cyclicMotionHipEE, meanCyclicC_IBody, samplingStart, samplingEnd, meanTouchdownIndex] = getHipEECyclicData(dataExtraction, quadruped, tLiftoff, relativeMotionHipEE, EE, removalRatioStart, removalRatioEnd, dt, minStepCount, C_IBody, EEnames)
 %% Get the average number of points in one cycle of the leg
 for i = 1:length(tLiftoff.LF)-2
     temp1 = length(relativeMotionHipEE.LF.position(floor(tLiftoff.LF(i)/dt):floor(tLiftoff.LF(i+1)/dt)));
@@ -95,7 +95,9 @@ for i = 1:4
 
          meanCyclicMotionHipEE.(EEselection).force          = meanCyclicMotionHipEE.(EEselection).force(1:indexMin.(EEselection),:);
          meanCyclicMotionHipEE.(EEselection).force(end+1,:) = meanCyclicMotionHipEE.(EEselection).force(1,:);
-         
+         meanCyclicMotionHipEE.(EEselection).force(end+1,:) = meanCyclicMotionHipEE.(EEselection).force(2,:);
+         meanCyclicMotionHipEE.(EEselection).force(end+1,:) = meanCyclicMotionHipEE.(EEselection).force(3,:);
+
          % mean cyclic euler angles for body rotation
          % meanEuler = rotm2eul(meanCyclicC_IBody, 'ZYX');
          meanEuler = rotm2eul(meanCyclicC_IBody.(EEselection), 'ZYX');
@@ -103,7 +105,7 @@ for i = 1:4
 end
 
 %% Rather than averaging multiple steps, get the relative motion of the EE wrt hip over multiple steps.
-if ~averageStepsForCyclicalMotion
+if ~ dataExtraction.averageStepsForCyclicalMotion
     startIndex = round(length(relativeMotionHipEE.(EEselection).position)*removalRatioStart);
     endIndex = round(length(relativeMotionHipEE.(EEselection).position)*(1-removalRatioEnd));
     meanEuler = rotm2eul(C_IBody(:,:,startIndex:endIndex), 'ZYX');

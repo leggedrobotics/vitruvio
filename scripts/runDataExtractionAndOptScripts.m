@@ -1,4 +1,4 @@
-function Leg = runDataExtractionAndOptScripts(averageStepsForCyclicalMotion, imposeJointLimits, heuristic, actuateJointsDirectly, viewVisualization, numberOfLoopRepetitions, viewTrajectoryPlots, linkCount, runOptimization, viewOptimizedLegPlot, optimizeLF, optimizeLH, optimizeRF, optimizeRH, optimizationProperties, taskSelection, classSelection, configSelection, hipParalleltoBody)
+function Leg = runDataExtractionAndOptScripts(dataExtraction, imposeJointLimits, heuristic, actuateJointsDirectly, viewVisualization, numberOfLoopRepetitions, viewTrajectoryPlots, linkCount, runOptimization, viewOptimizedLegPlot, optimizeLF, optimizeLH, optimizeRF, optimizeRH, optimizationProperties, taskSelection, classSelection, configSelection, hipParalleltoBody)
 
 EEnames = ['LF'; 'RF'; 'LH'; 'RH'];
 linkNames = {'hip','thigh' 'shank' 'foot' 'phalanges'};
@@ -41,7 +41,7 @@ for i = 1:4
 end
 
 %% If points are spread too far apart, interpolate to add more points
-allowableDeviation = 0.008; % [m]
+allowableDeviation = dataExtraction.allowableDeviation;
 absoluteMaxPointDeviation = max([neighbouringPointDeviationMax.LF, neighbouringPointDeviationMax.LH, neighbouringPointDeviationMax.RF, neighbouringPointDeviationMax.RH]);
 if absoluteMaxPointDeviation > allowableDeviation
     numberOfTimesPointsAreDoubled = ceil(log(absoluteMaxPointDeviation/allowableDeviation)/log(2)); % because deviation decreases by factor of 2^n
@@ -69,7 +69,7 @@ fprintf('Computing end effector liftoff and touchdown timings. \n');
 
 %% Get the mean cyclic position and forces for each end effector
 fprintf('Computing average relative motion of end effectors over one step. \n');
-[meanCyclicMotionHipEE, cyclicMotionHipEE, meanCyclicC_IBody, samplingStart, samplingEnd, meanTouchdownIndex] = getHipEECyclicData(averageStepsForCyclicalMotion, quadruped, tLiftoff, relativeMotionHipEE, EE, removalRatioStart, removalRatioEnd, dt, minStepCount, C_IBody, EEnames);
+[meanCyclicMotionHipEE, cyclicMotionHipEE, meanCyclicC_IBody, samplingStart, samplingEnd, meanTouchdownIndex] = getHipEECyclicData(dataExtraction, quadruped, tLiftoff, relativeMotionHipEE, EE, removalRatioStart, removalRatioEnd, dt, minStepCount, C_IBody, EEnames);
 for i = 1:4
     EEselection = EEnames(i,:);
     Leg.(EEselection).force = meanCyclicMotionHipEE.(EEselection).force;
@@ -103,7 +103,6 @@ if (heuristic.torqueAngle.apply == true) && (linkCount > 2)
         EE_force = Leg.(EEselection).force(1,1:3);
         rotBodyY = -meanCyclicMotionHipEE.body.eulerAngles.(EEselection)(1,2); % rotation of body about inertial y
         qPrevious = qLiftoff.(EEselection);
-        [springTorque.(EEselection), springDeformation.(EEselection)] = computeFinalJointDeformation(heuristic, qPrevious, EE_force, hipAttachmentOffset, linkCount, rotBodyY, quadruped, EEselection, hipParalleltoBody);      
     end
     else
         qLiftoff.(EEselection) = 0;

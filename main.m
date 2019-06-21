@@ -6,13 +6,13 @@ close all;
 % to create an average cycle. This works well when the motion is very cyclical.
 % If false the individual steps are not averaged. This should be selected
 % when the generated motion is irregular.
-averageStepsForCyclicalMotion = false; 
+dataExtraction.averageStepsForCyclicalMotion = true; 
+dataExtraction.allowableDeviation = 0.03; % [m] 
 
 %% Toggle leg properties, visualization and optimization functions
-% number of links from 2 to 4. [thigh, shank, foot, phalanges]
-linkCount = 4;
-configSelection = 'X'; % X or M
-actuateJointsDirectly = false;
+linkCount = 4; % number of links from 2 to 4. [thigh, shank, foot, phalanges]
+configSelection = 'M'; % X or M
+actuateJointsDirectly = false; % if true, actuators positioned in each joint.
 
 % specify hip orientation
 hipParalleltoBody = true; % if false, hip link is perpendicular to body x
@@ -21,7 +21,7 @@ hipParalleltoBody = true; % if false, hip link is perpendicular to body x
 % When no heuristic is specified, the angle of the final joint closest to 
 % the starting q0 is obtained.
 heuristic.torqueAngle.thetaLiftoff_des = pi/4; % specify desired angle between final link and horizonal at liftoff
-heuristic.torqueAngle.kTorsionalSpring = 10; % spring constant for torsional spring at final joint [Nm/rad]
+heuristic.torqueAngle.kTorsionalSpring = 50; % spring constant for torsional spring at final joint [Nm/rad]
 heuristic.torqueAngle.apply = true;
 
 %% Toggle trajectory plots and initial design viz
@@ -83,10 +83,10 @@ imposeJointLimits.maxqdot   = false;
 imposeJointLimits.maxPower  = false;
 
 %% Toggle robots and tasks to be simulated and optimized
-universalTrot   = false;
-universalStairs = false;
+universalTrot   = true;
+universalStairs = true;
 speedyStairs    = false;
-speedyGallop    = false;
+speedyGallop    = true;
 massivoWalk     = false;
 massivoStairs   = false;
 centaurWalk     = false;
