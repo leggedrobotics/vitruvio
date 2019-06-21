@@ -1,5 +1,5 @@
 %% Read in data for quadruped geometry
-function robot = buildRobotRigidBodyModel(actuateJointsDirectly, hipAttachmentOffset, linkCount, quadruped, Leg, meanCyclicMotionHipEE, EEselection, numberOfLoopRepetitions, viewVisualization, hipParalleltoBody) 
+function robot = buildRobotRigidBodyModel(actuatorProperties, actuateJointsDirectly, hipAttachmentOffset, linkCount, quadruped, Leg, meanCyclicMotionHipEE, EEselection, numberOfLoopRepetitions, viewVisualization, hipParalleltoBody) 
 
 %% get quadruped properties for selected end effector  
 if (EEselection == 'LF') | (EEselection == 'RF')
@@ -8,6 +8,9 @@ if (EEselection == 'LF') | (EEselection == 'RF')
     else selectFrontHind = 2;
          hipOffsetDirection = -1;
 end
+
+actuatorMass = actuatorProperties.mass;
+
 % offset from nominal stance EE position to HAA along body x
 hipAttachmentOffsetX = hipAttachmentOffset*cos(meanCyclicMotionHipEE.body.eulerAngles.(EEselection)(1,2)); 
 hipAttachmentOffsetZ = hipAttachmentOffset*sin(meanCyclicMotionHipEE.body.eulerAngles.(EEselection)(1,2));  
@@ -144,11 +147,11 @@ if actuateJointsDirectly
     body10 = robotics.RigidBody('body10'); % AFE
     body11 = robotics.RigidBody('body11'); % DFE
 
-    body7.Mass  = 1.09; % HAA
-    body8.Mass  = 1.09; % HFE
-    body9.Mass  = 1.09; % KFE
-    body10.Mass = 1.09; % AFE
-    body11.Mass = 1.09; % DFE
+    body7.Mass  = actuatorMass; % HAA
+    body8.Mass  = actuatorMass; % HFE
+    body9.Mass  = actuatorMass; % KFE
+    body10.Mass = actuatorMass; % AFE
+    body11.Mass = actuatorMass; % DFE
 end
 
 

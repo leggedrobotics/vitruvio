@@ -1,11 +1,11 @@
-function [jointPositions, r1, r2, r3, r4, r5, rEE] = inverseKinematics(heuristic, qLiftoff, hipAttachmentOffset, linkCount, meanCyclicMotionHipEE, quadruped, EEselection, taskSelection, configSelection, hipParalleltoBody, Leg)
+function [jointPositions, r1, r2, r3, r4, r5, rEE] = inverseKinematics(heuristic, qLiftoff, hipAttachmentOffset, linkCount, meanCyclicMotionHipEE, quadruped, EEselection, taskSelection, configSelection, hipParalleltoBody)
 
  % Input: desired end-effector position, quadruped properties
  %        initial guess for joint angles, threshold for the stopping-criterion
  % Output: joint angles which match desired end-effector position
 
  %% Setup
-  tol = 0.0001; % [m]
+  tol = 0.00001; % [m]
   it = 0;
   r_H_0EE_des = meanCyclicMotionHipEE.(EEselection).position; % desired EE position
 
@@ -52,17 +52,18 @@ function [jointPositions, r1, r2, r3, r4, r5, rEE] = inverseKinematics(heuristic
         it = 0; % reset iteration count
         springDeformation = 0;
         dr = r_H_0EE_des(i,:)' - r_H_0EE;
-        k = 0.2;
-        max_it = 2000;
         if i < 2 % fine update for first point, then can make update more coarse
-            k = 0.001;
+            k = 0.001; % scale update step to prevent overshoot of desired point
             max_it = 10000;
+        else 
+            k = 0.2;
+            max_it = 400;
         end 
          if linkCount == 3
             if i > 1
                 if heuristic.torqueAngle.apply == true
                     qPrevious = jointPositions(i-1,:); % use joint angles from last time step to compute the joint deformation at the current time step
-                    EE_force = Leg.(EEselection).force(i,1:3);
+                    EE_force = meanCyclicMotionHipEE.(EEselection).force(i,1:3);
                     [~, springDeformation] = computeFinalJointDeformation(heuristic, qPrevious, EE_force, hipAttachmentOffset, linkCount, rotBodyY, quadruped, EEselection, hipParalleltoBody);
                     q(4) = jointPositions(1,4) + springDeformation;                    
                 end
@@ -80,7 +81,7 @@ function [jointPositions, r1, r2, r3, r4, r5, rEE] = inverseKinematics(heuristic
             if i > 1
                 if linkCount == 4
                      qPrevious = jointPositions(i-1,:); % use joint angles from last time step to compute the joint deformation at the current time step
-                     EE_force = Leg.(EEselection).force(i,1:3);
+                     EE_force = meanCyclicMotionHipEE.(EEselection).force(i,1:3);
                      q(4) = -q(3); % foot parallel to thigh requires qAFE = -qKFE 
                      [~, springDeformation] = computeFinalJointDeformation(heuristic, qPrevious, EE_force, hipAttachmentOffset, linkCount, rotBodyY, quadruped, EEselection, hipParalleltoBody);
                      q(5) = jointPositions(1,5) + springDeformation; % initial value of the joint angle plus spring deformation
