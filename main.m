@@ -99,6 +99,9 @@ ANYmalSlowTrotOriginal = false; % stance torque good but motion not the same as 
 
 numberOfRepetitions = 0; % number of times that leg is reoptimized
 
+%% Select an actuator
+actuatorSelection = 'ANYdrive';
+
 %% run the simulation
 simulateSelectedTasks;
 

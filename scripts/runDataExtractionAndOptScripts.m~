@@ -59,7 +59,7 @@ if absoluteMaxPointDeviation > allowableDeviation
     for j = 1:numberOfTimesPointsAreDoubled
         for i = 1:4
             EEselection = EEnames(i,:);
-            [relativeMotionHipEE.(EEselection).position, relativeMotionHipEE.(EEselection).velocity, EE.(EEselection).force, C_IBody] = generateAdditionalPoints(relativeMotionHipEE, EE, C_IBody, EEselection);
+            [relativeMotionHipEE.(EEselection).position, relativeMotionHipEE.(EEselection).velocity, EE.(EEselection).force, C_IBody] = generateAdditionalPoints(Leg, relativeMotionHipEE, EE, C_IBody, EEnames, i)%;relativeMotionHipEE, EE, C_IBody, EEselection);
          end
         dt = dt/2;
         Leg.time = [0:dt:t(end)]';
