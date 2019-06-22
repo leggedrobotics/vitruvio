@@ -272,18 +272,23 @@ if runOptimization
         if optimizeLF
             EEselection = 'LF';
             plotOptimizedJointTorque(Leg, EEselection, dt, meanTouchdownIndex, taskSelection, linkCount)
+            plotMetaParameters(Leg, linkCount, EEselection);
+
         end
         if optimizeLH
             EEselection = 'LH';
             plotOptimizedJointTorque(Leg, EEselection, dt, meanTouchdownIndex, taskSelection, linkCount)
+            plotMetaParameters(Leg, linkCount, EEselection);        
         end
         if optimizeRF
             EEselection = 'RF';
             plotOptimizedJointTorque(Leg, EEselection, dt, meanTouchdownIndex, taskSelection, linkCount)
+            plotMetaParameters(Leg, linkCount, EEselection);        
         end
         if optimizeRH
             EEselection = 'RH';
             plotOptimizedJointTorque(Leg, EEselection, dt, meanTouchdownIndex, taskSelection, linkCount)
+            plotMetaParameters(Leg, linkCount, EEselection);        
         end
     end
 end
