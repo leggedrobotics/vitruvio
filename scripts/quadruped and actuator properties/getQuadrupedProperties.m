@@ -190,14 +190,14 @@ end
 
 % joint angle limits
 % q1 HAA, q2 HFE, q3 KFE, q4 AFE
-robot.speedy.q1.minAngle = -pi/6;
-robot.speedy.q1.maxAngle = pi/2;
-robot.speedy.q2.minAngle = -pi/4;
-robot.speedy.q2.maxAngle = pi/4;
-robot.speedy.q3.minAngle = -pi/2;
-robot.speedy.q3.maxAngle = pi/2;
-robot.speedy.q4.minAngle = pi/2;
-robot.speedy.q4.maxAngle = -pi/2;
+robot.speedy.q1.minAngle = -pi;
+robot.speedy.q1.maxAngle = pi;
+robot.speedy.q2.minAngle = -pi;
+robot.speedy.q2.maxAngle = pi;
+robot.speedy.q3.minAngle = -pi;
+robot.speedy.q3.maxAngle = pi;
+robot.speedy.q4.minAngle = -pi;
+robot.speedy.q4.maxAngle = pi;
 
 %% Massivo 
 robot.massivo.mass.total = 80;
@@ -254,14 +254,14 @@ end
 
 % joint angle limits
 % q1 HAA, q2 HFE, q3 KFE, q4 AFE
-robot.massivo.q1.minAngle = -pi/6;
-robot.massivo.q1.maxAngle = pi/2;
-robot.massivo.q2.minAngle = -pi/4;
-robot.massivo.q2.maxAngle = pi/4;
-robot.massivo.q3.minAngle = pi/2;
-robot.massivo.q3.maxAngle = -pi/2;
-robot.massivo.q4.minAngle = pi/2;
-robot.massivo.q4.maxAngle = -pi/2;
+robot.massivo.q1.minAngle = -pi;
+robot.massivo.q1.maxAngle = pi;
+robot.massivo.q2.minAngle = -pi/2;
+robot.massivo.q2.maxAngle = pi/2;
+robot.massivo.q3.minAngle = -pi;
+robot.massivo.q3.maxAngle = pi;
+robot.massivo.q4.minAngle = -pi;
+robot.massivo.q4.maxAngle = pi;
 
 %% Centaur 
 robot.centaur.mass.total = 80;
@@ -321,10 +321,10 @@ robot.centaur.q1.minAngle = -pi/6;
 robot.centaur.q1.maxAngle = pi/2;
 robot.centaur.q2.minAngle = -pi/4;
 robot.centaur.q2.maxAngle = pi/4;
-robot.centaur.q3.minAngle = pi/2;
-robot.centaur.q3.maxAngle = -pi/2;
-robot.centaur.q4.minAngle = pi/2;
-robot.centaur.q4.maxAngle = -pi/2;
+robot.centaur.q3.minAngle = -pi/2;
+robot.centaur.q3.maxAngle = pi/2;
+robot.centaur.q4.minAngle = -pi/2;
+robot.centaur.q4.maxAngle = pi/2;
 
 %% Mini 
 
@@ -384,10 +384,10 @@ robot.mini.q1.minAngle = -pi/6;
 robot.mini.q1.maxAngle = pi/2;
 robot.mini.q2.minAngle = -pi/4;
 robot.mini.q2.maxAngle = pi/4;
-robot.mini.q3.minAngle = pi/2;
-robot.mini.q3.maxAngle = -pi/2;
-robot.mini.q4.minAngle = pi/2;
-robot.mini.q4.maxAngle = -pi/2;
+robot.mini.q3.minAngle = -pi/2;
+robot.mini.q3.maxAngle = pi/2;
+robot.mini.q4.minAngle = -pi/2;
+robot.mini.q4.maxAngle = pi/2;
 
 
 %% load in the parameters of the selected robot into the struct quadruped which is then used by the rest of the program

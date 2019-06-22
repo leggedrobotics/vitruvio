@@ -25,12 +25,13 @@ heuristic.torqueAngle.kTorsionalSpring = 50; % spring constant for torsional spr
 heuristic.torqueAngle.apply = true;
 
 %% Toggle trajectory plots and initial design viz
-viewVisualization = true; % initial leg design tracking trajectory plan
+viewVisualization = false; % initial leg design tracking trajectory plan
 numberOfLoopRepetitions = 1; % number of steps visualized for leg motion
-viewTrajectoryPlots = true;
+viewTrajectoryPlots = false;
+viewRangeOfMotionPlots = true;
 
 %% Toggle optimization for each leg
-runOptimization = true;
+runOptimization = false;
 viewOptimizedLegPlot = true;
 optimizeLF = true; 
 optimizeLH = false; 

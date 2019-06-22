@@ -1,4 +1,4 @@
-function Leg = runDataExtractionAndOptScripts(actuatorSelection, dataExtraction, imposeJointLimits, heuristic, actuateJointsDirectly, viewVisualization, numberOfLoopRepetitions, viewTrajectoryPlots, linkCount, runOptimization, viewOptimizedLegPlot, optimizeLF, optimizeLH, optimizeRF, optimizeRH, optimizationProperties, taskSelection, classSelection, configSelection, hipParalleltoBody)
+function Leg = runDataExtractionAndOptScripts(viewRangeOfMotionPlots, actuatorSelection, dataExtraction, imposeJointLimits, heuristic, actuateJointsDirectly, viewVisualization, numberOfLoopRepetitions, viewTrajectoryPlots, linkCount, runOptimization, viewOptimizedLegPlot, optimizeLF, optimizeLH, optimizeRF, optimizeRH, optimizationProperties, taskSelection, classSelection, configSelection, hipParalleltoBody)
 
 %% display selections
 fprintf('Quadruped class: %s.\n', classSelection);
@@ -88,10 +88,6 @@ for i = 1:4
     Leg.(EEselection).force = meanCyclicMotionHipEE.(EEselection).force;
 end
 
-%% Get reachable positions for link lengths and joint limits
-fprintf('Computing range of motion dependent on link lengths and joint limits. \n');
-reachablePositions = getRangeofMotion(quadruped);
-
 %% Plot trajectory data
 if viewTrajectoryPlots
     fprintf('Plotting data. \n');
@@ -132,6 +128,12 @@ for i = 1:4
     end
     [Leg.(EEselection).q, Leg.(EEselection).r.HAA, Leg.(EEselection).r.HFE, Leg.(EEselection).r.KFE, Leg.(EEselection).r.AFE, Leg.(EEselection).r.DFE, Leg.(EEselection).r.EE]  = inverseKinematics(heuristic, qLiftoff, hipAttachmentOffset, linkCount, meanCyclicMotionHipEE, quadruped, EEselection, taskSelection, configSelection, hipParalleltoBody);
      Leg.(EEselection).r.EEdes = meanCyclicMotionHipEE.(EEselection).position(1:end,:); % save desired EE position in the same struct for easy comparison
+end
+
+%% Plot range of motion
+if viewRangeOfMotionPlots
+    fprintf('Computing range of motion dependent on link lengths and joint limits. \n');
+    plotRangeOfMotion(quadruped, Leg, cyclicMotionHipEE);
 end
 
 %% Build robot rigid body model

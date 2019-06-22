@@ -1,4 +1,10 @@
-function [reachablePositions] = getRangeofMotion(quadruped)
+function reachablePositions = getRangeofMotion(quadruped, Leg)
+
+% position of HFE.
+HFExPos(1) = Leg.LF.r.HFE(1,1); % x position front legs
+HFEzPos(1) = Leg.LF.r.HFE(1,3); % z position front legs
+HFExPos(2) = Leg.LH.r.HFE(1,1); % x position hind legs
+HFEzPos(2) = Leg.LH.r.HFE(1,3); % z position hind legs
 
 l_hip(1) = quadruped.hip(1).length;
 l_thigh(1) = quadruped.thigh(1).length; 
@@ -24,10 +30,10 @@ q4 = q4_min:0.1:q4_max;
 
 [THETA2,THETA3] = meshgrid(q2,q3); % generate a grid of theta1 and theta2 values
 
-X_front =  l_thigh(1) * sin(THETA2) + l_shank(1) * sin(THETA2 + THETA3); % compute x coordinates
-Z_front = -l_thigh(1) * cos(THETA2) - l_shank(1) * cos(THETA2 + THETA3); % compute z coordinates
-X_hind =  l_thigh(2) * sin(THETA2) + l_shank(2) * sin(THETA2 + THETA3); % compute x coordinates
-Z_hind = -l_thigh(2) * cos(THETA2) - l_shank(2) * cos(THETA2 + THETA3); % compute z coordinates
+X_front = HFExPos(1) + l_thigh(1) * sin(THETA2) + l_shank(1) * sin(THETA2 + THETA3); % compute x coordinates
+Z_front = HFEzPos(1) - l_thigh(1) * cos(THETA2) - l_shank(1) * cos(THETA2 + THETA3); % compute z coordinates
+X_hind =  HFExPos(2) + l_thigh(2) * sin(THETA2) + l_shank(2) * sin(THETA2 + THETA3); % compute x coordinates
+Z_hind =  HFEzPos(1) - l_thigh(2) * cos(THETA2) - l_shank(2) * cos(THETA2 + THETA3); % compute z coordinates
 
 % both front feet have same reachable space as do both hind feet
 reachablePositions.LF = [X_front(:) Z_front(:)];
