@@ -25,9 +25,9 @@ heuristic.torqueAngle.kTorsionalSpring = 50; % spring constant for torsional spr
 heuristic.torqueAngle.apply = true;
 
 %% Toggle trajectory plots and initial design viz
-viewVisualization = false; % initial leg design tracking trajectory plan
+viewVisualization = true; % initial leg design tracking trajectory plan
 numberOfLoopRepetitions = 1; % number of steps visualized for leg motion
-viewTrajectoryPlots = false;
+viewTrajectoryPlots = true;
 
 %% Toggle optimization for each leg
 runOptimization = true;
@@ -44,8 +44,8 @@ optimizationProperties.viz.numberOfCyclesVisualized = 1;
 optimizationProperties.viz.displayBestCurrentLinkLengths = true; % display chart while running ga
 
 % Set number of generations and population size
-optimizationProperties.options.maxGenerations = 10;
-optimizationProperties.options.populationSize = 15;
+optimizationProperties.options.maxGenerations = 25;
+optimizationProperties.options.populationSize = 40;
 
 % Set weights for fitness function terms
 optimizationProperties.penaltyWeight.totalSwingTorque  = 0;
@@ -77,11 +77,11 @@ if linkCount == 4
 end
 
 %% Toggle robots and tasks to be simulated and optimized
-universalTrot   = true;
+universalTrot   = false;
 universalStairs = false;
 speedyStairs    = false;
 speedyGallop    = false;
-massivoWalk     = false;
+massivoWalk     = true;
 massivoStairs   = false;
 centaurWalk     = false;
 centaurStairs   = false;
@@ -94,7 +94,7 @@ ANYmalSlowTrotOriginal = false; % stance torque good but motion not the same as 
 numberOfRepetitions = 0; % number of times that leg is reoptimized
 
 %% Select an actuator
-actuatorSelection = 'ANYdrive'; % {ANYdrive, other}
+actuatorSelection = 'Neo'; % {ANYdrive, Neo, other}
 
 % impose limits on maximum joint torque, speed and power
 % the values are defined in getActuatorLimits
@@ -113,7 +113,10 @@ if runOptimization
     plotOptimizedLeg.RF = optimizeRF;
     plotOptimizedLeg.RH = optimizeRH;
 end
-% additional plotting available via:
-% plotJointDataForAllLegs(classSelection, 'taskSelection',classSelection2, 'taskSelection2' plotOptimizedLeg, 'plotType')
- % plotJointDataForAllLegs(ANYmal, 'slowTrot', [], [], plotOptimizedLeg, 'scatterPlot');
+
+%% additional plotting available via:
+% the plotJointDataForAllLegs script has the following form:
+% plotJointDataForAllLegs(classSelection, 'taskSelection', classSelection2, 'taskSelection2' plotOptimizedLeg, 'plotType') 
+% it can be used as follows. plotType = {'linePlot, scatterPlot'}
+% plotJointDataForAllLegs(ANYmal, 'slowTrot', [], [], plotOptimizedLeg, 'scatterPlot');
 fprintf('Done.\n');

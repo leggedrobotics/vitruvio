@@ -161,8 +161,7 @@ if W_maxPower
     maxPower       = max(max(jointPower));
 end
 
-%% get the maximum joint torque speed and power for each joint
-% joint torque speed and power limits for 2 link leg
+% 
 maxTorqueHAA = max(max(abs(tempLeg.(EEselection).jointTorque(:,1))));
 maxTorqueHFE = max(max(abs(tempLeg.(EEselection).jointTorque(:,2))));
 maxTorqueKFE = max(max(abs(tempLeg.(EEselection).jointTorque(:,3))));
@@ -181,7 +180,6 @@ maxPowerKFE  = max(max(jointPower(:,3)));
 maxPowerAFE  = 0;
 maxPowerDFE  = 0;
 
-% overwrite the AFE and DFE values for 3 and 4 link leg
 if linkCount == 3
     maxTorqueAFE = max(max(abs(tempLeg.(EEselection).jointTorque(:,4))));
     maxqdotAFE   = max(max(abs(tempLeg.(EEselection).qdot(:,4))));
@@ -197,21 +195,20 @@ if linkCount == 4
 end
 
 maxJointTorque = [maxTorqueHAA, maxTorqueHFE, maxTorqueKFE, maxTorqueAFE, maxTorqueDFE];
-maxJointqdot   = [maxqdotHAA,   maxqdotHFE,   maxqdotKFE,   maxqdotAFE,   maxqdotDFE];
-maxJointPower  = [maxPowerHAA,  maxPowerHFE,  maxPowerKFE,  maxPowerAFE,  maxPowerDFE];
+maxJointqdot   = [maxqdotHAA, maxqdotHFE, maxqdotKFE, maxqdotAFE, maxqdotDFE];
+maxJointPower  = [maxPowerHAA, maxPowerHFE, maxPowerKFE, maxPowerAFE, maxPowerDFE];
 
 %% Compute max joint torque, speed and power limit violation penalties
-% initialize penalties for exceeding actuator limits
 torqueLimitPenalty = 0; speedLimitPenalty = 0; powerLimitPenalty = 0;
-if (imposeJointLimits.maxTorque) && (any(maxJointTorque-maxTorqueLimit > 0))
+if (imposeJointLimits.maxTorque) && (any(maxJointTorque-maxTorqueLimit>0))
     torqueLimitPenalty = 5;
 end
 
-if (imposeJointLimits.maxqdot) && (any(maxJointqdot-maxqdotLimit > 0))
+if (imposeJointLimits.maxqdot) && (any(maxJointqdot-maxqdotLimit>0))
     speedLimitPenalty = 5;
 end
 
-if (imposeJointLimits.maxPower) && (any(maxJointPower-maxPowerLimit > 0))
+if (imposeJointLimits.maxPower) && (any(maxJointPower-maxPowerLimit>0))
     powerLimitPenalty = 5;
 end
 

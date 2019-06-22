@@ -731,6 +731,7 @@ else
             plot(time.(EEselection), [data.(EEselection).qdotOpt(:,1); data.(EEselection).qdotOpt(:,1); data.(EEselection).qdotOpt(:,1)], lineColourOpt, 'LineWidth', LineWidth,'MarkerFaceColor', faceColourOpt);
             legend('initial design', 'optimized design')   
         end
+        plot(maxTorqueLimit, maxqdotLimit, maxPowerLimit
         grid on
         xlabel('Time [s]')
         ylabel('Velocity [rad/s]')
