@@ -53,8 +53,8 @@ elseif linkCount == 4
     legendLabels = {'HAA','HFE','KFE', 'AFE', 'DFE'};
 end
 
-valueLabels = string(round(Leg.metaParameters.energyPerCycle.(EEselection)));
-valueLabelsOpt = string(round(Leg.metaParameters.energyPerCycleOpt.(EEselection)));
+valueLabels = string(Leg.metaParameters.energyPerCycle.(EEselection));
+valueLabelsOpt = string(Leg.metaParameters.energyPerCycleOpt.(EEselection));
 
 figure()
 ax1 = subplot(1,2,1);

@@ -1,6 +1,6 @@
 %% Read in data for quadruped geometry
 function robot = buildRobotRigidBodyModel(actuatorProperties, actuateJointsDirectly, hipAttachmentOffset, linkCount, quadruped, Leg, meanCyclicMotionHipEE, EEselection, numberOfLoopRepetitions, viewVisualization, hipParalleltoBody) 
-
+jointNames = ['HAA'; 'HFE'; 'KFE'; 'DFE'; 'AFE'];
 %% get quadruped properties for selected end effector  
 if (EEselection == 'LF') | (EEselection == 'RF')
     selectFrontHind = 1;
@@ -9,7 +9,12 @@ if (EEselection == 'LF') | (EEselection == 'RF')
          hipOffsetDirection = -1;
 end
 
-actuatorMass = actuatorProperties.mass;
+% initialize actuator mass
+actuatorMass.HAA = 0; actuatorMass.HFE = 0; actuatorMass.KFE = 0; actuatorMass.DFE = 0; actuatorMass.AFE = 0; 
+for i = 1:linkCount+1
+    jointSelection = jointNames(i,:);
+    actuatorMass.(jointSelection) = actuatorProperties.mass.(jointSelection);
+end
 
 % offset from nominal stance EE position to HAA along body x
 hipAttachmentOffsetX = hipAttachmentOffset*cos(meanCyclicMotionHipEE.body.eulerAngles.(EEselection)(1,2)); 
@@ -94,7 +99,6 @@ if (linkCount ==4)
                        0, 0, 0, 1];
 end
 %% Create and assemble rigid bodies
-
 % Create a rigid body tree object to build the robot.
 robot = robotics.RigidBodyTree('DataFormat', 'row');
 
@@ -147,17 +151,16 @@ if actuateJointsDirectly
     body10 = robotics.RigidBody('body10'); % AFE
     body11 = robotics.RigidBody('body11'); % DFE
 
-    body7.Mass  = actuatorMass; % HAA
-    body8.Mass  = actuatorMass; % HFE
-    body9.Mass  = actuatorMass; % KFE
-    body10.Mass = actuatorMass; % AFE
-    body11.Mass = actuatorMass; % DFE
+    body7.Mass  = actuatorMass.HAA; % HAA
+    body8.Mass  = actuatorMass.HFE; % HFE
+    body9.Mass  = actuatorMass.KFE; % KFE
+    body10.Mass = actuatorMass.AFE; % AFE
+    body11.Mass = actuatorMass.DFE; % DFE
 end
 
-
 %% compute inertia for each link, actuator and end effector
+% links are constant density cylinders, actuators and end effectors are point masses
 % inertia = [Ixx Iyy Izz Iyz Ixz Ixy] relative to body frame in kg/m^2
-
 I_hip =   [0.00000001, 1/3*body1.Mass*l_hip^2,   1/3*body1.Mass*l_hip^2,   0, 0, 0];   
 I_thigh = [0.00000001, 1/3*body2.Mass*l_thigh^2, 1/3*body2.Mass*l_thigh^2, 0, 0, 0];      
 I_shank = [0.00000001, 1/3*body3.Mass*l_shank^2, 1/3*body3.Mass*l_shank^2, 0, 0, 0];      
@@ -210,25 +213,25 @@ if actuateJointsDirectly
         body10.Inertia = I_AFE;
         body11.Inertia = I_DFE;
     end
-        %% OVERWRITE INERTIA TERMS WITH THOSE FROM ANYMAL URDF FOR VALIDATION PURPOSES
-        % inertia = [Ixx Iyy Izz Iyz Ixz Ixy] relative to body frame in kg/m^2
-        body0.Inertia = [0 0 0 0 0 0]; % base    
-        body1.Inertia = [0.002318  0.002060 0.002439 -0.000001 0.000009  0.000333];     
-        body2.Inertia = [0.013479 0.013250 0.002229 -0.000003 0.000038 -0.001623]; 
-        body3.Inertia = [0.003769371790899 0.004004464676349 0.000418471691904 -0.000077334500762 -0.000152069372983 -0.000321835608300] + I_EE;
-        if linkCount == 2
-            body4.Inertia = [0 0 0 0 0 0];
-        end
-        % actuator inertias are bundled in with link inertias
-        body7.Inertia  = [0 0 0 0 0 0];
-        body8.Inertia  = [0 0 0 0 0 0];
-        body9.Inertia  = [0 0 0 0 0 0];
-        if linkCount == 3
-            body10.Inertia = [0 0 0 0 0 0];
-        elseif linkCount == 4
-            body10.Inertia = [0 0 0 0 0 0];
-            body11.Inertia = [0 0 0 0 0 0];
-        end
+%         %% OVERWRITE INERTIA TERMS WITH THOSE FROM ANYMAL URDF FOR VALIDATION PURPOSES
+%         % inertia = [Ixx Iyy Izz Iyz Ixz Ixy] relative to body frame in kg/m^2
+%         body0.Inertia = [0 0 0 0 0 0]; % base    
+%         body1.Inertia = [0.002318  0.002060 0.002439 -0.000001 0.000009  0.000333];     
+%         body2.Inertia = [0.013479 0.013250 0.002229 -0.000003 0.000038 -0.001623]; 
+%         body3.Inertia = [0.003769371790899 0.004004464676349 0.000418471691904 -0.000077334500762 -0.000152069372983 -0.000321835608300] + I_EE;
+%         if linkCount == 2
+%             body4.Inertia = [0 0 0 0 0 0];
+%         end
+%         % actuator inertias are bundled in with link inertias
+%         body7.Inertia  = [0 0 0 0 0 0];
+%         body8.Inertia  = [0 0 0 0 0 0];
+%         body9.Inertia  = [0 0 0 0 0 0];
+%         if linkCount == 3
+%             body10.Inertia = [0 0 0 0 0 0];
+%         elseif linkCount == 4
+%             body10.Inertia = [0 0 0 0 0 0];
+%             body11.Inertia = [0 0 0 0 0 0];
+%         end
 end
 %% 
 % center of mass and mass terms do not affect inertia but are used 

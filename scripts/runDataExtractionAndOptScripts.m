@@ -3,7 +3,7 @@ function Leg = runDataExtractionAndOptScripts(viewRangeOfMotionPlots, actuatorSe
 %% display selections
 fprintf('Quadruped class: %s.\n', classSelection);
 fprintf('Task: %s.\n', taskSelection);
-fprintf('Actuator: %s.\n', actuatorSelection);
+% fprintf('Actuator: %s.\n', actuatorSelection);
 if linkCount == 2
     fprintf('Links: hip, thigh, shank.\n\n')
 elseif linkCount == 3
@@ -27,7 +27,7 @@ Leg.time = t;
 %% Load corresponding robot parameters
 fprintf('Loading quadruped properties for %s.\n', classSelection);
 quadruped = getQuadrupedProperties(classSelection, linkCount);
-[~, ~, ~, actuatorProperties.mass] = getActuatorProperties(actuatorSelection);
+[actuatorProperties.maxTorqueLimit, actuatorProperties.maxqdotLimit, actuatorProperties.maxPowerLimit, actuatorProperties.mass] = getActuatorProperties(actuatorSelection, linkCount);
 
 for i = 1:4
     EEselection = EEnames(i,:);
@@ -170,6 +170,9 @@ for i = 1:4
     Leg.(EEselection).jointPower = Leg.(EEselection).jointTorque .* Leg.(EEselection).qdot(:,1:end-1);
 end
 
+%% Get efficiency of actuator at operating point and electrical power
+% [actuatorEfficiency, electricalPower] = getActuatorEfficiency(Leg, EEnames, linkCount, actuatorProperties);
+
 %% Save link lengths and mass
 for i = 1:4
     EEselection = EEnames(i,:);
@@ -200,13 +203,13 @@ end
 %% Optimize selected legs and compute their cost of transport
 if runOptimization
     if imposeJointLimits.maxTorque
-        [optimizationProperties.bounds.maxTorqueLimit, ~, ~, ~] = getActuatorProperties(actuatorSelection);
+        [optimizationProperties.bounds.maxTorqueLimit, ~, ~, ~] = getActuatorProperties(actuatorSelection, linkCount);
     end
     if imposeJointLimits.maxqdot
-        [~, optimizationProperties.bounds.maxqdotLimit, ~, ~] = getActuatorProperties(actuatorSelection);
+        [~, optimizationProperties.bounds.maxqdotLimit, ~, ~] = getActuatorProperties(actuatorSelection, linkCount);
     end
     if imposeJointLimits.maxPower
-        [~, ~, optimizationProperties.bounds.maxPowerLimit, ~] = getActuatorProperties(actuatorSelection);
+        [~, ~, optimizationProperties.bounds.maxPowerLimit, ~] = getActuatorProperties(actuatorSelection, linkCount);
     end
     Leg.metaParameters.CoTOpt.total = 0;
 

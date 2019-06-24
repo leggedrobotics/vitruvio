@@ -3,7 +3,7 @@
 % units.
 
 function penalty = computePenalty(actuatorProperties, imposeJointLimits, heuristic, legDesignParameters, actuateJointsDirectly, linkCount, optimizationProperties, quadruped, selectFrontHind, taskSelection, dt, configSelection, EEselection, meanCyclicMotionHipEE, hipParalleltoBody, Leg, meanTouchdownIndex)
-
+jointNames = ['HAA'; 'HFE'; 'KFE'; 'DFE'; 'AFE'];
 kTorsionalSpring = heuristic.torqueAngle.kTorsionalSpring;
 thetaLiftoff_des = heuristic.torqueAngle.thetaLiftoff_des;
 linkLengths = legDesignParameters(1:linkCount+1)/100;
@@ -76,14 +76,25 @@ W_maxTorque     = optimizationProperties.penaltyWeight.maxTorque;
 W_maxqdot       = optimizationProperties.penaltyWeight.maxqdot;
 W_maxPower      = optimizationProperties.penaltyWeight.maxPower;
 allowableExtension = optimizationProperties.allowableExtension; % as ratio of total possible extension
-if imposeJointLimits.maxTorque
-    maxTorqueLimit     = optimizationProperties.bounds.maxTorqueLimit;
-end
-if imposeJointLimits.maxqdot
-    maxqdotLimit     = optimizationProperties.bounds.maxqdotLimit;
-end
-if imposeJointLimits.maxPower
-    maxPowerLimit     = optimizationProperties.bounds.maxPowerLimit;
+
+% initialize torque, qdot and power limits.
+maxTorqueLimit = [0 0 0 0 0];    
+maxqdotLimit   = [0 0 0 0 0];    
+maxPowerLimit  = [0 0 0 0 0]; 
+
+for i = 1:linkCount+1
+    jointSelection = jointNames(i,:);
+    if imposeJointLimits.maxTorque
+        maxTorqueLimit(1,i) = optimizationProperties.bounds.maxTorqueLimit.(jointSelection);
+    end
+
+    if imposeJointLimits.maxqdot
+        maxqdotLimit(1,i) = optimizationProperties.bounds.maxqdotLimit.(jointSelection);
+    end
+
+    if imposeJointLimits.maxPower
+        maxPowerLimit(1,i) = optimizationProperties.bounds.maxPowerLimit.(jointSelection);
+    end
 end
 
 %% Compute penalty terms
@@ -203,6 +214,7 @@ maxJointPower  = [maxPowerHAA,  maxPowerHFE,  maxPowerKFE,  maxPowerAFE,  maxPow
 %% Compute max joint torque, speed and power limit violation penalties
 % initialize penalties for exceeding actuator limits
 torqueLimitPenalty = 0; speedLimitPenalty = 0; powerLimitPenalty = 0;
+
 if (imposeJointLimits.maxTorque) && (any(maxJointTorque-maxTorqueLimit > 0))
     torqueLimitPenalty = 5;
 end

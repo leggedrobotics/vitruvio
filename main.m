@@ -7,7 +7,7 @@ close all;
 % If false the individual steps are not averaged. This should be selected
 % when the generated motion is irregular.
 dataExtraction.averageStepsForCyclicalMotion = true; 
-dataExtraction.allowableDeviation = 0.04; % [m] deviation between neighbouring points
+dataExtraction.allowableDeviation = 0.04; % [m] Deviation between neighbouring points. If the deviation is larger, additional points are generated via interpolated.
 
 %% Toggle leg properties, visualization and optimization functions
 linkCount = 2; % number of links from 2 to 4. [thigh, shank, foot, phalanges]
@@ -45,8 +45,8 @@ optimizationProperties.viz.numberOfCyclesVisualized = 1;
 optimizationProperties.viz.displayBestCurrentLinkLengths = true; % display chart while running ga
 
 % Set number of generations and population size
-optimizationProperties.options.maxGenerations = 20;
-optimizationProperties.options.populationSize = 35;
+optimizationProperties.options.maxGenerations = 2;
+optimizationProperties.options.populationSize = 5;
 
 % Set weights for fitness function terms
 optimizationProperties.penaltyWeight.totalSwingTorque  = 0;
@@ -82,20 +82,24 @@ universalTrot   = false;
 universalStairs = false;
 speedyStairs    = false;
 speedyGallop    = false;
-massivoWalk     = true;
+massivoWalk     = false;
 massivoStairs   = false;
 centaurWalk     = false;
 centaurStairs   = false;
 miniPronk       = false;
 ANYmalTrot      = false;
 ANYmalSlowTrot  = false; % stance torque a high
-ANYmalSlowTrotGoodMotionBadForce = false;
+ANYmalSlowTrotGoodMotionBadForce = true;
 ANYmalSlowTrotOriginal = false; % stance torque good but motion not the same as in measured
 
 numberOfRepetitions = 0; % number of times that leg is reoptimized
 
-%% Select an actuator
-actuatorSelection = 'Neo'; % {ANYdrive, Neo, other}
+%% Select actuators for each joint
+actuatorSelection.HAA = 'ANYdrive'; % {ANYdrive, Neo, other}
+actuatorSelection.HFE = 'ANYdrive'; % {ANYdrive, Neo, other}
+actuatorSelection.KFE = 'ANYdrive'; % {ANYdrive, Neo, other}
+actuatorSelection.AFE = 'ANYdrive'; % {ANYdrive, Neo, other}
+actuatorSelection.DFE = 'ANYdrive'; % {ANYdrive, Neo, other}
 
 % impose limits on maximum joint torque, speed and power
 % the values are defined in getActuatorLimits
