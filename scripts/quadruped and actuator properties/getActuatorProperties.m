@@ -1,34 +1,26 @@
-function [maxTorqueLimit, maxqdotLimit, maxPowerLimit, actuatorMass] = getActuatorProperties(actuatorSelection, linkCount)
+function [maxTorqueLimit, maxqdotLimit, maxPowerLimit, actuatorMass] = getActuatorProperties(actuatorName)
+% returns the actuator torque, speed, power limits and mass for the
+% actuator present in each joint
 
-jointNames = ['HAA'; 'HFE'; 'KFE'; 'DFE'; 'AFE'];
-
-for i = 1:linkCount+1
-    jointSelection = jointNames(i,:);
-    
-    if isequal(actuatorSelection.(jointSelection),'ANYdrive')
-        maxTorqueLim =  40;  % [Nm]   
-        maxqdotLim   =  12;  % [rad/s] 
-        maxPowerLim  = 240;  % [W]   
-        actMass   = 1.1;  % [kg]
+    if isequal(actuatorName,'ANYdrive')
+        maxTorqueLimit =  40;  % [Nm]   
+        maxqdotLimit   =  12;  % [rad/s] 
+        maxPowerLimit  = 240;  % [W]   
+        actuatorMass        = 1.09;  % [kg]
     end
 
-    if isequal(actuatorSelection.(jointSelection),'Neo')
-        maxTorqueLim = 230;  % [Nm]
-        maxqdotLim  = 17;   % [rad/s]
-        maxPowerLim  = 2000; % [W] These values are conservative estimates on mechanical power
-        actMass   = 4.5;  % [kg]
+    if isequal(actuatorName,'Neo')
+        maxTorqueLimit = 230;  % [Nm]
+        maxqdotLimit   = 17;   % [rad/s]
+        maxPowerLimit  = 2000; % [W] These values are conservative estimates on mechanical power
+        actuatorMass        = 4.5;  % [kg]
 
     end
 
-    if isequal(actuatorSelection.(jointSelection),'other')
-        maxTorqueLim = 40;  % [Nm]     
-        maxqdotLim   =  12; % [rad/s] 
-        maxPowerLim  = 240; % [W] 
-        actMass   = 4.5; % [kg]
+    if isequal(actuatorName,'other')
+        maxTorqueLimit = 40;  % [Nm]     
+        maxqdotLimit   =  12; % [rad/s] 
+        maxPowerLimit  = 240; % [W] 
+        actuatorMass        = 4.5; % [kg]
     end
-    
-    maxTorqueLimit.(jointSelection) = maxTorqueLim;
-    maxqdotLimit.(jointSelection) = maxqdotLim;
-    maxPowerLimit.(jointSelection) = maxPowerLim;
-    actuatorMass.(jointSelection) = actMass;
 end

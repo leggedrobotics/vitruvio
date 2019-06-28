@@ -1,5 +1,5 @@
 function [legDesignParameters, penaltyMin, output] = evolveOptimalLeg(actuatorProperties, imposeJointLimits, heuristic, upperBnd, lowerBnd, actuateJointsDirectly, hipAttachmentOffset, linkCount, optimizationProperties, initialLinkLengths, taskSelection, quadruped, configSelection, EEselection, dt, meanCyclicMotionHipEE, hipParalleltoBody, Leg, meanTouchdownIndex)
-if (EEselection == 'LF') | (EEselection == 'RF')
+if strcmp(EEselection, 'LF') || strcmp(EEselection, 'RF')
     selectFrontHind = 1;
 else 
     selectFrontHind = 2;

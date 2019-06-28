@@ -10,7 +10,7 @@ function [jointPositions, r1, r2, r3, r4, r5, rEE] = inverseKinematics(heuristic
   r_H_0EE_des = meanCyclicMotionHipEE.(EEselection).position; % desired EE position
 
   %% Initialize IK algorithm
-  q0 = getInitialJointAnglesForDesiredConfig(taskSelection, EEselection, configSelection);
+  q0 = getInitialJointAnglesForDesiredConfig(EEselection, configSelection);
   q = [q0'];
   jointPositions = zeros(length(meanCyclicMotionHipEE.(EEselection).position(:,1)),linkCount+2);
 

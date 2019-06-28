@@ -7,14 +7,14 @@ function qLiftoff = computeqLiftoffFinalJoint(heuristic, hipAttachmentOffset, li
   thetaLiftoff_des = heuristic.torqueAngle.thetaLiftoff_des;
   % get length of the final link, either foot or phalanges.
   if linkCount == 3
-      if (EEselection == 'LF') | (EEselection == 'RF')
+      if strcmp(EEselection,'LF') || strcmp(EEselection, 'RF')
         finalLinkLength = quadruped.foot(1).length;
       else
         finalLinkLength = quadruped.foot(2).length; 
       end
   end
   if linkCount == 4
-      if (EEselection == 'LF') | (EEselection == 'RF')
+      if strcmp(EEselection,'LF') || strcmp(EEselection, 'RF')
         finalLinkLength = quadruped.phalanges(1).length;
       else
         finalLinkLength = quadruped.phalanges(2).length ;
@@ -29,7 +29,7 @@ function qLiftoff = computeqLiftoffFinalJoint(heuristic, hipAttachmentOffset, li
                          r_H_0EE_des(1,3) + finalLinkLength*sin(thetaLiftoff_des)];
 
   %% Initialize IK algorithm
-  q0 = getInitialJointAnglesForDesiredConfig(taskSelection, EEselection, configSelection);
+  q0 = getInitialJointAnglesForDesiredConfig(EEselection, configSelection);
   q = q0';
   if linkCount == 3
       q = [q; 0];

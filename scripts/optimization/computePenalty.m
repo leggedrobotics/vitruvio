@@ -4,6 +4,7 @@
 
 function penalty = computePenalty(actuatorProperties, imposeJointLimits, heuristic, legDesignParameters, actuateJointsDirectly, linkCount, optimizationProperties, quadruped, selectFrontHind, taskSelection, dt, configSelection, EEselection, meanCyclicMotionHipEE, hipParalleltoBody, Leg, meanTouchdownIndex)
 jointNames = ['HAA'; 'HFE'; 'KFE'; 'DFE'; 'AFE'];
+
 kTorsionalSpring = heuristic.torqueAngle.kTorsionalSpring;
 thetaLiftoff_des = heuristic.torqueAngle.thetaLiftoff_des;
 linkLengths = legDesignParameters(1:linkCount+1)/100;
@@ -33,11 +34,11 @@ end
 
 %% qAFE, qDFE torque based heuristic computation
 if (heuristic.torqueAngle.apply == true) && (linkCount > 2)
-    [qLiftoff.(EEselection)] = computeqLiftoffFinalJoint(heuristic, hipAttachmentOffset, linkCount, meanCyclicMotionHipEE, quadruped, EEselection, taskSelection, configSelection, hipParalleltoBody, Leg);
-    EE_force = Leg.(EEselection).force(1,1:3);
-    rotBodyY = -meanCyclicMotionHipEE.body.eulerAngles.(EEselection)(1,2); % rotation of body about inertial y
-    qPrevious = qLiftoff.(EEselection);
-    [springTorque.(EEselection), springDeformation.(EEselection)] = computeFinalJointDeformation(heuristic, qPrevious, EE_force, hipAttachmentOffset, linkCount, rotBodyY, quadruped, EEselection, hipParalleltoBody);      
+    [qLiftoff.(EEselection{1})] = computeqLiftoffFinalJoint(heuristic, hipAttachmentOffset, linkCount, meanCyclicMotionHipEE, quadruped, EEselection, taskSelection, configSelection, hipParalleltoBody, Leg);
+    EE_force = Leg.(EEselection{1}).force(1,1:3);
+    rotBodyY = -meanCyclicMotionHipEE.body.eulerAngles.(EEselection{1})(1,2); % rotation of body about inertial y
+    qPrevious = qLiftoff.(EEselection{1});
+    [springTorque.(EEselection{1}), springDeformation.(EEselection{1})] = computeFinalJointDeformation(heuristic, qPrevious, EE_force, hipAttachmentOffset, linkCount, rotBodyY, quadruped, EEselection, hipParalleltoBody);      
 else
     qLiftoff.(EEselection) = 0; % if the heuristic does not apply
 end

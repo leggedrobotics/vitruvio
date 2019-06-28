@@ -1,4 +1,4 @@
-function CoT = getCostOfTransport(Leg, power, quadruped, EEselection)
+function CoT = getCostOfTransport(Leg, power, quadruped)
 % CoT = power / m*g*v
 
 m = quadruped.mass.total;

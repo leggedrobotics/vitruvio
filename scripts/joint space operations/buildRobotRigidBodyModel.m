@@ -1,16 +1,17 @@
 %% Read in data for quadruped geometry
 function robot = buildRobotRigidBodyModel(actuatorProperties, actuateJointsDirectly, hipAttachmentOffset, linkCount, quadruped, Leg, meanCyclicMotionHipEE, EEselection, numberOfLoopRepetitions, viewVisualization, hipParalleltoBody) 
-jointNames = ['HAA'; 'HFE'; 'KFE'; 'DFE'; 'AFE'];
+jointNames = ['HAA'; 'HFE'; 'KFE'; 'AFE'; 'DFE'];
 %% get quadruped properties for selected end effector  
-if (EEselection == 'LF') | (EEselection == 'RF')
+if strcmp(EEselection, 'LF') || strcmp(EEselection, 'RF')
     selectFrontHind = 1;
     hipOffsetDirection = 1;
-    else selectFrontHind = 2;
-         hipOffsetDirection = -1;
+else
+    selectFrontHind = 2;
+    hipOffsetDirection = -1;
 end
 
 % initialize actuator mass
-actuatorMass.HAA = 0; actuatorMass.HFE = 0; actuatorMass.KFE = 0; actuatorMass.DFE = 0; actuatorMass.AFE = 0; 
+actuatorMass.HAA = 0; actuatorMass.HFE = 0; actuatorMass.KFE = 0; actuatorMass.AFE = 0; actuatorMass.DFE = 0; 
 for i = 1:linkCount+1
     jointSelection = jointNames(i,:);
     actuatorMass.(jointSelection) = actuatorProperties.mass.(jointSelection);
@@ -323,17 +324,17 @@ for i = 1:length(Leg.(EEselection).q)
                        Leg.(EEselection).q(i,5)];    % DFE
     end
 end
+
 % define patch shift which allows for body visualization
 bodyLength = 2*quadruped.xNom(1);
 bodyWidth = 2*quadruped.yNom(1);
-
-if (EEselection == 'LF')
+if strcmp(EEselection, 'LF')
     patchShift = [0 0 0];
-elseif (EEselection == 'LH')
+elseif strcmp(EEselection, 'LH')
     patchShift = [bodyLength 0 0];
-elseif (EEselection == 'RF')
+elseif strcmp(EEselection, 'RF')
     patchShift = [0 bodyWidth 0];
-elseif (EEselection == 'RH')
+elseif strcmp(EEselection, 'RH')
     patchShift = [bodyLength bodyWidth 0];
 end
     

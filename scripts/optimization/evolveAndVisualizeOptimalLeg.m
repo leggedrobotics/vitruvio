@@ -1,7 +1,8 @@
 % this function calls evolveOptimalLeg which starts the optimization by calling computePenalty 
 
 function [jointTorqueOpt, qOpt, qdotOpt, qdotdotOpt, rOpt, jointPowerOpt, linkLengthsOpt, hipAttachmentOffsetOpt, penaltyMin, elapsedTime, elapsedTimePerFuncEval, output, linkMassOpt, totalLinkMassOpt] = evolveAndVisualizeOptimalLeg(actuatorProperties, imposeJointLimits, heuristic, actuateJointsDirectly, hipAttachmentOffset, linkCount, optimizationProperties, EEselection, meanCyclicMotionHipEE, quadruped, configSelection, dt, taskSelection, hipParalleltoBody, Leg, meanTouchdownIndex)
-if (EEselection == 'LF') | (EEselection == 'RF')
+
+if strcmp(EEselection, 'LF') || strcmp(EEselection, 'RF')
     selectFrontHind = 1;
 else 
     selectFrontHind = 2;
@@ -11,7 +12,7 @@ end
 initialLinkLengths(1) = quadruped.hip(selectFrontHind).length*100; 
 initialLinkLengths(2) = quadruped.thigh(selectFrontHind).length*100;
 initialLinkLengths(3) = quadruped.shank(selectFrontHind).length*100;
-if (linkCount == 3) | (linkCount == 4)
+if (linkCount == 3) || (linkCount == 4)
     initialLinkLengths(4) = quadruped.foot(selectFrontHind).length*100;
 end
 if (linkCount == 4)
@@ -65,7 +66,7 @@ end
 quadruped.hip(selectFrontHind).mass = quadruped.legDensity * pi*(quadruped.hip(selectFrontHind).radius)^2   * linkLengths(1);
 quadruped.thigh(selectFrontHind).mass = quadruped.legDensity * pi*(quadruped.thigh(selectFrontHind).radius)^2 * linkLengths(2);
 quadruped.shank(selectFrontHind).mass = quadruped.legDensity * pi*(quadruped.shank(selectFrontHind).radius)^2 * linkLengths(3);
-if (linkCount == 3) | (linkCount == 4)
+if (linkCount == 3) || (linkCount == 4)
     quadruped.foot(selectFrontHind).mass = quadruped.legDensity * pi*(quadruped.foot(selectFrontHind).radius)^2 * linkLengths(4);
 end
 if (linkCount ==4)
@@ -78,7 +79,7 @@ viewVisualization = optimizationProperties.viz.viewVisualization;
 %% qAFE, qDFE torque based heuristic computation
 % computation of parameters for first time step used to initialize the IK
 if (heuristic.torqueAngle.apply == true) && (linkCount > 2)
-    [qLiftoff.(EEselection)] = computeqLiftoffFinalJoint(heuristic, hipAttachmentOffset, linkCount, meanCyclicMotionHipEE, quadruped, EEselection, taskSelection, configSelection, hipParalleltoBody, Leg);
+    [qLiftoff.(EEselection{1})] = computeqLiftoffFinalJoint(heuristic, hipAttachmentOffset, linkCount, meanCyclicMotionHipEE, quadruped, EEselection, taskSelection, configSelection, hipParalleltoBody, Leg);
     EE_force = Leg.(EEselection).force(1,1:3);
     rotBodyY = -meanCyclicMotionHipEE.body.eulerAngles.(EEselection)(1,2); % rotation of body about inertial y
     qPrevious = qLiftoff.(EEselection);

@@ -10,8 +10,8 @@ function [actuatorEfficiency, elecPower] = getActuatorEfficiency(Leg, EEnames, l
 torqueMax = 150; % [Nm]
 qdotMax = 12; % [rad/s]
 mechPowerMax = 60; % [kW]
-qdotOpt = 0.3*qdotMax;
-torqueOpt = 0.3*torqueMax;
+qdotOpt   = 0.5*qdotMax;
+torqueOpt = 0.5*torqueMax;
 optimalOperatingPoint = [qdotOpt, torqueOpt];
 
 %% compute torque envelope 
@@ -196,4 +196,5 @@ contour(qdot, torque, efficiencyTotal)
 plot(qdotEnvelope, torqueEnvelope, 'k', 'lineWidth', 2)
 plot(optimalOperatingPoint(1,1), optimalOperatingPoint(1,2), 'o')
 hold off
+
 end

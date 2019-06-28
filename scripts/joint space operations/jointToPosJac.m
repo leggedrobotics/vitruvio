@@ -3,7 +3,7 @@ function [J_P, C_0EE, r_H_01, r_H_02, r_H_03, r_H_04, r_H_05, r_H_0EE]  = jointT
   % Output: Jacobian of the end-effector translation which maps joint
   % velocities to end-effector linear velocities in hip attachmemt frame.
   
-  if (EEselection == 'LF') | (EEselection == 'RF')
+  if strcmp(EEselection, 'LF') || strcmp(EEselection, 'RF')
     selectFrontHind = 1;
     hipOffsetDirection = 1;
   else
@@ -110,7 +110,7 @@ end
   R_02 = T_02(1:3,1:3);
   R_03 = T_03(1:3,1:3);
   R_04 = T_04(1:3,1:3);
-  if (linkCount == 3) | (linkCount == 4)
+  if (linkCount == 3) || (linkCount == 4)
       R_05 = T_05(1:3,1:3);
   end
   if (linkCount == 4)
@@ -127,7 +127,7 @@ end
   r_H_05 = [0; 0; 0]; % zeros if these joints do not exist
   r_H_06 = [0; 0; 0]; 
 
-  if (linkCount == 3) | (linkCount == 4)
+  if (linkCount == 3) || (linkCount == 4)
       r_H_05 = T_05(1:3,4); %% EE or DFE
   end
   if (linkCount == 4)

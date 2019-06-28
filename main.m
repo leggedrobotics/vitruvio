@@ -7,7 +7,7 @@ close all;
 % If false the individual steps are not averaged. This should be selected
 % when the generated motion is irregular.
 dataExtraction.averageStepsForCyclicalMotion = true; 
-dataExtraction.allowableDeviation = 0.04; % [m] Deviation between neighbouring points. If the deviation is larger, additional points are generated via interpolated.
+dataExtraction.allowableDeviation = 0.015; % [m] Deviation between neighbouring points. If the deviation is larger, additional points are generated via interpolated.
 
 %% Toggle leg properties, visualization and optimization functions
 linkCount = 2; % number of links from 2 to 4. [thigh, shank, foot, phalanges]
@@ -31,12 +31,12 @@ viewTrajectoryPlots = false;
 viewRangeOfMotionPlots = true;
 
 %% Toggle optimization for each leg
-runOptimization = true;
+runOptimization = false;
 viewOptimizedLegPlot = true;
-optimizeLF = true; 
-optimizeLH = false; 
-optimizeRF = false; 
-optimizeRH = false;
+optimizeLF = false; 
+optimizeLH = true; 
+optimizeRF = true; 
+optimizeRH = true;
 
 %% Set optimization properties
 % toggle visualization 
