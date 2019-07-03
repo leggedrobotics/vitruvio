@@ -1,6 +1,6 @@
 % this function calls evolveOptimalLeg which starts the optimization by calling computePenalty 
 
-function [jointTorqueOpt, qOpt, qdotOpt, qdotdotOpt, rOpt, jointPowerOpt, linkLengthsOpt, hipAttachmentOffsetOpt, penaltyMin, elapsedTime, elapsedTimePerFuncEval, output, linkMassOpt, totalLinkMassOpt] = evolveAndVisualizeOptimalLeg(actuatorProperties, imposeJointLimits, heuristic, actuateJointsDirectly, hipAttachmentOffset, linkCount, optimizationProperties, EEselection, meanCyclicMotionHipEE, quadruped, configSelection, dt, taskSelection, hipParalleltoBody, Leg, meanTouchdownIndex)
+function [jointTorqueOpt, qOpt, qdotOpt, qdotdotOpt, rOpt, jointPowerOpt, linkLengthsOpt, hipAttachmentOffsetOpt, penaltyMin, elapsedTime, elapsedTimePerFuncEval, output, linkMassOpt, totalLinkMassOpt, deltaqMaxOpt, qdotMaxOpt, jointTorqueMaxOpt, jointPowerMaxOpt, mechEnergyOpt, mechEnergyPerCycleOpt, mechEnergyPerCycleTotalOpt, elecEnergyOpt, elecEnergyPerCycleOpt, elecEnergyPerCycleTotalOpt] = evolveAndVisualizeOptimalLeg(actuatorProperties, imposeJointLimits, heuristic, actuateJointsDirectly, hipAttachmentOffset, linkCount, optimizationProperties, EEselection, meanCyclicMotionHipEE, quadruped, configSelection, dt, taskSelection, hipParalleltoBody, Leg, meanTouchdownIndex, actuatorEfficiency, actuatorSelection)
 
 if strcmp(EEselection, 'LF') || strcmp(EEselection, 'RF')
     selectFrontHind = 1;
@@ -22,10 +22,9 @@ initialHipAttachmentOffset = hipAttachmentOffset*100;
 
 %% print statement
 % Ensure bounds are ordered correctly such that lower bound is always <=
-% upper bound
-
-upperBnd = [round(optimizationProperties.bounds.upperBoundMultiplier(1:linkCount+1).*initialLinkLengths)/100, round(optimizationProperties.bounds.upperBoundMultiplier(linkCount+2)*initialHipAttachmentOffset)/100];
-lowerBnd = [round(optimizationProperties.bounds.lowerBoundMultiplier(1:linkCount+1).*initialLinkLengths)/100, round(optimizationProperties.bounds.lowerBoundMultiplier(linkCount+2)*initialHipAttachmentOffset)/100];
+% upper bound. Bounds in cm.
+upperBnd = [round(optimizationProperties.bounds.upperBoundMultiplier(1:linkCount+1).*initialLinkLengths), round(optimizationProperties.bounds.upperBoundMultiplier(linkCount+2)*initialHipAttachmentOffset)];
+lowerBnd = [round(optimizationProperties.bounds.lowerBoundMultiplier(1:linkCount+1).*initialLinkLengths), round(optimizationProperties.bounds.lowerBoundMultiplier(linkCount+2)*initialHipAttachmentOffset)];
 
 for i = 1:length(upperBnd)
     if (lowerBnd(i) > upperBnd(i))
@@ -36,13 +35,13 @@ for i = 1:length(upperBnd)
 end
 
 fprintf('\nLower bound on link lengths [m]:')
-disp(lowerBnd);
+disp(lowerBnd/100);
 fprintf('Upper bound on link lengths [m]:')
-disp(upperBnd);
+disp(upperBnd/100);
 
 %% evolve optimal leg design and return optimized design parameters
 tic;
-[legDesignParameters, penaltyMin, output] = evolveOptimalLeg(actuatorProperties, imposeJointLimits, heuristic, upperBnd, lowerBnd, actuateJointsDirectly, hipAttachmentOffset, linkCount, optimizationProperties, initialLinkLengths, taskSelection, quadruped, configSelection, EEselection, dt, meanCyclicMotionHipEE, hipParalleltoBody, Leg, meanTouchdownIndex);
+[legDesignParameters, penaltyMin, output] = evolveOptimalLeg(actuatorProperties, imposeJointLimits, heuristic, upperBnd, lowerBnd, actuateJointsDirectly, hipAttachmentOffset, linkCount, optimizationProperties, initialLinkLengths, taskSelection, quadruped, configSelection, EEselection, dt, meanCyclicMotionHipEE, hipParalleltoBody, Leg, meanTouchdownIndex, actuatorEfficiency, actuatorSelection);
 elapsedTime = toc;
 elapsedTimePerFuncEval = elapsedTime/output.funccount;
 fprintf('Optimized leg design parameters [m]:')
@@ -92,6 +91,7 @@ end
 [tempLeg.(EEselection).q, tempLeg.(EEselection).r.HAA, tempLeg.(EEselection).r.HFE, tempLeg.(EEselection).r.KFE, tempLeg.(EEselection).r.AFE, tempLeg.(EEselection).r.DFE, tempLeg.(EEselection).r.EE] = inverseKinematics(heuristic, qLiftoff, hipAttachmentOffset, linkCount, meanCyclicMotionHipEE, quadruped, EEselection, taskSelection, configSelection, hipParalleltoBody);
 
 %% build rigid body model
+tempLeg.base = Leg.base;
 tempLeg.(EEselection).rigidBodyModel = buildRobotRigidBodyModel(actuatorProperties, actuateJointsDirectly, hipAttachmentOffset, linkCount, quadruped, tempLeg, meanCyclicMotionHipEE, EEselection, numberOfLoopRepetitions, viewVisualization, hipParalleltoBody);
 
 %% get joint velocities and accelerations using finite difference
@@ -109,6 +109,18 @@ tempLeg.(EEselection).jointPower = tempLeg.(EEselection).jointTorque .* tempLeg.
 %% get link mass for optimal design
 [linkMassOpt, ~, totalLinkMassOpt] = getLinkMass(tempLeg, EEselection, linkCount);
 
+%% get maximum joint states
+[deltaqMaxOpt, qdotMaxOpt, jointTorqueMaxOpt, jointPowerMaxOpt]  = getMaximumJointStates(tempLeg, EEselection);    
+
+%% Get electrical power and efficiency at each operating point
+[tempLeg.(EEselection).electricalPower, tempLeg.(EEselection).operatingPointEfficiency] = computeElectricalPowerInput(tempLeg, EEselection, actuatorProperties, linkCount, actuatorEfficiency, actuatorSelection);
+
+%% Get meta parameters
+[tempLeg.(EEselection).mechEnergyOpt, tempLeg.metaParameters.mechEnergyPerCycleOpt.(EEselection), tempLeg.(EEselection).elecEnergyOpt, tempLeg.metaParameters.elecEnergyPerCycleOpt.(EEselection)]  = computeEnergyConsumption(tempLeg, EEselection, dt);
+ tempLeg.metaParameters.mechEnergyPerCycleTotalOpt.(EEselection) = tempLeg.metaParameters.mechEnergyPerCycleOpt.(EEselection) + sum(tempLeg.metaParameters.mechEnergyPerCycleOpt.(EEselection));
+ tempLeg.metaParameters.elecEnergyPerCycleTotalOpt.(EEselection) = tempLeg.metaParameters.elecEnergyPerCycleOpt.(EEselection) + sum(tempLeg.metaParameters.elecEnergyPerCycleOpt.(EEselection));    
+
+
 %% return joint data
 linkLengthsOpt = linkLengths;
 hipAttachmentOffsetOpt = hipAttachmentOffset;
@@ -118,3 +130,9 @@ qdotOpt = tempLeg.(EEselection).qdot;
 qdotdotOpt = tempLeg.(EEselection).qdotdot;
 jointTorqueOpt = tempLeg.(EEselection).jointTorque;
 jointPowerOpt = tempLeg.(EEselection).jointPower;
+mechEnergyOpt = tempLeg.(EEselection).mechEnergyOpt;
+mechEnergyPerCycleOpt = tempLeg.metaParameters.mechEnergyPerCycleOpt.(EEselection);
+mechEnergyPerCycleTotalOpt = tempLeg.metaParameters.mechEnergyPerCycleTotalOpt.(EEselection);
+elecEnergyOpt = tempLeg.(EEselection).elecEnergyOpt;
+elecEnergyPerCycleOpt = tempLeg.metaParameters.elecEnergyPerCycleOpt.(EEselection);
+elecEnergyPerCycleTotalOpt = tempLeg.metaParameters.elecEnergyPerCycleTotalOpt.(EEselection);

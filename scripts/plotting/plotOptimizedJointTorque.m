@@ -3,7 +3,7 @@ time = 0:dt:length(Leg.(EEselection).jointTorque)*dt-dt;
 subplotCount = linkCount+1;
 
 %% joint angle plots
-figure()
+figure('name', 'Joint Position', 'DefaultAxesFontSize', 10)
 subplot(subplotCount,1,1)
 hold on
     plot(time, rad2deg(Leg.(EEselection).q(:,1)), 'r',  ...
@@ -93,7 +93,7 @@ if (linkCount == 4)
 end
 
 %% joint torque plots
-figure()
+figure('name', 'Joint Torque', 'DefaultAxesFontSize', 10)
 subplot(subplotCount,1,1)
 hold on
     plot(time, Leg.(EEselection).jointTorque(:,1), 'r',  ...
@@ -182,7 +182,7 @@ if (linkCount == 4)
         hold off
 end
 %% joint velocity plots
-figure()
+figure('name', 'Joint Velocity', 'DefaultAxesFontSize', 10)
 subplot(subplotCount,1,1)
 hold on
     plot(time, rad2deg(Leg.(EEselection).qdot(:,1)), 'r', ...
@@ -275,7 +275,7 @@ end
 
 %% joint power plots
 subplotCount = linkCount+1;
-figure()
+figure('name', 'Joint Mechanical Power', 'DefaultAxesFontSize', 10)
 subplot(subplotCount,1,1)
 hold on
     plot(time, Leg.(EEselection).jointPower(:,1), 'r', ...

@@ -41,5 +41,9 @@ suggestedRemovalRatioEnd.ANYmalSlowTrotGoodMotionBadForce = 0.2;
 suggestedRemovalRatioStart.ANYmalSlowTrotOriginal = 0.2;
 suggestedRemovalRatioEnd.ANYmalSlowTrotOriginal = 0.2;
 
+suggestedRemovalRatioStart.defaultHopperHop = 0.1;
+suggestedRemovalRatioEnd.defaultHopperHop = 0.1;
+
+
 removalRatioStart = suggestedRemovalRatioStart.(taskSelection);
 removalRatioEnd = suggestedRemovalRatioEnd.(taskSelection);

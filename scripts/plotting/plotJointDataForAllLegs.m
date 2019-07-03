@@ -27,21 +27,24 @@ ylimSpeedyq      = [-90, 90];
 ylimSpeedyqdot   = [-30 30];
 ylimSpeedytorque   = [-200 200];
 ylimSpeedypower  = [-2000 2000];
-ylimSpeedyenergy = [0 200];
+ylimSpeedyMechEnergy = [0 200];
+ylimSpeedyElecEnergy = [0 200];
 
-xlimANYmal       = [0, 3];
+xlimANYmal       = [0, 5];
 ylimANYmalq      = [-40 40];
 ylimANYmalqdot   = [-10 10];
 ylimANYmaltorque = [-20 20];
-ylimANYmalpower  = [-20 20];
-ylimANYmalenergy = [0 3];
+ylimANYmalpower  = [-35 35];
+ylimANYmalMechEnergy = [0 10];
+ylimANYmalElecEnergy = [0 10];
 
-xlimit.time   = xlimSpeedy;
-ylimit.q      = ylimSpeedyq;
-ylimit.qdot   = ylimSpeedyqdot;
-ylimit.torque   = ylimSpeedytorque;
-ylimit.power  = ylimSpeedypower;
-ylimit.energy = ylimSpeedyenergy;
+xlimit.time   = xlimANYmal;
+ylimit.q      = ylimANYmalq;
+ylimit.qdot   = ylimANYmalqdot;
+ylimit.torque   = ylimANYmaltorque;
+ylimit.power  = ylimANYmalpower;
+ylimit.mechEnergy = ylimANYmalMechEnergy;
+ylimit.elecEnergy = ylimANYmalElecEnergy;
 
 lineColour = 'r';
 faceColour = 'r';
@@ -483,120 +486,105 @@ if isequal(plotType, 'scatterPlot')
 
     %% Joint energy consumpton plots
     % compute the consumed energy by adding previous terms 
-    for i = 1:4
-        EEselection = EEnames(i,:);
-        for i = 1:length(data.(EEselection).energy(:,1))-1
-            data.(EEselection).energy(i+1,:) = data.(EEselection).energy(i,:) + data.(EEselection).energy(i+1,:);
-            if plotOptimizedLeg.(EEselection)
-                data.(EEselection).energyOpt(i+1,:) = data.(EEselection).energyOpt(i,:) + data.(EEselection).energyOpt(i+1,:);
-            end
-        end
-        if plotDataSet2
-            for i = 1:length(data2.(EEselection).energy(:,1))-1
-                data2.(EEselection).energy(i+1,:) = data2.(EEselection).energy(i,:) + data2.(EEselection).energy(i+1,:);
-            end
-        end
-    end
-
-    figure('name', 'Joint Energy Consumption', 'DefaultAxesFontSize', 10)
+    figure('name', 'Mechanical Energy D', 'DefaultAxesFontSize', 10)
     for i = 1:4
         EEselection = EEnames(i,:);
         %Hip abduction/adduction
         subplot(jointCount, 4, i);
         hold on
-        scatter(time.(EEselection), [data.(EEselection).energy(:,1); data.(EEselection).energy(end,1) + data.(EEselection).energy(:,1); 2*data.(EEselection).energy(end,1) + data.(EEselection).energy(:,1)], scatterSize, lineColour, 'MarkerFaceColor', faceColour);
+        scatter(time.(EEselection), [data.(EEselection).mechEnergy(:,1); data.(EEselection).mechEnergy(end,1) + data.(EEselection).mechEnergy(:,1); 2*data.(EEselection).mechEnergy(end,1) + data.(EEselection).mechEnergy(:,1)], scatterSize, lineColour, 'MarkerFaceColor', faceColour);
         if plotDataSet2
-            scatter(time2.(EEselection), [data2.(EEselection).energy(:,1); data2.(EEselection).energy(end,1) + data2.(EEselection).energy(:,1); 2*data2.(EEselection).energy(end,1) + data2.(EEselection).energy(:,1)], scatterSize, lineColour, 'MarkerFaceColor', faceColourOpt,'MarkerFaceColor', faceColourOpt);   
+            scatter(time2.(EEselection), [data2.(EEselection).mechEnergy(:,1); data2.(EEselection).mechEnergy(end,1) + data2.(EEselection).mechEnergy(:,1); 2*data2.(EEselection).mechEnergy(end,1) + data2.(EEselection).mechEnergy(:,1)], scatterSize, lineColour, 'MarkerFaceColor', faceColourOpt,'MarkerFaceColor', faceColourOpt);   
             legend('with interpolated points', 'original points')
         end
         if plotOptimizedLeg.(EEselection)
-            scatter(time.(EEselection), [data.(EEselection).energyOpt(:,1); data.(EEselection).energyOpt(end,1) + data.(EEselection).energyOpt(:,1); 2*data.(EEselection).energyOpt(end,1) + data.(EEselection).energyOpt(:,1)], scatterSize, lineColourOpt, 'MarkerFaceColor', faceColourOpt,'MarkerFaceColor', faceColourOpt);
+            scatter(time.(EEselection), [data.(EEselection).mechEnergyOpt(:,1); data.(EEselection).mechEnergyOpt(end,1) + data.(EEselection).mechEnergyOpt(:,1); 2*data.(EEselection).mechEnergyOpt(end,1) + data.(EEselection).mechEnergyOpt(:,1)], scatterSize, lineColourOpt, 'MarkerFaceColor', faceColourOpt,'MarkerFaceColor', faceColourOpt);
             legend('initial design', 'optimized design')   
         end    
         grid on
         xlabel('Time [s]')
         ylabel('Energy [J]')
         xlim(xlimit.time)
-        ylim(ylimit.energy)
+        ylim(ylimit.mechEnergy)
         title([EEselection '\_HAA'])
         hold off
 
         % Hip flexion/extension
         subplot(jointCount, 4, 4+i);
         hold on
-        scatter(time.(EEselection), [data.(EEselection).energy(:,2); data.(EEselection).energy(end,2) + data.(EEselection).energy(:,2); 2*data.(EEselection).energy(end,2) + data.(EEselection).energy(:,2)], scatterSize, lineColour, 'MarkerFaceColor', faceColour);
+        scatter(time.(EEselection), [data.(EEselection).mechEnergy(:,2); data.(EEselection).mechEnergy(end,2) + data.(EEselection).mechEnergy(:,2); 2*data.(EEselection).mechEnergy(end,2) + data.(EEselection).mechEnergy(:,2)], scatterSize, lineColour, 'MarkerFaceColor', faceColour);
         if plotDataSet2
-            scatter(time2.(EEselection), [data2.(EEselection).energy(:,2); data2.(EEselection).energy(end,2) + data2.(EEselection).energy(:,2); 2*data2.(EEselection).energy(end,2) + data2.(EEselection).energy(:,2)], scatterSize, lineColourOpt, 'MarkerFaceColor', faceColourOpt,'MarkerFaceColor', faceColourOpt);       
+            scatter(time2.(EEselection), [data2.(EEselection).mechEnergy(:,2); data2.(EEselection).mechEnergy(end,2) + data2.(EEselection).mechEnergy(:,2); 2*data2.(EEselection).mechEnergy(end,2) + data2.(EEselection).mechEnergy(:,2)], scatterSize, lineColourOpt, 'MarkerFaceColor', faceColourOpt,'MarkerFaceColor', faceColourOpt);       
             legend('with interpolated points', 'original points')
         end
         if plotOptimizedLeg.(EEselection)
-            scatter(time.(EEselection), [data.(EEselection).energyOpt(:,2); data.(EEselection).energyOpt(end,2) + data.(EEselection).energyOpt(:,2); 2*data.(EEselection).energyOpt(end,2) + data.(EEselection).energyOpt(:,2)], scatterSize, lineColourOpt, 'MarkerFaceColor', faceColourOpt,'MarkerFaceColor', faceColourOpt);
+            scatter(time.(EEselection), [data.(EEselection).mechEnergyOpt(:,2); data.(EEselection).mechEnergyOpt(end,2) + data.(EEselection).mechEnergyOpt(:,2); 2*data.(EEselection).mechEnergyOpt(end,2) + data.(EEselection).mechEnergyOpt(:,2)], scatterSize, lineColourOpt, 'MarkerFaceColor', faceColourOpt,'MarkerFaceColor', faceColourOpt);
             legend('initial design', 'optimized design')   
         end      
         grid on
         xlabel('Time [s]')
         ylabel('Energy [J]')
         xlim(xlimit.time)
-        ylim(ylimit.energy)
+        ylim(ylimit.mechEnergy)
         title([EEselection '\_HFE'])
         hold off
 
         % Knee flexion/extension
         subplot(jointCount, 4, 8+i);
         hold on
-        scatter(time.(EEselection), [data.(EEselection).energy(:,3); data.(EEselection).energy(end,3) + data.(EEselection).energy(:,3); 2*data.(EEselection).energy(end,3) + data.(EEselection).energy(:,3)], scatterSize, lineColour, 'MarkerFaceColor', faceColour);
+        scatter(time.(EEselection), [data.(EEselection).mechEnergy(:,3); data.(EEselection).mechEnergy(end,3) + data.(EEselection).mechEnergy(:,3); 2*data.(EEselection).mechEnergy(end,3) + data.(EEselection).mechEnergy(:,3)], scatterSize, lineColour, 'MarkerFaceColor', faceColour);
         if plotDataSet2
-            scatter(time2.(EEselection), [data2.(EEselection).energy(:,3); data2.(EEselection).energy(end,3) + data2.(EEselection).energy(:,3); 2*data2.(EEselection).energy(end,3) + data2.(EEselection).energy(:,3)], scatterSize, lineColourOpt, 'MarkerFaceColor', faceColourOpt,'MarkerFaceColor', faceColourOpt);       
+            scatter(time2.(EEselection), [data2.(EEselection).mechEnergy(:,3); data2.(EEselection).mechEnergy(end,3) + data2.(EEselection).mechEnergy(:,3); 2*data2.(EEselection).mechEnergy(end,3) + data2.(EEselection).mechEnergy(:,3)], scatterSize, lineColourOpt, 'MarkerFaceColor', faceColourOpt,'MarkerFaceColor', faceColourOpt);       
             legend('with interpolated points', 'original points')       
         end
         if plotOptimizedLeg.(EEselection)
-            scatter(time.(EEselection), [data.(EEselection).energyOpt(:,3); data.(EEselection).energyOpt(end,3) + data.(EEselection).energyOpt(:,3); 2*data.(EEselection).energyOpt(end,3) + data.(EEselection).energyOpt(:,3)], scatterSize, lineColourOpt, 'MarkerFaceColor', faceColourOpt,'MarkerFaceColor', faceColourOpt);
+            scatter(time.(EEselection), [data.(EEselection).mechEnergyOpt(:,3); data.(EEselection).mechEnergyOpt(end,3) + data.(EEselection).mechEnergyOpt(:,3); 2*data.(EEselection).mechEnergyOpt(end,3) + data.(EEselection).mechEnergyOpt(:,3)], scatterSize, lineColourOpt, 'MarkerFaceColor', faceColourOpt,'MarkerFaceColor', faceColourOpt);
             legend('initial design', 'optimized design')      
         end      
         grid on
         xlabel('Time [s]')
         ylabel('Energy [J]')
         xlim(xlimit.time)
-        ylim(ylimit.energy)
+        ylim(ylimit.mechEnergy)
         title([EEselection '\_KFE'])
         hold off
         if (jointCount == 4 || jointCount == 5) 
             subplot(jointCount, 4, 12+i);
             hold on
-            scatter(time.(EEselection), [data.(EEselection).energy(:,4); data.(EEselection).energy(end,4) + data.(EEselection).energy(:,4); 2*data.(EEselection).energy(end,4) + data.(EEselection).energy(:,4)], scatterSize, lineColour, 'MarkerFaceColor', faceColour);
+            scatter(time.(EEselection), [data.(EEselection).mechEnergy(:,4); data.(EEselection).mechEnergy(end,4) + data.(EEselection).mechEnergy(:,4); 2*data.(EEselection).mechEnergy(end,4) + data.(EEselection).mechEnergy(:,4)], scatterSize, lineColour, 'MarkerFaceColor', faceColour);
             if plotDataSet2
-                scatter(time2.(EEselection), [data2.(EEselection).energy(:,4); data2.(EEselection).energy(end,4) + data2.(EEselection).energy(:,4); 2*data2.(EEselection).energy(end,4) + data2.(EEselection).energy(:,4)], lineColourOpt, 'MarkerFaceColor', faceColourOpt,'MarkerFaceColor', faceColourOpt, 'LineWidth', LineWidth);       
+                scatter(time2.(EEselection), [data2.(EEselection).mechEnergy(:,4); data2.(EEselection).mechEnergy(end,4) + data2.(EEselection).mechEnergy(:,4); 2*data2.(EEselection).mechEnergy(end,4) + data2.(EEselection).mechEnergy(:,4)], lineColourOpt, 'MarkerFaceColor', faceColourOpt,'MarkerFaceColor', faceColourOpt, 'LineWidth', LineWidth);       
                 legend('with interpolated points', 'original points')
             end
             if plotOptimizedLeg.(EEselection)
-                scatter(time.(EEselection), [data.(EEselection).energyOpt(:,4); data.(EEselection).energyOpt(end,4) + data.(EEselection).energyOpt(:,4); 2*data.(EEselection).energyOpt(end,4) + data.(EEselection).energyOpt(:,4)], scatterSize, lineColourOpt, 'MarkerFaceColor', faceColourOpt,'MarkerFaceColor', faceColourOpt);
+                scatter(time.(EEselection), [data.(EEselection).mechEnergyOpt(:,4); data.(EEselection).mechEnergyOpt(end,4) + data.(EEselection).mechEnergyOpt(:,4); 2*data.(EEselection).mechEnergyOpt(end,4) + data.(EEselection).mechEnergyOpt(:,4)], scatterSize, lineColourOpt, 'MarkerFaceColor', faceColourOpt,'MarkerFaceColor', faceColourOpt);
                 legend('initial design', 'optimized design')   
             end      
             grid on
             xlabel('Time [s]')
             ylabel('Energy [J]')
             xlim(xlimit.time)
-            ylim(ylimit.energy)
+            ylim(ylimit.mechEnergy)
             title([EEselection '\_AFE'])
             hold off
         end
         if jointCount == 5
             subplot(jointCount, 4, 16+i);
             hold on
-            scatter(time.(EEselection), [data.(EEselection).energy(:,5); data.(EEselection).energy(end,5) + data.(EEselection).energy(:,5); 2*data.(EEselection).energy(end,5) + data.(EEselection).energy(:,5)], scatterSize, lineColour, 'MarkerFaceColor', faceColour);
+            scatter(time.(EEselection), [data.(EEselection).mechEnergy(:,5); data.(EEselection).mechEnergy(end,5) + data.(EEselection).mechEnergy(:,5); 2*data.(EEselection).mechEnergy(end,5) + data.(EEselection).mechEnergy(:,5)], scatterSize, lineColour, 'MarkerFaceColor', faceColour);
             if plotDataSet2
-                scatter(time2.(EEselection), [data2.(EEselection).energy(:,5); data2.(EEselection).energy(end,5) + data2.(EEselection).energy(:,5); 2*data2.(EEselection).energy(end,5) + data2.(EEselection).energy(:,5)], lineColourOpt, 'MarkerFaceColor', faceColourOpt,'MarkerFaceColor', faceColourOpt, 'LineWidth', LineWidth);       
+                scatter(time2.(EEselection), [data2.(EEselection).mechEnergy(:,5); data2.(EEselection).mechEnergy(end,5) + data2.(EEselection).mechEnergy(:,5); 2*data2.(EEselection).mechEnergy(end,5) + data2.(EEselection).mechEnergy(:,5)], lineColourOpt, 'MarkerFaceColor', faceColourOpt,'MarkerFaceColor', faceColourOpt, 'LineWidth', LineWidth);       
                 legend('with interpolated points', 'original points')
             end
             if plotOptimizedLeg.(EEselection)
-                scatter(time.(EEselection), [data.(EEselection).energyOpt(:,5); data.(EEselection).energyOpt(end,5) + data.(EEselection).energyOpt(:,5); 2*data.(EEselection).energyOpt(end,5) + data.(EEselection).energyOpt(:,5)], scatterSize, lineColourOpt, 'MarkerFaceColor', faceColourOpt,'MarkerFaceColor', faceColourOpt);
+                scatter(time.(EEselection), [data.(EEselection).mechEnergyOpt(:,5); data.(EEselection).mechEnergyOpt(end,5) + data.(EEselection).mechEnergyOpt(:,5); 2*data.(EEselection).mechEnergyOpt(end,5) + data.(EEselection).mechEnergyOpt(:,5)], scatterSize, lineColourOpt, 'MarkerFaceColor', faceColourOpt,'MarkerFaceColor', faceColourOpt);
                 legend('initial design', 'optimized design')      
             end           
             grid on
             xlabel('Time [s]')
             ylabel('Energy [J]')
             xlim(xlimit.time)
-            ylim(ylimit.energy)
+            ylim(ylimit.mechEnergy)
             title([EEselection '\_DFE'])
             hold off
         end
@@ -1030,122 +1018,105 @@ else
         end
     end
 
-    %% Joint energy consumpton plots
-    % compute the consumed energy by adding previous terms 
-    for i = 1:4
-        EEselection = EEnames(i,:);
-        for i = 1:length(data.(EEselection).energy(:,1))-1
-            data.(EEselection).energy(i+1,:) = data.(EEselection).energy(i,:) + data.(EEselection).energy(i+1,:);
-            if plotOptimizedLeg.(EEselection)
-                data.(EEselection).energyOpt(i+1,:) = data.(EEselection).energyOpt(i,:) + data.(EEselection).energyOpt(i+1,:);
-            end
-        end
-        if plotDataSet2
-            for i = 1:length(data2.(EEselection).energy(:,1))-1
-                data2.(EEselection).energy(i+1,:) = data2.(EEselection).energy(i,:) + data2.(EEselection).energy(i+1,:);
-            end
-        end
-    end
-
     figure('name', 'Joint Energy Consumption', 'DefaultAxesFontSize', 10)
     for i = 1:4
         EEselection = EEnames(i,:);
         %Hip abduction/adduction
         subplot(jointCount, 4, i);
         hold on
-        plot(time.(EEselection), [data.(EEselection).energy(:,1); data.(EEselection).energy(end,1) + data.(EEselection).energy(:,1); 2*data.(EEselection).energy(end,1) + data.(EEselection).energy(:,1)], lineColour, 'LineWidth', LineWidth);
+        plot(time.(EEselection), [data.(EEselection).mechEnergy(:,1); data.(EEselection).mechEnergy(end,1) + data.(EEselection).mechEnergy(:,1); 2*data.(EEselection).mechEnergy(end,1) + data.(EEselection).mechEnergy(:,1)], lineColour, 'LineWidth', LineWidth);
         if plotDataSet2
-            plot(time2.(EEselection), [data2.(EEselection).energy(:,1); data2.(EEselection).energy(end,1) + data2.(EEselection).energy(:,1); 2*data2.(EEselection).energy(end,1) + data2.(EEselection).energy(:,1)], lineColour, 'LineWidth', LineWidthOpt,'MarkerFaceColor', faceColourOpt);   
+            plot(time2.(EEselection), [data2.(EEselection).mechEnergy(:,1); data2.(EEselection).mechEnergy(end,1) + data2.(EEselection).mechEnergy(:,1); 2*data2.(EEselection).mechEnergy(end,1) + data2.(EEselection).mechEnergy(:,1)], lineColour, 'LineWidth', LineWidthOpt,'MarkerFaceColor', faceColourOpt);   
             legend('with interpolated points', 'original points')
         end
         if plotOptimizedLeg.(EEselection)
-            plot(time.(EEselection), [data.(EEselection).energyOpt(:,1); data.(EEselection).energyOpt(end,1) + data.(EEselection).energyOpt(:,1); 2*data.(EEselection).energyOpt(end,1) + data.(EEselection).energyOpt(:,1)], lineColourOpt, 'LineWidth', LineWidth,'MarkerFaceColor', faceColourOpt);
+            plot(time.(EEselection), [data.(EEselection).mechEnergyOpt(:,1); data.(EEselection).mechEnergyOpt(end,1) + data.(EEselection).mechEnergyOpt(:,1); 2*data.(EEselection).mechEnergyOpt(end,1) + data.(EEselection).mechEnergyOpt(:,1)], lineColourOpt, 'LineWidth', LineWidth,'MarkerFaceColor', faceColourOpt);
             legend('initial design', 'optimized design')   
         end    
         grid on
         xlabel('Time [s]')
         ylabel('Energy [J]')
         xlim(xlimit.time)
-        ylim(ylimit.energy)
+        ylim(ylimit.mechEnergy)
         title([EEselection '\_HAA'])
         hold off
 
         % Hip flexion/extension
         subplot(jointCount, 4, 4+i);
         hold on
-        plot(time.(EEselection), [data.(EEselection).energy(:,2); data.(EEselection).energy(end,2) + data.(EEselection).energy(:,2); 2*data.(EEselection).energy(end,2) + data.(EEselection).energy(:,2)], lineColour, 'LineWidth', LineWidth);
+        plot(time.(EEselection), [data.(EEselection).mechEnergy(:,2); data.(EEselection).mechEnergy(end,2) + data.(EEselection).mechEnergy(:,2); 2*data.(EEselection).mechEnergy(end,2) + data.(EEselection).mechEnergy(:,2)], lineColour, 'LineWidth', LineWidth);
         if plotDataSet2
-            plot(time2.(EEselection), [data2.(EEselection).energy(:,2); data2.(EEselection).energy(end,2) + data2.(EEselection).energy(:,2); 2*data2.(EEselection).energy(end,2) + data2.(EEselection).energy(:,2)], lineColourOpt, 'LineWidth', LineWidth,'MarkerFaceColor', faceColourOpt);       
+            plot(time2.(EEselection), [data2.(EEselection).mechEnergy(:,2); data2.(EEselection).mechEnergy(end,2) + data2.(EEselection).mechEnergy(:,2); 2*data2.(EEselection).mechEnergy(end,2) + data2.(EEselection).mechEnergy(:,2)], lineColourOpt, 'LineWidth', LineWidth,'MarkerFaceColor', faceColourOpt);       
             legend('with interpolated points', 'original points')
         end
         if plotOptimizedLeg.(EEselection)
-            plot(time.(EEselection), [data.(EEselection).energyOpt(:,2); data.(EEselection).energyOpt(end,2) + data.(EEselection).energyOpt(:,2); 2*data.(EEselection).energyOpt(end,2) + data.(EEselection).energyOpt(:,2)], lineColourOpt, 'LineWidth', LineWidth,'MarkerFaceColor', faceColourOpt);
+            plot(time.(EEselection), [data.(EEselection).mechEnergyOpt(:,2); data.(EEselection).mechEnergyOpt(end,2) + data.(EEselection).mechEnergyOpt(:,2); 2*data.(EEselection).mechEnergyOpt(end,2) + data.(EEselection).mechEnergyOpt(:,2)], lineColourOpt, 'LineWidth', LineWidth,'MarkerFaceColor', faceColourOpt);
             legend('initial design', 'optimized design')   
         end      
         grid on
         xlabel('Time [s]')
         ylabel('Energy [J]')
         xlim(xlimit.time)
-        ylim(ylimit.energy)
+        ylim(ylimit.mechEnergy)
         title([EEselection '\_HFE'])
         hold off
 
         % Knee flexion/extension
         subplot(jointCount, 4, 8+i);
         hold on
-        plot(time.(EEselection), [data.(EEselection).energy(:,3); data.(EEselection).energy(end,3) + data.(EEselection).energy(:,3); 2*data.(EEselection).energy(end,3) + data.(EEselection).energy(:,3)], lineColour, 'LineWidth', LineWidth);
+        plot(time.(EEselection), [data.(EEselection).mechEnergy(:,3); data.(EEselection).mechEnergy(end,3) + data.(EEselection).mechEnergy(:,3); 2*data.(EEselection).mechEnergy(end,3) + data.(EEselection).mechEnergy(:,3)], lineColour, 'LineWidth', LineWidth);
         if plotDataSet2
-            plot(time2.(EEselection), [data2.(EEselection).energy(:,3); data2.(EEselection).energy(end,3) + data2.(EEselection).energy(:,3); 2*data2.(EEselection).energy(end,3) + data2.(EEselection).energy(:,3)], lineColourOpt, 'LineWidth', LineWidth,'MarkerFaceColor', faceColourOpt);       
+            plot(time2.(EEselection), [data2.(EEselection).mechEnergy(:,3); data2.(EEselection).mechEnergy(end,3) + data2.(EEselection).mechEnergy(:,3); 2*data2.(EEselection).mechEnergy(end,3) + data2.(EEselection).mechEnergy(:,3)], lineColourOpt, 'LineWidth', LineWidth,'MarkerFaceColor', faceColourOpt);       
             legend('with interpolated points', 'original points')       
         end
         if plotOptimizedLeg.(EEselection)
-            plot(time.(EEselection), [data.(EEselection).energyOpt(:,3); data.(EEselection).energyOpt(end,3) + data.(EEselection).energyOpt(:,3); 2*data.(EEselection).energyOpt(end,3) + data.(EEselection).energyOpt(:,3)], lineColourOpt, 'LineWidth', LineWidth,'MarkerFaceColor', faceColourOpt);
+            plot(time.(EEselection), [data.(EEselection).mechEnergyOpt(:,3); data.(EEselection).mechEnergyOpt(end,3) + data.(EEselection).mechEnergyOpt(:,3); 2*data.(EEselection).mechEnergyOpt(end,3) + data.(EEselection).mechEnergyOpt(:,3)], lineColourOpt, 'LineWidth', LineWidth,'MarkerFaceColor', faceColourOpt);
             legend('initial design', 'optimized design')      
         end      
         grid on
         xlabel('Time [s]')
         ylabel('Energy [J]')
         xlim(xlimit.time)
-        ylim(ylimit.energy)
+        ylim(ylimit.mechEnergy)
         title([EEselection '\_KFE'])
         hold off
         if (jointCount == 4 || jointCount == 5) 
             subplot(jointCount, 4, 12+i);
             hold on
-            plot(time.(EEselection), [data.(EEselection).energy(:,4); data.(EEselection).energy(end,4) + data.(EEselection).energy(:,4); 2*data.(EEselection).energy(end,4) + data.(EEselection).energy(:,4)], lineColour, 'LineWidth', LineWidth);
+            plot(time.(EEselection), [data.(EEselection).mechEnergy(:,4); data.(EEselection).mechEnergy(end,4) + data.(EEselection).mechEnergy(:,4); 2*data.(EEselection).mechEnergy(end,4) + data.(EEselection).mechEnergy(:,4)], lineColour, 'LineWidth', LineWidth);
             if plotDataSet2
-                plot(time2.(EEselection), [data2.(EEselection).energy(:,4); data2.(EEselection).energy(end,4) + data2.(EEselection).energy(:,4); 2*data2.(EEselection).energy(end,4) + data2.(EEselection).energy(:,4)], LineColourOpt, 'LineWidth', LineWidth);       
+                plot(time2.(EEselection), [data2.(EEselection).mechEnergy(:,4); data2.(EEselection).mechEnergy(end,4) + data2.(EEselection).mechEnergy(:,4); 2*data2.(EEselection).mechEnergy(end,4) + data2.(EEselection).mechEnergy(:,4)], LineColourOpt, 'LineWidth', LineWidth);       
                 legend('with interpolated points', 'original points')
             end
             if plotOptimizedLeg.(EEselection)
-                plot(time.(EEselection), [data.(EEselection).energyOpt(:,4); data.(EEselection).energyOpt(end,4) + data.(EEselection).energyOpt(:,4); 2*data.(EEselection).energyOpt(end,4) + data.(EEselection).energyOpt(:,4)], lineColourOpt, 'LineWidth', LineWidth);
+                plot(time.(EEselection), [data.(EEselection).mechEnergyOpt(:,4); data.(EEselection).mechEnergyOpt(end,4) + data.(EEselection).mechEnergyOpt(:,4); 2*data.(EEselection).mechEnergyOpt(end,4) + data.(EEselection).mechEnergyOpt(:,4)], lineColourOpt, 'LineWidth', LineWidth);
                 legend('initial design', 'optimized design')   
             end      
             grid on
             xlabel('Time [s]')
             ylabel('Energy [J]')
             xlim(xlimit.time)
-            ylim(ylimit.energy)
+            ylim(ylimit.mechEnergy)
             title([EEselection '\_AFE'])
             hold off
         end
         if jointCount == 5
             subplot(jointCount, 4, 16+i);
             hold on
-            plot(time.(EEselection), [data.(EEselection).energy(:,5); data.(EEselection).energy(end,5) + data.(EEselection).energy(:,5); 2*data.(EEselection).energy(end,5) + data.(EEselection).energy(:,5)], lineColour, 'LineWidth', LineWidth);
+            plot(time.(EEselection), [data.(EEselection).mechEnergy(:,5); data.(EEselection).mechEnergy(end,5) + data.(EEselection).mechEnergy(:,5); 2*data.(EEselection).mechEnergy(end,5) + data.(EEselection).mechEnergy(:,5)], lineColour, 'LineWidth', LineWidth);
             if plotDataSet2
-                plot(time2.(EEselection), [data2.(EEselection).energy(:,5); data2.(EEselection).energy(end,5) + data2.(EEselection).energy(:,5); 2*data2.(EEselection).energy(end,5) + data2.(EEselection).energy(:,5)], LineColourOpt, 'LineWidth', LineWidth);       
+                plot(time2.(EEselection), [data2.(EEselection).mechEnergy(:,5); data2.(EEselection).mechEnergy(end,5) + data2.(EEselection).mechEnergy(:,5); 2*data2.(EEselection).mechEnergy(end,5) + data2.(EEselection).mechEnergy(:,5)], LineColourOpt, 'LineWidth', LineWidth);       
                 legend('with interpolated points', 'original points')
             end
             if plotOptimizedLeg.(EEselection)
-                plot(time.(EEselection), [data.(EEselection).energyOpt(:,5); data.(EEselection).energyOpt(end,5) + data.(EEselection).energyOpt(:,5); 2*data.(EEselection).energyOpt(end,5) + data.(EEselection).energyOpt(:,5)], lineColourOpt, 'LineWidth', LineWidth);
+                plot(time.(EEselection), [data.(EEselection).mechEnergyOpt(:,5); data.(EEselection).mechEnergyOpt(end,5) + data.(EEselection).mechEnergyOpt(:,5); 2*data.(EEselection).mechEnergyOpt(end,5) + data.(EEselection).mechEnergyOpt(:,5)], lineColourOpt, 'LineWidth', LineWidth);
                 legend('initial design', 'optimized design')      
             end           
             grid on
             xlabel('Time [s]')
             ylabel('Energy [J]')
             xlim(xlimit.time)
-            ylim(ylimit.energy)
+            ylim(ylimit.mechEnergy)
             title([EEselection '\_DFE'])
             hold off
         end

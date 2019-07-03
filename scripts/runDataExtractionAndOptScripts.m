@@ -1,5 +1,5 @@
-function Leg = runDataExtractionAndOptScripts(viewRangeOfMotionPlots, actuatorSelection, dataExtraction, imposeJointLimits, heuristic, actuateJointsDirectly, viewVisualization, numberOfLoopRepetitions, viewTrajectoryPlots, linkCount, runOptimization, viewOptimizedLegPlot, optimizeLF, optimizeLH, optimizeRF, optimizeRH, optimizationProperties, taskSelection, classSelection, configSelection, hipParalleltoBody)
-
+function Leg = runDataExtractionAndOptScripts(viewPlots, viewOptimizedResults, actuatorSelection, dataExtraction, imposeJointLimits, heuristic, actuateJointsDirectly, viewVisualization, numberOfLoopRepetitions, linkCount, runOptimization, viewOptimizedLegPlot, optimizeLF, optimizeLH, optimizeRF, optimizeRH, optimizationProperties, taskSelection, classSelection, configSelection, hipParalleltoBody)
+        
 %% display selections
 fprintf('Quadruped class: %s.\n', classSelection);
 fprintf('Task: %s.\n', taskSelection);
@@ -43,7 +43,7 @@ fprintf('Loading actuator properties');
 for i = 1:linkCount+1
     jointSelection = jointNames(i,:);
     actuatorName = actuatorSelection.(jointSelection);
-    [actuatorProperties.maxTorqueLimit.(jointSelection), actuatorProperties.maxqdotLimit.(jointSelection), actuatorProperties.maxPowerLimit.(jointSelection), actuatorProperties.mass.(jointSelection)] = getActuatorProperties(actuatorName);
+    [actuatorProperties.maxTorqueLimit.(jointSelection), actuatorProperties.maxqdotLimit.(jointSelection), actuatorProperties.maxPowerLimit.(jointSelection), actuatorProperties.mass.(jointSelection), actuatorProperties.gearRatio.(jointSelection)] = getActuatorProperties(actuatorName);
 end
 
 for i = 1:4
@@ -57,7 +57,7 @@ for i = 1:4
         Leg.(EEselection).linkLengths(1,j) = quadruped.(linkNames{j})(selectFrontHind).length;
     end
 end
-
+Leg.base.position = base.position;
 %% Get the relative motion of the end effectors to the hips
 fprintf('Computing motion of end effectors relative to hip attachment points. \n');
 [relativeMotionHipEE, IF_hip, C_IBody] = getRelativeMotionEEHips(quat, quadruped, base, EE, dt);
@@ -79,8 +79,9 @@ if absoluteMaxPointDeviation > allowableDeviation
     for j = 1:numberOfTimesPointsAreDoubled
         for i = 1:4
             EEselection = EEnames(i,:);
-            [relativeMotionHipEE.(EEselection).position, relativeMotionHipEE.(EEselection).velocity, EE.(EEselection).force, C_IBody] = generateAdditionalPoints(relativeMotionHipEE, EE, C_IBody, EEselection);
-         end
+            [relativeMotionHipEE.(EEselection).position, relativeMotionHipEE.(EEselection).velocity, EE.(EEselection).force, C_IBody, ~] = generateAdditionalPoints(relativeMotionHipEE, EE, C_IBody, EEselection, base);
+        end
+        [~, ~, ~, ~, base.position] = generateAdditionalPoints(relativeMotionHipEE, EE, C_IBody, EEselection, base);                         
         dt = dt/2;
         Leg.time = [0:dt:t(end)]';
     end
@@ -99,14 +100,15 @@ fprintf('Computing end effector liftoff and touchdown timings. \n');
 
 %% Get the mean cyclic position and forces for each end effector
 fprintf('Computing average relative motion of end effectors over one step. \n');
-[meanCyclicMotionHipEE, cyclicMotionHipEE, meanCyclicC_IBody, samplingStart, samplingEnd, meanTouchdownIndex] = getHipEECyclicData(dataExtraction, quadruped, tLiftoff, relativeMotionHipEE, EE, removalRatioStart, removalRatioEnd, dt, minStepCount, C_IBody, EEnames);
+[meanCyclicMotionHipEE, cyclicMotionHipEE, meanCyclicC_IBody, samplingStart, samplingEnd, meanTouchdownIndex, base.position] = getHipEECyclicData(dataExtraction, tLiftoff, relativeMotionHipEE, EE, removalRatioStart, removalRatioEnd, dt, minStepCount, C_IBody, EEnames, base);
 for i = 1:4
     EEselection = EEnames(i,:);
     Leg.(EEselection).force = meanCyclicMotionHipEE.(EEselection).force;
 end
+Leg.base.position = base.position;
 
 %% Plot trajectory data
-if viewTrajectoryPlots
+if viewPlots.trajectoryPlots
     fprintf('Plotting data. \n');
     plotMotionData;
 end
@@ -148,7 +150,7 @@ for i = 1:4
 end
 
 %% Plot range of motion
-if viewRangeOfMotionPlots
+if viewPlots.rangeOfMotionPlots
     fprintf('Computing range of motion dependent on link lengths and joint limits. \n');
     plotRangeOfMotion(quadruped, Leg, cyclicMotionHipEE);
 end
@@ -180,14 +182,14 @@ for i = 1:4
     Leg.(EEselection).jointTorque = inverseDynamics(EEselection, Leg, meanCyclicMotionHipEE, linkCount);
 end
 
-%% Get joint power
+%% Get joint power - this is the mechanical power required at the joint
 fprintf('Computing joint power. \n');
 for i = 1:4
     EEselection = EEnames(i,:);
     Leg.(EEselection).jointPower = Leg.(EEselection).jointTorque .* Leg.(EEselection).qdot(:,1:end-1);
 end
 
-%% Get efficiency of actuator at operating point and electrical power
+%% Get efficiency map of actuator
 actuatorList = {actuatorSelection.HAA, actuatorSelection.HFE, actuatorSelection.KFE, actuatorSelection.AFE, actuatorSelection.DFE};
 actuatorList = unique(actuatorList); % remove duplicates so we only solve the efficiency map once for each type of actuator
 for i = 1:length(actuatorList)
@@ -195,17 +197,17 @@ for i = 1:length(actuatorList)
     [actuatorEfficiency.(actuatorName{1}), efficiencyMapPlot.(actuatorName{1})] = getActuatorEfficiencySimplified(actuatorName);
 end
 
-%% Get electrical power
+%% Get electrical power and efficiency at each operating point
 fprintf('Computing electrical power. \n');
 for i = 1:4
     EEselection = EEnames(i,:);
-    [Leg.(EEselection).electricalPower, Leg.(EEselection).operatingPointEfficiency] = computeElectricalPowerInput(Leg, EEselection, actuatorProperties, linkCount, actuatorEfficiency, actuatorSelection, efficiencyMapPlot);
+    [Leg.(EEselection).electricalPower, Leg.(EEselection).operatingPointEfficiency] = computeElectricalPowerInput(Leg, EEselection, actuatorProperties, linkCount, actuatorEfficiency, actuatorSelection);
 end
 
-%% Plot actuator operating point on efficiency map
-for i = 1:4
-    EEselection = EEnames(i,:);
-    plotEfficiencyMapWithOperatingPoints(EEselection, actuatorEfficiency, actuatorSelection, Leg, efficiencyMapPlot, linkCount)
+%% Plot actuator operating points on efficiency map
+if viewPlots.efficiencyMap
+    viewOptimizedData = false; % there is no optimized data at this point
+    plotEfficiencyMapWithOperatingPoints(viewOptimizedData, [], EEnames, actuatorSelection, Leg, efficiencyMapPlot, actuatorProperties, linkCount, meanTouchdownIndex, dataExtraction)
 end
 %% Save link lengths and mass
 for i = 1:4
@@ -220,42 +222,56 @@ end
 %% Get meta parameters
 Leg.CoM.velocity = base.velocity(floor(removalRatioStart*length(base.velocity))+1:floor((1-removalRatioEnd)*length(base.velocity)),:);
 Leg.metaParameters.CoT.total = 0;
-Leg.metaParameters.energyPerCycleTotal = 0;
-Leg.metaParameters.energyPerCycleTotalOpt = 0;
+% Leg.metaParameters.mechEnergyPerCycleTotal = 0;
+% Leg.metaParameters.mechEnergyPerCycleTotalOpt = 0;
+% Leg.metaParameters.elecEnergyPerCycleTotal = 0;
+% Leg.metaParameters.elecEnergyPerCycleTotalOpt = 0;
+
 for i = 1:4
     EEselection = EEnames(i,:);
+   
+    % cost of transport
     power = Leg.(EEselection).jointPower;
     Leg.metaParameters.CoT.(EEselection) = getCostOfTransport(Leg, power, quadruped);
-%     add contribution of each leg to get the total CoT
+   
+    % add contribution of each leg to get the total CoT
     Leg.metaParameters.CoT.total = Leg.metaParameters.CoT.total + Leg.metaParameters.CoT.(EEselection); 
-    [Leg.metaParameters.deltaqMax.(EEselection), Leg.metaParameters.qdotMax.(EEselection), Leg.metaParameters.jointTorqueMax.(EEselection), Leg.metaParameters.jointPowerMax.(EEselection), Leg.(EEselection).energy, Leg.metaParameters.energyPerCycle.(EEselection)]  = getMaximumJointStates(Leg, power, EEselection, dt);
+    
+    % power quality
+    Leg.metaParameters.(EEselection).powerQuality = computePowerQuality(power, EEselection);
+
+    % max joint states
+    [Leg.metaParameters.deltaqMax.(EEselection), Leg.metaParameters.qdotMax.(EEselection), Leg.metaParameters.jointTorqueMax.(EEselection), Leg.metaParameters.jointPowerMax.(EEselection)]  = getMaximumJointStates(Leg, EEselection);
+    
+    % energy consumption
+    [Leg.(EEselection).mechEnergy, Leg.metaParameters.mechEnergyPerCycle.(EEselection), Leg.(EEselection).elecEnergy, Leg.metaParameters.elecEnergyPerCycle.(EEselection)]  = computeEnergyConsumption(Leg, EEselection, dt);
+    Leg.metaParameters.mechEnergyPerCycleTotal.(EEselection) = sum(Leg.metaParameters.mechEnergyPerCycle.(EEselection));
+    Leg.metaParameters.elecEnergyPerCycleTotal.(EEselection) = sum(Leg.metaParameters.elecEnergyPerCycle.(EEselection));    
+   
+    % phase durations
     [Leg.metaParameters.swingDuration.(EEselection), Leg.metaParameters.stanceDuration.(EEselection), Leg.metaParameters.swingDurationRatio.(EEselection)] = computePhaseDurations(tLiftoff, tTouchdown, EEselection);
-    Leg.metaParameters.energyPerCycleTotal = Leg.metaParameters.energyPerCycleTotal + sum(Leg.metaParameters.energyPerCycle.(EEselection));
 end
 
 %% Optimize selected legs and compute their cost of transport
 if runOptimization
-    if imposeJointLimits.maxTorque
-        [optimizationProperties.bounds.maxTorqueLimit, ~, ~, ~] = getActuatorProperties(actuatorSelection, linkCount);
-    end
-    if imposeJointLimits.maxqdot
-        [~, optimizationProperties.bounds.maxqdotLimit, ~, ~] = getActuatorProperties(actuatorSelection, linkCount);
-    end
-    if imposeJointLimits.maxPower
-        [~, ~, optimizationProperties.bounds.maxPowerLimit, ~] = getActuatorProperties(actuatorSelection, linkCount);
+    for i = 1:linkCount+1
+        jointSelection = jointNames(i,:);
+        actuatorName = actuatorSelection.(jointSelection);
+        if imposeJointLimits.maxTorque || imposeJointLimits.maxqdot || imposeJointLimits.maxPower
+            [optimizationProperties.bounds.maxTorqueLimit.(jointSelection), optimizationProperties.bounds.maxqdotLimit.(jointSelection), optimizationProperties.bounds.maxPowerLimit.(jointSelection), ~, ~] = getActuatorProperties(actuatorName);
+        end
     end
     Leg.metaParameters.CoTOpt.total = 0;
-
     if optimizeLF
         EEselection = 'LF';
         hipAttachmentOffset = -quadruped.hipOffset(1);
         fprintf('\nInitiating optimization of link lengths for %s\n', EEselection);
-         % evolve leg
-        [Leg.(EEselection).jointTorqueOpt, Leg.(EEselection).qOpt, Leg.(EEselection).qdotOpt, Leg.(EEselection).qdotdotOpt, Leg.(EEselection).rOpt,  Leg.(EEselection).jointPowerOpt, Leg.(EEselection).linkLengthsOpt, Leg.(EEselection).hipOffsetOpt, Leg.(EEselection).penaltyMinOpt, Leg.metaParameters.elapsedTime.(EEselection), Leg.metaParameters.elapsedTimePerFuncEval.(EEselection), Leg.metaParameters.(EEselection).output, Leg.(EEselection).linkMassOpt, Leg.(EEselection).totalLinkMassOpt] = evolveAndVisualizeOptimalLeg(actuatorProperties, imposeJointLimits, heuristic, actuateJointsDirectly, hipAttachmentOffset, linkCount, optimizationProperties, EEselection, meanCyclicMotionHipEE, quadruped, configSelection, dt, taskSelection, hipParalleltoBody, Leg, meanTouchdownIndex);
-         % compute CoT 
+         % evolve leg and return joint data of optimized design
+        [Leg.(EEselection).jointTorqueOpt, Leg.(EEselection).qOpt, Leg.(EEselection).qdotOpt, Leg.(EEselection).qdotdotOpt, Leg.(EEselection).rOpt,  Leg.(EEselection).jointPowerOpt, Leg.(EEselection).linkLengthsOpt, Leg.(EEselection).hipOffsetOpt, Leg.(EEselection).penaltyMinOpt, Leg.metaParameters.elapsedTime.(EEselection), Leg.metaParameters.elapsedTimePerFuncEval.(EEselection), Leg.metaParameters.(EEselection).output, Leg.(EEselection).linkMassOpt, Leg.(EEselection).totalLinkMassOpt, Leg.metaParameters.deltaqMaxOpt.(EEselection), Leg.metaParameters.qdotMaxOpt.(EEselection), Leg.metaParameters.jointTorqueMaxOpt.(EEselection), Leg.metaParameters.jointPowerMaxOpt.(EEselection), Leg.(EEselection).mechEnergyOpt, Leg.metaParameters.mechEnergyPerCycleOpt.(EEselection), Leg.metaParameters.mechEnergyPerCycleTotalOpt.(EEselection), Leg.(EEselection).elecEnergyOpt, Leg.metaParameters.elecEnergyPerCycleOpt.(EEselection), Leg.metaParameters.elecEnergyPerCycleTotalOpt.(EEselection)] = evolveAndVisualizeOptimalLeg(actuatorProperties, imposeJointLimits, heuristic, actuateJointsDirectly, hipAttachmentOffset, linkCount, optimizationProperties, EEselection, meanCyclicMotionHipEE, quadruped, configSelection, dt, taskSelection, hipParalleltoBody, Leg, meanTouchdownIndex, actuatorEfficiency, actuatorSelection);
+         % compute CoT
          power = Leg.(EEselection).jointPowerOpt;
          Leg.metaParameters.CoTOpt.(EEselection) = getCostOfTransport(Leg, power, quadruped);
-        [Leg.metaParameters.deltaqMaxOpt.(EEselection), Leg.metaParameters.qdotMaxOpt.(EEselection), Leg.metaParameters.jointTorqueMaxOpt.(EEselection), Leg.metaParameters.jointPowerMaxOpt.(EEselection), Leg.(EEselection).energyOpt, Leg.metaParameters.energyPerCycleOpt.(EEselection)]  = getMaximumJointStates(Leg, power, EEselection, dt);
+         Leg.metaParameters.powerQualityOpt.(EEselection) = computePowerQuality(power, EEselection);
     end 
     
     if optimizeLH
@@ -263,11 +279,11 @@ if runOptimization
         hipAttachmentOffset = quadruped.hipOffset(2);        
         fprintf('\nInitiating optimization of link lengths for %s\n', EEselection);
         % evolve leg
-        [Leg.(EEselection).jointTorqueOpt, Leg.(EEselection).qOpt, Leg.(EEselection).qdotOpt, Leg.(EEselection).qdotdotOpt, Leg.(EEselection).rOpt,  Leg.(EEselection).jointPowerOpt, Leg.(EEselection).linkLengthsOpt, Leg.(EEselection).hipOffsetOpt, Leg.(EEselection).penaltyMinOpt, Leg.metaParameters.elapsedTime.(EEselection), Leg.metaParameters.elapsedTimePerFuncEval.(EEselection), Leg.(EEselection).metaParameters.output, Leg.(EEselection).linkMassOpt,  Leg.(EEselection).totalLinkMassOpt] = evolveAndVisualizeOptimalLeg(actuatorProperties, imposeJointLimits, heuristic, actuateJointsDirectly, hipAttachmentOffset, linkCount, optimizationProperties, EEselection, meanCyclicMotionHipEE, quadruped, configSelection, dt, taskSelection, hipParalleltoBody, Leg, meanTouchdownIndex);
+        [Leg.(EEselection).jointTorqueOpt, Leg.(EEselection).qOpt, Leg.(EEselection).qdotOpt, Leg.(EEselection).qdotdotOpt, Leg.(EEselection).rOpt,  Leg.(EEselection).jointPowerOpt, Leg.(EEselection).linkLengthsOpt, Leg.(EEselection).hipOffsetOpt, Leg.(EEselection).penaltyMinOpt, Leg.metaParameters.elapsedTime.(EEselection), Leg.metaParameters.elapsedTimePerFuncEval.(EEselection), Leg.metaParameters.(EEselection).output, Leg.(EEselection).linkMassOpt, Leg.(EEselection).totalLinkMassOpt, Leg.metaParameters.deltaqMaxOpt.(EEselection), Leg.metaParameters.qdotMaxOpt.(EEselection), Leg.metaParameters.jointTorqueMaxOpt.(EEselection), Leg.metaParameters.jointPowerMaxOpt.(EEselection), Leg.(EEselection).mechEnergyOpt, Leg.metaParameters.mechEnergyPerCycleOpt.(EEselection), Leg.metaParameters.mechEnergyPerCycleTotalOpt.(EEselection), Leg.(EEselection).elecEnergyOpt, Leg.metaParameters.elecEnergyPerCycleOpt.(EEselection), Leg.metaParameters.elecEnergyPerCycleTotalOpt.(EEselection)] = evolveAndVisualizeOptimalLeg(actuatorProperties, imposeJointLimits, heuristic, actuateJointsDirectly, hipAttachmentOffset, linkCount, optimizationProperties, EEselection, meanCyclicMotionHipEE, quadruped, configSelection, dt, taskSelection, hipParalleltoBody, Leg, meanTouchdownIndex, actuatorEfficiency, actuatorSelection);
         % compute CoT
          power = Leg.(EEselection).jointPowerOpt;
          Leg.metaParameters.CoTOpt.(EEselection) = getCostOfTransport(Leg, power, quadruped);
-        [Leg.metaParameters.deltaqMaxOpt.(EEselection), Leg.metaParameters.qdotMaxOpt.(EEselection), Leg.metaParameters.jointTorqueMaxOpt.(EEselection), Leg.metaParameters.jointPowerMaxOpt.(EEselection), Leg.(EEselection).energyOpt, Leg.metaParameters.energyPerCycleOpt.(EEselection)]  = getMaximumJointStates(Leg, power, EEselection, dt);         
+         Leg.metaParameters.powerQualityOpt.(EEselection) = computePowerQuality(power, EEselection);       
     end
     
     if optimizeRF
@@ -275,11 +291,11 @@ if runOptimization
         hipAttachmentOffset = -quadruped.hipOffset(1);      
         fprintf('\nInitiating optimization of link lengths for %s\n', EEselection);
         % evolve leg
-        [Leg.(EEselection).jointTorqueOpt, Leg.(EEselection).qOpt, Leg.(EEselection).qdotOpt, Leg.(EEselection).qdotdotOpt, Leg.(EEselection).rOpt,  Leg.(EEselection).jointPowerOpt, Leg.(EEselection).linkLengthsOpt, Leg.(EEselection).hipOffsetOpt, Leg.(EEselection).penaltyMinOpt, Leg.metaParameters.elapsedTime.(EEselection), Leg.metaParameters.elapsedTimePerFuncEval.(EEselection), Leg.(EEselection).metaParameters.output, Leg.(EEselection).linkMassOpt,  Leg.(EEselection).totalLinkMassOpt] = evolveAndVisualizeOptimalLeg(actuatorProperties, imposeJointLimits, heuristic, actuateJointsDirectly, hipAttachmentOffset, linkCount, optimizationProperties, EEselection, meanCyclicMotionHipEE, quadruped, configSelection, dt, taskSelection, hipParalleltoBody, Leg, meanTouchdownIndex);
+        [Leg.(EEselection).jointTorqueOpt, Leg.(EEselection).qOpt, Leg.(EEselection).qdotOpt, Leg.(EEselection).qdotdotOpt, Leg.(EEselection).rOpt,  Leg.(EEselection).jointPowerOpt, Leg.(EEselection).linkLengthsOpt, Leg.(EEselection).hipOffsetOpt, Leg.(EEselection).penaltyMinOpt, Leg.metaParameters.elapsedTime.(EEselection), Leg.metaParameters.elapsedTimePerFuncEval.(EEselection), Leg.metaParameters.(EEselection).output, Leg.(EEselection).linkMassOpt, Leg.(EEselection).totalLinkMassOpt, Leg.metaParameters.deltaqMaxOpt.(EEselection), Leg.metaParameters.qdotMaxOpt.(EEselection), Leg.metaParameters.jointTorqueMaxOpt.(EEselection), Leg.metaParameters.jointPowerMaxOpt.(EEselection), Leg.(EEselection).mechEnergyOpt, Leg.metaParameters.mechEnergyPerCycleOpt.(EEselection), Leg.metaParameters.mechEnergyPerCycleTotalOpt.(EEselection), Leg.(EEselection).elecEnergyOpt, Leg.metaParameters.elecEnergyPerCycleOpt.(EEselection), Leg.metaParameters.elecEnergyPerCycleTotalOpt.(EEselection)] = evolveAndVisualizeOptimalLeg(actuatorProperties, imposeJointLimits, heuristic, actuateJointsDirectly, hipAttachmentOffset, linkCount, optimizationProperties, EEselection, meanCyclicMotionHipEE, quadruped, configSelection, dt, taskSelection, hipParalleltoBody, Leg, meanTouchdownIndex, actuatorEfficiency, actuatorSelection);
         % compute CoT
          power = Leg.(EEselection).jointPowerOpt;
          Leg.metaParameters.CoTOpt.(EEselection) = getCostOfTransport(Leg, power, quadruped);
-        [Leg.metaParameters.deltaqMaxOpt.(EEselection), Leg.metaParameters.qdotMaxOpt.(EEselection), Leg.metaParameters.jointTorqueMaxOpt.(EEselection), Leg.metaParameters.jointPowerMaxOpt.(EEselection), Leg.(EEselection).energyOpt, Leg.metaParameters.energyPerCycleOpt.(EEselection)]  = getMaximumJointStates(Leg, power, EEselection, dt);
+         Leg.metaParameters.powerQualityOpt.(EEselection) = computePowerQuality(power, EEselection);         
     end
     
     if optimizeRH
@@ -287,11 +303,11 @@ if runOptimization
         hipAttachmentOffset = quadruped.hipOffset(2);
         fprintf('\nInitiating optimization of link lengths for %s\n', EEselection);
         % evolve leg
-        [Leg.(EEselection).jointTorqueOpt, Leg.(EEselection).qOpt, Leg.(EEselection).qdotOpt, Leg.(EEselection).qdotdotOpt, Leg.(EEselection).rOpt,  Leg.(EEselection).jointPowerOpt, Leg.(EEselection).linkLengthsOpt, Leg.(EEselection).hipOffsetOpt, Leg.(EEselection).penaltyMinOpt, Leg.metaParameters.elapsedTime.(EEselection), Leg.metaParameters.elapsedTimePerFuncEval.(EEselection), Leg.(EEselection).metaParameters.output, Leg.(EEselection).linkMassOpt,  Leg.(EEselection).totalLinkMassOpt] = evolveAndVisualizeOptimalLeg(actuatorProperties, imposeJointLimits, heuristic, actuateJointsDirectly, hipAttachmentOffset, linkCount, optimizationProperties, EEselection, meanCyclicMotionHipEE, quadruped, configSelection, dt, taskSelection, hipParalleltoBody, Leg, meanTouchdownIndex);
+        [Leg.(EEselection).jointTorqueOpt, Leg.(EEselection).qOpt, Leg.(EEselection).qdotOpt, Leg.(EEselection).qdotdotOpt, Leg.(EEselection).rOpt,  Leg.(EEselection).jointPowerOpt, Leg.(EEselection).linkLengthsOpt, Leg.(EEselection).hipOffsetOpt, Leg.(EEselection).penaltyMinOpt, Leg.metaParameters.elapsedTime.(EEselection), Leg.metaParameters.elapsedTimePerFuncEval.(EEselection), Leg.metaParameters.(EEselection).output, Leg.(EEselection).linkMassOpt, Leg.(EEselection).totalLinkMassOpt, Leg.metaParameters.deltaqMaxOpt.(EEselection), Leg.metaParameters.qdotMaxOpt.(EEselection), Leg.metaParameters.jointTorqueMaxOpt.(EEselection), Leg.metaParameters.jointPowerMaxOpt.(EEselection), Leg.(EEselection).mechEnergyOpt, Leg.metaParameters.mechEnergyPerCycleOpt.(EEselection), Leg.metaParameters.mechEnergyPerCycleTotalOpt.(EEselection), Leg.(EEselection).elecEnergyOpt, Leg.metaParameters.elecEnergyPerCycleOpt.(EEselection), Leg.metaParameters.elecEnergyPerCycleTotalOpt.(EEselection)] = evolveAndVisualizeOptimalLeg(actuatorProperties, imposeJointLimits, heuristic, actuateJointsDirectly, hipAttachmentOffset, linkCount, optimizationProperties, EEselection, meanCyclicMotionHipEE, quadruped, configSelection, dt, taskSelection, hipParalleltoBody, Leg, meanTouchdownIndex, actuatorEfficiency, actuatorSelection);
         % compute CoT
          power = Leg.(EEselection).jointPowerOpt;
          Leg.metaParameters.CoTOpt.(EEselection) = getCostOfTransport(Leg, power, quadruped);
-        [Leg.metaParameters.deltaqMaxOpt.(EEselection), Leg.metaParameters.qdotMaxOpt.(EEselection), Leg.metaParameters.jointTorqueMaxOpt.(EEselection), Leg.metaParameters.jointPowerMaxOpt.(EEselection), Leg.(EEselection).energyOpt, Leg.metaParameters.energyPerCycleOpt.(EEselection)]  = getMaximumJointStates(Leg, power, EEselection, dt);
+         Leg.metaParameters.powerQualityOpt.(EEselection) = computePowerQuality(power, EEselection);         
     end 
     
     % total cost of transport is the sum of each leg component
@@ -305,26 +321,58 @@ if runOptimization
 %% plot joint torque and speed for initial and optimized design
     if viewOptimizedLegPlot
         fprintf('Plotting joint data for initial and optimized leg designs \n');
+        viewOptimizedData = true;
+        
         if optimizeLF
             EEselection = 'LF';
-            plotOptimizedJointTorque(Leg, EEselection, dt, meanTouchdownIndex, taskSelection, linkCount)
-            plotMetaParameters(Leg, linkCount, EEselection);
-
+            if viewOptimizedResults.jointDataPlot
+                plotOptimizedJointTorque(Leg, EEselection, dt, meanTouchdownIndex, taskSelection, linkCount)
+            end
+            if viewOptimizedResults.metaParameterPlot
+                plotMetaParameters(Leg, linkCount, EEselection);
+            end
+            if viewOptimizedResults.efficiencyMap
+                plotEfficiencyMapWithOperatingPoints(viewOptimizedData, EEselection, EEnames, actuatorSelection, Leg, efficiencyMapPlot, actuatorProperties, linkCount, meanTouchdownIndex, dataExtraction)
+            end
         end
+        
         if optimizeLH
             EEselection = 'LH';
-            plotOptimizedJointTorque(Leg, EEselection, dt, meanTouchdownIndex, taskSelection, linkCount)
-            plotMetaParameters(Leg, linkCount, EEselection);        
+            if viewOptimizedResults.jointDataPlot
+                plotOptimizedJointTorque(Leg, EEselection, dt, meanTouchdownIndex, taskSelection, linkCount)
+            end
+            if viewOptimizedResults.metaParameterPlot
+                plotMetaParameters(Leg, linkCount, EEselection);
+            end
+            if viewOptimizedResults.efficiencyMap
+                plotEfficiencyMapWithOperatingPoints(viewOptimizedData, EEselection, EEnames, actuatorSelection, Leg, efficiencyMapPlot, actuatorProperties, linkCount, meanTouchdownIndex, dataExtraction)
+            end
         end
+        
         if optimizeRF
             EEselection = 'RF';
-            plotOptimizedJointTorque(Leg, EEselection, dt, meanTouchdownIndex, taskSelection, linkCount)
-            plotMetaParameters(Leg, linkCount, EEselection);        
+            if viewOptimizedResults.jointDataPlot
+                plotOptimizedJointTorque(Leg, EEselection, dt, meanTouchdownIndex, taskSelection, linkCount)
+            end
+            if viewOptimizedResults.metaParameterPlot
+                plotMetaParameters(Leg, linkCount, EEselection);
+            end
+            if viewOptimizedResults.efficiencyMap
+                plotEfficiencyMapWithOperatingPoints(viewOptimizedData, EEselection, EEnames, actuatorSelection, Leg, efficiencyMapPlot, actuatorProperties, linkCount, meanTouchdownIndex, dataExtraction)
+            end
         end
+        
         if optimizeRH
             EEselection = 'RH';
-            plotOptimizedJointTorque(Leg, EEselection, dt, meanTouchdownIndex, taskSelection, linkCount)
-            plotMetaParameters(Leg, linkCount, EEselection);        
+            if viewOptimizedResults.jointDataPlot
+                plotOptimizedJointTorque(Leg, EEselection, dt, meanTouchdownIndex, taskSelection, linkCount)
+            end
+            if viewOptimizedResults.metaParameterPlot
+                plotMetaParameters(Leg, linkCount, EEselection);
+            end
+            if viewOptimizedResults.efficiencyMap
+                plotEfficiencyMapWithOperatingPoints(viewOptimizedData, EEselection, EEnames, actuatorSelection, Leg, efficiencyMapPlot, actuatorProperties, linkCount, meanTouchdownIndex, dataExtraction)
+            end
         end
     end
 end

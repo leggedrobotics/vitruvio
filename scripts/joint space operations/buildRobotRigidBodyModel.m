@@ -337,15 +337,19 @@ elseif strcmp(EEselection, 'RF')
 elseif strcmp(EEselection, 'RH')
     patchShift = [bodyLength bodyWidth 0];
 end
+
+groundCoordinatesX = [0.2 0.2 -0.2 -0.2];
+groundCoordinatesY = [0.2 -0.2 -0.2 0.2];
+groundCoordinatesZ = -Leg.base.position(:,3)*[1 1 1 1] - quadruped.nomHipPos(1,3);
     
-figure(1);
 if viewVisualization
+    figure(1);   
     for j = 1: numberOfLoopRepetitions
         for i = 1:length(Leg.(EEselection).q)
             set(gcf, 'Position', get(0, 'Screensize'));
             xlim([-0.75 0.75]);
             ylim([-0.5 0.5]);
-            zlim([-0.8 0.4]);
+            zlim([-1.6 0.6]);
             figure(1);
             show(robot,config(i,:));
 
@@ -355,6 +359,7 @@ if viewVisualization
                   meanCyclicMotionHipEE.(EEselection).position(1:end-2,2), ...
                   meanCyclicMotionHipEE.(EEselection).position(1:end-2,3),'r', 'LineWidth', 3)
             title(EEselection)
+            
             % define the vertices to show robot body on same figure
             vert = patchShift + ...
                    [0           0           -0.04;...
@@ -365,15 +370,20 @@ if viewVisualization
                    -bodyLength  0            0.04;...
                    -bodyLength -bodyWidth    0.04;...
                     0          -bodyWidth    0.04];
+                
             % compute body rotation with rotation matrix about y axis
             bodyRotation = [cos(-config(i,1)), 0, sin(-config(i,1));
                             0                 1, 0;
                             -sin(-config(i,1)), 0 cos(-config(i,1))];
+                        
             % apply body rotation to obtain new vertices
             vert = vert * bodyRotation;
             fac = [1 2 6 5;2 3 7 6;3 4 8 7;4 1 5 8;1 2 3 4;5 6 7 8];
             patch('Vertices',vert,'Faces',fac,'FaceColor','w', 'FaceAlpha', 0.8)
-            hold off
+            
+            % plot surface for ground visualization on the same figure
+            patch(groundCoordinatesX, groundCoordinatesY, groundCoordinatesZ(i,:), 'k', 'FaceAlpha', 0.2)
+            hold off          
         end
     end
 end

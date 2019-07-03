@@ -1,7 +1,7 @@
 % collects position of EE for each timestep from liftoff to next liftoff
 % for a subset of the cycles when the motion is steady and averages the result
 
-function [meanCyclicMotionHipEE, cyclicMotionHipEE, meanCyclicC_IBody, samplingStart, samplingEnd, meanTouchdownIndex] = getHipEECyclicData(dataExtraction, quadruped, tLiftoff, relativeMotionHipEE, EE, removalRatioStart, removalRatioEnd, dt, minStepCount, C_IBody, EEnames)
+function [meanCyclicMotionHipEE, cyclicMotionHipEE, meanCyclicC_IBody, samplingStart, samplingEnd, meanTouchdownIndex, basePosition] = getHipEECyclicData(dataExtraction, tLiftoff, relativeMotionHipEE, EE, removalRatioStart, removalRatioEnd, dt, minStepCount, C_IBody, EEnames, base)
 %% Get the average number of points in one cycle of the leg
 for i = 1:length(tLiftoff.LF)-2
     temp1 = length(relativeMotionHipEE.LF.position(floor(tLiftoff.LF(i)/dt):floor(tLiftoff.LF(i+1)/dt)));
@@ -12,13 +12,14 @@ for i = 1:length(tLiftoff.LF)-2
 end
 meanIndexCount = round(mean(indexCount)); % mean number of points in one cycle of the leg
 
-%% save cyclic motion (pos, vel, force) of each end effector into an array. 
+%% save cyclic pos, vel, force of each end effector into an array. 
 % The 3rd dimension of the array is the step number.
-% use minStepCount-2 to neglect the last steps of the cycle which are more prone
+% use minStepCount-1 to neglect the last steps of the cycle which are more prone
 % to constraint violation in towr
 for i = 1:4
     EEselection = EEnames(i,:);
-    for i = 1:minStepCount-2
+%     for i = 1:minStepCount-1
+    for i = 1:minStepCount-1
         % Save position elements from liftoff to next liftoff + 20% of a
         % cycle. This helps us to get a more smooth average motion as some
         % steps have different durations
@@ -33,7 +34,7 @@ for i = 1:4
 end
 
 %% body rotation in inertial frame
-for i = 1:minStepCount-2
+for i = 1:minStepCount-1
     for j = 1:4
         EEselection = EEnames(j,:);
         % by saving the body rotation separately for each leg we can synchronize
@@ -67,6 +68,7 @@ end
 % Find point with minimum distance to the first point. This is where the
 % step cycle loops. Save the data up to this index+2 to preserve the full
 % motion when taking finite differences
+if dataExtraction.averageStepsForCyclicalMotion
 for i = 1:4
     EEselection = EEnames(i,:);
     offsetFromLiftoffPosition.(EEselection) = meanCyclicMotionHipEE.(EEselection).position(1,:) - meanCyclicMotionHipEE.(EEselection).position(:,:);
@@ -105,10 +107,11 @@ for i = 1:4
 end
 
 %% Rather than averaging multiple steps, get the relative motion of the EE wrt hip over multiple steps.
-if ~ dataExtraction.averageStepsForCyclicalMotion
+elseif ~ dataExtraction.averageStepsForCyclicalMotion
     startIndex = round(length(relativeMotionHipEE.(EEselection).position)*removalRatioStart);
     endIndex = round(length(relativeMotionHipEE.(EEselection).position)*(1-removalRatioEnd));
     meanEuler = rotm2eul(C_IBody(:,:,startIndex:endIndex), 'ZYX');
+    basePosition = base.position(startIndex:endIndex,:);    
     for i = 1:4
         EEselection = EEnames(i,:);
         meanCyclicMotionHipEE.(EEselection).position = relativeMotionHipEE.(EEselection).position(startIndex:endIndex,:);

@@ -345,8 +345,8 @@ robot.mini.nomHipPos(4,:) = [-robot.mini.xNom(2), -robot.mini.yNom(2), robot.min
 
 % link lengths [m]
 % fore, hind
-robot.mini.hip(1).length = 0.05;
-robot.mini.hip(2).length = 0.05;
+robot.mini.hip(1).length = 0.15;
+robot.mini.hip(2).length = 0.15;
 robot.mini.thigh(1).length = 0.14;
 robot.mini.thigh(2).length = 0.14;
 robot.mini.shank(1).length = 0.14;
@@ -388,6 +388,69 @@ robot.mini.q3.minAngle = -pi/2;
 robot.mini.q3.maxAngle = pi/2;
 robot.mini.q4.minAngle = -pi/2;
 robot.mini.q4.maxAngle = pi/2;
+
+%% defaultHopper 
+
+robot.defaultHopper.mass.total = 10;
+
+robot.defaultHopper.xNom(1) = 0;
+robot.defaultHopper.xNom(2) = 0;
+robot.defaultHopper.yNom(1) = 0;
+robot.defaultHopper.yNom(2) = 0;
+robot.defaultHopper.zNom =  0;
+
+% row order:    LF LH RF RH
+% column order: x, y, z
+robot.defaultHopper.nomHipPos(1,:) = [robot.defaultHopper.xNom(1), robot.defaultHopper.yNom(1), robot.defaultHopper.zNom];
+robot.defaultHopper.nomHipPos(2,:) = [-robot.defaultHopper.xNom(2), robot.defaultHopper.yNom(2), robot.defaultHopper.zNom];
+robot.defaultHopper.nomHipPos(3,:) = [robot.defaultHopper.xNom(1), -robot.defaultHopper.yNom(1), robot.defaultHopper.zNom];
+robot.defaultHopper.nomHipPos(4,:) = [-robot.defaultHopper.xNom(2), -robot.defaultHopper.yNom(2), robot.defaultHopper.zNom];
+
+% link lengths [m]
+% fore, hind
+robot.defaultHopper.hip(1).length = 0.01;
+robot.defaultHopper.hip(2).length = 0.01;
+robot.defaultHopper.thigh(1).length = 0.4;
+robot.defaultHopper.thigh(2).length = 0.4;
+robot.defaultHopper.shank(1).length = 0.4;
+robot.defaultHopper.shank(2).length = 0.4;
+robot.defaultHopper.foot(1).length = 0.05;
+robot.defaultHopper.foot(2).length = 0.05;
+robot.defaultHopper.phalanges(1).length = 0.05;
+robot.defaultHopper.phalanges(2).length = 0.05;
+
+% link radius [m]
+robot.defaultHopper.hip(1).radius = 0.02;
+robot.defaultHopper.hip(2).radius = 0.02;
+robot.defaultHopper.thigh(1).radius = 0.02;
+robot.defaultHopper.thigh(2).radius = 0.03;
+robot.defaultHopper.shank(1).radius = 0.03;
+robot.defaultHopper.shank(2).radius = 0.03;
+robot.defaultHopper.foot(1).radius = 0.03;
+robot.defaultHopper.foot(2).radius = 0.03;
+robot.defaultHopper.phalanges(1).radius = 0.03;
+robot.defaultHopper.phalanges(2).radius = 0.03;
+
+robot.defaultHopper.legDensity = legDensity; %kg/m^3
+
+%link mass [kg] based on cylindrical link with constant density
+for i = 1:length(link)
+    for j = 1:2
+        robot.defaultHopper.(link{i})(j).mass = pi()*robot.defaultHopper.(link{i})(j).radius^2*robot.defaultHopper.(link{i})(j).length*robot.defaultHopper.legDensity;
+        robot.defaultHopper.(link{i})(j).inertia = (1/3)*robot.defaultHopper.(link{i})(j).mass*robot.defaultHopper.(link{i})(j).length^2;
+    end
+end
+
+% joint angle limits
+% q1 HAA, q2 HFE, q3 KFE, q4 AFE
+robot.defaultHopper.q1.minAngle = -pi/6;
+robot.defaultHopper.q1.maxAngle = pi/2;
+robot.defaultHopper.q2.minAngle = -pi/4;
+robot.defaultHopper.q2.maxAngle = pi/4;
+robot.defaultHopper.q3.minAngle = -pi/2;
+robot.defaultHopper.q3.maxAngle = pi/2;
+robot.defaultHopper.q4.minAngle = -pi/2;
+robot.defaultHopper.q4.maxAngle = pi/2;
 
 
 %% load in the parameters of the selected robot into the struct quadruped which is then used by the rest of the program

@@ -6,16 +6,16 @@ close all;
 % to create an average cycle. This works well when the motion is very cyclical.
 % If false the individual steps are not averaged. This should be selected
 % when the generated motion is irregular.
-dataExtraction.averageStepsForCyclicalMotion = true; 
-dataExtraction.allowableDeviation = 0.015; % [m] Deviation between neighbouring points. If the deviation is larger, additional points are generated via interpolated.
+dataExtraction.averageStepsForCyclicalMotion = false; 
+dataExtraction.allowableDeviation = 0.03; % [m] Deviation between neighbouring points. If the deviation is larger, additional points are generated via interpolated.
 
 %% Toggle leg properties, visualization and optimization functions
 linkCount = 2; % number of links from 2 to 4. [thigh, shank, foot, phalanges]
 configSelection = 'X'; % X or M
-actuateJointsDirectly = true; % if true, actuators positioned in each joint.
+actuateJointsDirectly = false; % if true, actuators positioned in each joint. If false, there is no actuator mass at joints.
 
 % specify hip orientation
-hipParalleltoBody = true; % if false, hip link is perpendicular to body x
+hipParalleltoBody = true; % if true, offset from HAA to HFE parallel to the body as with ANYmal. If ffalse, hip link is perpendicular to body x
 
 %% AFE and DFE heuristics
 % When no heuristic is specified, the angle of the final joint closest to 
@@ -25,18 +25,23 @@ heuristic.torqueAngle.kTorsionalSpring = 50; % spring constant for torsional spr
 heuristic.torqueAngle.apply = true;
 
 %% Toggle trajectory plots and initial design viz
-viewVisualization = false; % initial leg design tracking trajectory plan
-numberOfLoopRepetitions = 1; % number of steps visualized for leg motion
-viewTrajectoryPlots = false;
-viewRangeOfMotionPlots = true;
+viewVisualization            = true; % initial leg design tracking trajectory plan
+numberOfLoopRepetitions      = 1;     % number of steps visualized for leg motion
+viewPlots.trajectoryPlots    = false;
+viewPlots.rangeOfMotionPlots = false;
+viewPlots.efficiencyMap      = false;
 
 %% Toggle optimization for each leg
 runOptimization = false;
-viewOptimizedLegPlot = true;
-optimizeLF = false; 
-optimizeLH = true; 
-optimizeRF = true; 
-optimizeRH = true;
+viewOptimizedLegPlot = true; % master level switch to disable all the optimization plots
+viewOptimizedResults.jointDataPlot = true;
+viewOptimizedResults.metaParameterPlot = true;
+viewOptimizedResults.efficiencyMap = false;
+
+optimizeLF = true; 
+optimizeLH = false; 
+optimizeRF = false; 
+optimizeRH = false;
 
 %% Set optimization properties
 % toggle visualization 
@@ -45,8 +50,8 @@ optimizationProperties.viz.numberOfCyclesVisualized = 1;
 optimizationProperties.viz.displayBestCurrentLinkLengths = true; % display chart while running ga
 
 % Set number of generations and population size
-optimizationProperties.options.maxGenerations = 2;
-optimizationProperties.options.populationSize = 5;
+optimizationProperties.options.maxGenerations = 1;
+optimizationProperties.options.populationSize = 4;
 
 % Set weights for fitness function terms
 optimizationProperties.penaltyWeight.totalSwingTorque  = 0;
@@ -56,16 +61,19 @@ optimizationProperties.penaltyWeight.totalTorqueHFE    = 0;
 optimizationProperties.penaltyWeight.swingTorqueHFE    = 0;
 optimizationProperties.penaltyWeight.totalqdot         = 0;
 optimizationProperties.penaltyWeight.totalPower        = 0; % only considers power terms > 0
-optimizationProperties.penaltyWeight.totalEnergy       = 1;
+optimizationProperties.penaltyWeight.totalMechEnergy   = 1;
+optimizationProperties.penaltyWeight.totalElecEnergy   = 0;
+optimizationProperties.penaltyWeight.averageEfficiency = 0;
 optimizationProperties.penaltyWeight.maxTorque         = 0;
 optimizationProperties.penaltyWeight.maxqdot           = 0;
 optimizationProperties.penaltyWeight.maxPower          = 0; % only considers power terms > 0
+optimizationProperties.penaltyWeight.antagonisticPower = 0; % seek to minimize antagonistic power which maximizes power quality
 optimizationProperties.penaltyWeight.maximumExtension  = true; % large penalty incurred if leg extends beyond allowable amount
-optimizationProperties.allowableExtension              = 0.8; % [0 1] penalize extension above this ratio of total possible extension
+optimizationProperties.allowableExtension              = 0.9; % [0 1] penalize extension above this ratio of total possible extension
 
 % Set bounds for link lengths as multipliers of initial values
 if linkCount == 2
-    optimizationProperties.bounds.upperBoundMultiplier = [1.5,   2,   2,  -1.5]; % [hip thigh shank hipAttachmentOffset]
+    optimizationProperties.bounds.upperBoundMultiplier = [1.5,   3,   3,  -1.5]; % [hip thigh shank hipAttachmentOffset]
     optimizationProperties.bounds.lowerBoundMultiplier = [0.5, 0.5, 0.5, 1.5]; % [hip thigh shank hipAttachmentOffset]
 end
 if linkCount == 3
@@ -89,21 +97,23 @@ centaurStairs   = false;
 miniPronk       = false;
 ANYmalTrot      = false;
 ANYmalSlowTrot  = false; % stance torque a high
-ANYmalSlowTrotGoodMotionBadForce = true;
+ANYmalSlowTrotGoodMotionBadForce = false;
 ANYmalSlowTrotOriginal = false; % stance torque good but motion not the same as in measured
+defaultHopperHop = true;
 
 numberOfRepetitions = 0; % number of times that leg is reoptimized
 
 %% Select actuators for each joint
-actuatorSelection.HAA = 'ANYdrive'; % {ANYdrive, Neo, other}
-actuatorSelection.HFE = 'ANYdrive'; % {ANYdrive, Neo, other}
-actuatorSelection.KFE = 'ANYdrive'; % {ANYdrive, Neo, other}
-actuatorSelection.AFE = 'ANYdrive'; % {ANYdrive, Neo, other}
-actuatorSelection.DFE = 'ANYdrive'; % {ANYdrive, Neo, other}
+actuatorSelection.HAA = 'Capler'; % {ANYdrive, Neo, Capler, other}
+actuatorSelection.HFE = 'Capler'; 
+actuatorSelection.KFE = 'Capler';
+actuatorSelection.AFE = 'Capler'; 
+actuatorSelection.DFE = 'Capler'; 
 
-% impose limits on maximum joint torque, speed and power
-% the values are defined in getActuatorLimits
-imposeJointLimits.maxTorque = true;
+% Impose limits on maximum joint torque, speed and power
+% the values are defined in getActuatorLimits. There is a penalty term fro
+% violations of these limits.
+imposeJointLimits.maxTorque = false;
 imposeJointLimits.maxqdot   = true;
 imposeJointLimits.maxPower  = true;
 

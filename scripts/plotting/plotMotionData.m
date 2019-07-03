@@ -2,7 +2,7 @@
 % set(gcf,'color','w');
 
 %% base position and velocity
-figure(2);
+figure(2)
 subplot(3,2,1);
 plot(t, base.position(:,1));
 ylabel('x position [m]');
@@ -35,10 +35,10 @@ grid on
 
 %% end effector forces
 figure(3)
-
+% use time vector with interpolated values
 subplot(3,1,1)
-plot(t, EE.LF.force(:,1), 'b', t, EE.LH.force(:,1), 'g', ...
-     t, EE.RF.force(:,1), 'r', t, EE.RH.force(:,1), 'c')
+plot(Leg.time, EE.LF.force(1:end-1,1), 'b', Leg.time, EE.LH.force(1:end-1,1), 'g', ...
+     Leg.time, EE.RF.force(1:end-1,1), 'r', Leg.time, EE.RH.force(1:end-1,1), 'c')
 title('End Effector forces')
 ylabel('force in x-direction [N]')
 lgd = legend('LF','LH','RF','RH');
@@ -46,16 +46,16 @@ lgd.FontSize = 16;
 grid on
 
 subplot(3,1,2)
-plot(t, EE.LF.force(:,2), 'b', t, EE.LH.force(:,2), 'g', ...
-     t, EE.RF.force(:,2), 'r', t, EE.RH.force(:,2), 'c')
+plot(Leg.time, EE.LF.force(1:end-1,2), 'b', Leg.time, EE.LH.force(1:end-1,2), 'g', ...
+     Leg.time, EE.RF.force(1:end-1,2), 'r', Leg.time, EE.RH.force(1:end-1,2), 'c')
 ylabel('force in y-direction [N]')
 lgd = legend('LF','LH','RF','RH');
 lgd.FontSize = 16;
 grid on
 
 subplot(3,1,3)
-plot(t, EE.LF.force(:,3), 'b', t, EE.LH.force(:,3), 'g', ...
-     t, EE.RF.force(:,3), 'r', t, EE.RH.force(:,3), 'c')
+plot(Leg.time, EE.LF.force(1:end-1,3), 'b', Leg.time, EE.LH.force(1:end-1,3), 'g', ...
+     Leg.time, EE.RF.force(1:end-1,3), 'r', Leg.time, EE.RH.force(1:end-1,3), 'c')
 ylabel('force in z-direction [N]')
 lgd = legend('LF','LH','RF','RH');
 lgd.FontSize = 16;
@@ -80,7 +80,6 @@ axisMax = max(xMax, zMax);
 
 figure(4)
 title('Relative motion of end effectors with respect to hip attachment points')
-
 subplot(1,2,1)
 plot3(relativeMotionHipEE.LF.position(:,1),relativeMotionHipEE.LF.position(:,2), relativeMotionHipEE.LF.position(:,3), 'b',  ...
      relativeMotionHipEE.RF.position(:,1),relativeMotionHipEE.RF.position(:,2), relativeMotionHipEE.RF.position(:,3), 'g')
@@ -110,8 +109,7 @@ zlabel('z position [m]')
 
 %% Plot mean x vs z position of EE in cyclic motion
 figure(5)
-title('End effector motion with all gait cycles')
-
+title('End effector cyclic motion')
 % LF
 subplot(2,2,1)
 for i = samplingStart:samplingEnd
@@ -120,13 +118,12 @@ for i = samplingStart:samplingEnd
 end
 plot(meanCyclicMotionHipEE.LF.position(1:meanTouchdownIndex.LF,1), meanCyclicMotionHipEE.LF.position(1:meanTouchdownIndex.LF,3),'k:', 'LineWidth',4)
 plot(meanCyclicMotionHipEE.LF.position(meanTouchdownIndex.LF:end,1), meanCyclicMotionHipEE.LF.position(meanTouchdownIndex.LF:end,3), 'k', 'LineWidth',4)
-
 axis equal
 xlabel('x position [m]')
 ylabel('z position [m]')
 title('LF')
-
 hold off
+
 % LH
 subplot(2,2,2)
 for i = samplingStart:samplingEnd
@@ -139,7 +136,6 @@ axis equal
 xlabel('x position [m]')
 ylabel('z position [m]')
 title('LH')
-
 hold off
 
 % RF
@@ -194,8 +190,8 @@ hold off
 clear rectanglePos
 
 subplot(2,2,[3 4])
-plot(t, EE.LF.force(:,3), 'b', t, EE.LH.force(:,3), 'g', ...
-     t, EE.RF.force(:,3), 'r', t, EE.RH.force(:,3), 'c')
+plot(Leg.time, EE.LF.force(1:end-1,3), 'b', Leg.time, EE.LH.force(1:end-1,3), 'g', ...
+     Leg.time, EE.RF.force(1:end-1,3), 'r', Leg.time, EE.RH.force(1:end-1,3), 'c')
  lgd = legend('LF','LH','RF','RH');
  lgd.FontSize = 16;
  xlabel('time [s]')
@@ -220,19 +216,3 @@ plot(t, EE.LF.force(:,3), 'b', t, EE.LH.force(:,3), 'g', ...
     rectangle('Position',[rectanglePos.bottomLeft(1), rectanglePos.bottomLeft(2), rectanglePos.width, rectanglePos.height], 'LineWidth', 2)
     clear rectanglePos
 hold off
-
-%% mean forces
-% Z forces
-% figure(8)
-% time = 0:dt:dt*length(meanCyclicMotionHipEE.LF.position(:,1));
-% plot([time(1:end-1)+tTouchdown.LF(1) time(1:end-1)+tTouchdown.LF(2)], [meanCyclicMotionHipEE.LF.force(:,3); meanCyclicMotionHipEE.LF.force(:,3)], 'b--', ...
-%      [time(1:end-1)+tTouchdown.LH(1) time(1:end-1)+tTouchdown.LH(2)], [meanCyclicMotionHipEE.LH.force(:,3); meanCyclicMotionHipEE.LH.force(:,3)], 'g', ...
-%      [time(1:end-1)+tTouchdown.RF(1) time(1:end-1)+tTouchdown.RF(2)], [meanCyclicMotionHipEE.RF.force(:,3); meanCyclicMotionHipEE.RF.force(:,3)], 'r--', ...
-%      [time(1:end-1)+tTouchdown.RH(1) time(1:end-1)+tTouchdown.RH(2)], [meanCyclicMotionHipEE.RH.force(:,3); meanCyclicMotionHipEE.RH.force(:,3)], 'c', 'LineWidth', 3)  
-% clear time;
-% title('Average of end-effector forces in z-direction displayed over two gait cycles')
-% lgd = legend('LF','LH','RF','RH');
-% lgd.FontSize = 16;
-% xlabel('time [s]')
-% ylabel('Force [N]')
-% grid on
