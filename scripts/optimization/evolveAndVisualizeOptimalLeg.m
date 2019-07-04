@@ -78,7 +78,7 @@ viewVisualization = optimizationProperties.viz.viewVisualization;
 %% qAFE, qDFE torque based heuristic computation
 % computation of parameters for first time step used to initialize the IK
 if (heuristic.torqueAngle.apply == true) && (linkCount > 2)
-    [qLiftoff.(EEselection{1})] = computeqLiftoffFinalJoint(heuristic, hipAttachmentOffset, linkCount, meanCyclicMotionHipEE, quadruped, EEselection, taskSelection, configSelection, hipParalleltoBody, Leg);
+    [qLiftoff.(EEselection)] = computeqLiftoffFinalJoint(heuristic, hipAttachmentOffset, linkCount, meanCyclicMotionHipEE, quadruped, EEselection, configSelection, hipParalleltoBody);
     EE_force = Leg.(EEselection).force(1,1:3);
     rotBodyY = -meanCyclicMotionHipEE.body.eulerAngles.(EEselection)(1,2); % rotation of body about inertial y
     qPrevious = qLiftoff.(EEselection);

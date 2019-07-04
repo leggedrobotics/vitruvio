@@ -1,9 +1,11 @@
-function [meanCyclicMotionHipEE, meanCyclicC_IBody, basePosition] = getHipEEFullMotionData(dataExtraction, tLiftoff, relativeMotionHipEE, EE, removalRatioStart, removalRatioEnd, dt, minStepCount, C_IBody, EEnames, base);
-             
-    for i = 1:4
+% Takes the relative motion data and force data as input and returns the
+% data after cropping by the start and end removal ratios. The data is not
+% averaged or made cyclical.
+function [meanCyclicMotionHipEE, meanCyclicC_IBody, basePosition] = getHipEEFullMotionData(relativeMotionHipEE, EE, removalRatioStart, removalRatioEnd, C_IBody, EEnames, base, legCount)   
+    for i = 1:legCount
         EEselection = EEnames(i,:);
 
-         % Rather than averaging multiple steps, get the relative motion of the EE wrt hip over multiple steps.
+        % Rather than averaging multiple steps into one step, get the relative motion of the EE wrt hip over multiple steps.
         startIndex = round(length(relativeMotionHipEE.(EEselection).position)*removalRatioStart);
         startIndex(startIndex<1) = 1;
         endIndex = round(length(relativeMotionHipEE.(EEselection).position)*(1-removalRatioEnd));
@@ -17,6 +19,5 @@ function [meanCyclicMotionHipEE, meanCyclicC_IBody, basePosition] = getHipEEFull
         meanEuler = rotm2eul(C_IBody(:,:,startIndex:endIndex), 'ZYX');
         meanCyclicMotionHipEE.body.eulerAngles.(EEselection) = meanEuler;
         basePosition.(EEselection) = base.position(startIndex:endIndex,:);  % here we save the same data for each EEselection to generalize visualization
-    end  
-    
+    end     
 end

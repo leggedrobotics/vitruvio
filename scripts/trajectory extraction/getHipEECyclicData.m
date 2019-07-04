@@ -1,42 +1,45 @@
 % collects position of EE for each timestep from liftoff to next liftoff
 % for a subset of the cycles when the motion is steady and averages the result
 
-function [meanCyclicMotionHipEE, cyclicMotionHipEE, meanCyclicC_IBody, samplingStart, samplingEnd, meanBasePosition] = getHipEECyclicData(dataExtraction, tLiftoff, relativeMotionHipEE, EE, removalRatioStart, removalRatioEnd, dt, minStepCount, C_IBody, EEnames, base)
-%% Get the average number of points in one cycle of the leg
-
+function [meanCyclicMotionHipEE, cyclicMotionHipEE, meanCyclicC_IBody, samplingStart, samplingEnd, meanBasePosition] = getHipEECyclicData(tLiftoff, relativeMotionHipEE, EE, removalRatioStart, removalRatioEnd, dt, minStepCount, C_IBody, EEnames, base, legCount)
+%% Get the average number of points in step number i
 for i = 1:length(tLiftoff.LF)-2
     temp1 = length(relativeMotionHipEE.LF.position(floor(tLiftoff.LF(i)/dt):floor(tLiftoff.LF(i+1)/dt)));
-    temp2 = length(relativeMotionHipEE.LH.position(floor(tLiftoff.LH(i)/dt):floor(tLiftoff.LH(i+1)/dt)));
-    temp3 = length(relativeMotionHipEE.RF.position(floor(tLiftoff.RF(i)/dt):floor(tLiftoff.RF(i+1)/dt)));
-    temp4 = length(relativeMotionHipEE.RH.position(floor(tLiftoff.RH(i)/dt):floor(tLiftoff.RH(i+1)/dt)));
+    temp2 = []; temp3 = []; temp4 = []; % Initialize other legs to be empty. If these legs exist, the values will be filled in.
+    
+    if legCount > 1
+        temp2 = length(relativeMotionHipEE.RF.position(floor(tLiftoff.RF(i)/dt):floor(tLiftoff.RF(i+1)/dt)));
+    end
+    if legCount > 2
+        temp3 = length(relativeMotionHipEE.LH.position(floor(tLiftoff.LH(i)/dt):floor(tLiftoff.LH(i+1)/dt)));
+    end
+    if legCount > 3
+        temp4 = length(relativeMotionHipEE.RH.position(floor(tLiftoff.RH(i)/dt):floor(tLiftoff.RH(i+1)/dt)));
+    end
+    
     indexCount(i) = mean([temp1, temp2, temp3, temp4]);
 end
-meanIndexCount = round(mean(indexCount)); % mean number of points in one cycle of the leg
+meanIndexCount = round(mean(indexCount)); % mean number of points (time) in one cycle of the leg
 
 %% save cyclic pos, vel, force of each end effector into an array. 
 % The 3rd dimension of the array is the step number.
-% use minStepCount-1 to neglect the last steps of the cycle which are more prone
-% to constraint violation in towr
-for i = 1:4
+for i = 1:legCount
     EEselection = EEnames(i,:);
-%     for i = 1:minStepCount-1
-    for i = 1:minStepCount-1
+    for i = 1:minStepCount-2 % we need to discard the last two steps as we take points until the end of the current step + 20% of the next step
         % Save position elements from liftoff to next liftoff + 20% of a
-        % cycle. This helps us to get a more smooth average motion as some
-        % steps have different durations
+        % cycle. This helps us to get a more smooth average motion as the
+        % duration for one step can vary slightly.
         temp.position = relativeMotionHipEE.(EEselection).position(floor(tLiftoff.(EEselection)(i)/dt):floor(tLiftoff.(EEselection)(i)/dt)+floor(1.2*meanIndexCount),:);
-        temp.velocity = relativeMotionHipEE.(EEselection).velocity(floor(tLiftoff.(EEselection)(i)/dt):floor(tLiftoff.(EEselection)(i)/dt)+floor(1.2*meanIndexCount),:);
         temp.force = EE.(EEselection).force(floor(tLiftoff.(EEselection)(i)/dt):floor(tLiftoff.(EEselection)(i)/dt)+floor(1.2*meanIndexCount),:);
 
         cyclicMotionHipEE.(EEselection).position(:,:,i) = temp.position;
-        cyclicMotionHipEE.(EEselection).velocity(:,:,i) = temp.velocity;
         cyclicMotionHipEE.(EEselection).force(:,:,i) = temp.force;
     end
 end
 
 %% body rotation and position in inertial frame
-for i = 1:minStepCount-1
-    for j = 1:4
+for i = 1:minStepCount-2
+    for j = 1:legCount
         EEselection = EEnames(j,:);
         % by saving the body rotation separately for each leg we can synchronize
         % the body rotation and leg motion
@@ -50,20 +53,22 @@ end
 % The steps from samplingStart to samplingEnd are used in the average
 % calculation
 samplingStart = round(removalRatioStart*(minStepCount-1));
-if samplingStart == 0
-    samplingStart = 1; % minimum starting index is 1
-end
+samplingStart(samplingStart<1) = 1; % minimum starting index is 1
 samplingEnd = round((1-removalRatioEnd)*(minStepCount-1));
 
 % average of corresponding points in each cycle
-for i = 1:4
+for i = 1:legCount
     EEselection = EEnames(i,:);
+    
+    % EE position and force
     meanCyclicMotionHipEE.(EEselection).position = mean(cyclicMotionHipEE.(EEselection).position(:,:,samplingStart:samplingEnd),3);
-    meanCyclicMotionHipEE.(EEselection).velocity = mean(cyclicMotionHipEE.(EEselection).velocity(:,:,samplingStart:samplingEnd),3);
     meanCyclicMotionHipEE.(EEselection).force = mean(cyclicMotionHipEE.(EEselection).force(:,:,samplingStart:samplingEnd),3);    
+    
     % average rotation matrix of body in inertia frame
     cyclicC_IBody.(EEselection) = cyclicC_IBody.(EEselection)(:,:,:,samplingStart:samplingEnd);
     meanCyclicC_IBody.(EEselection) = mean(cyclicC_IBody.(EEselection),4);
+    
+    % average rotation matrix of body in inertia frame    
     meanBasePosition.(EEselection) = mean(basePosition.(EEselection)(:,:,samplingStart:samplingEnd),3);
 end
 
@@ -72,7 +77,7 @@ end
 % step cycle loops. Save the data up to this index+2 to preserve the full
 % motion when taking finite differences
 
-for i = 1:4
+for i = 1:legCount
     EEselection = EEnames(i,:);
     offsetFromLiftoffPosition.(EEselection) = meanCyclicMotionHipEE.(EEselection).position(1,:) - meanCyclicMotionHipEE.(EEselection).position(:,:);
    
@@ -99,10 +104,6 @@ for i = 1:4
          meanCyclicMotionHipEE.(EEselection).position(end+1,:) = meanCyclicMotionHipEE.(EEselection).position(2,:);
          meanCyclicMotionHipEE.(EEselection).position(end+1,:) = meanCyclicMotionHipEE.(EEselection).position(3,:);
          
-         % Velocity data
-         meanCyclicMotionHipEE.(EEselection).velocity          = meanCyclicMotionHipEE.(EEselection).velocity(1:indexMin.(EEselection),:);
-         meanCyclicMotionHipEE.(EEselection).velocity(end+1,:) = meanCyclicMotionHipEE.(EEselection).velocity(1,:);
-
          % Force data        
          meanCyclicMotionHipEE.(EEselection).force          = meanCyclicMotionHipEE.(EEselection).force(1:indexMin.(EEselection),:);
          meanCyclicMotionHipEE.(EEselection).force(end+1,:) = meanCyclicMotionHipEE.(EEselection).force(1,:);

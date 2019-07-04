@@ -1,5 +1,5 @@
 %% Read in data for quadruped geometry
-function robot = buildRobotRigidBodyModel(actuatorProperties, actuateJointsDirectly, hipAttachmentOffset, linkCount, quadruped, Leg, meanCyclicMotionHipEE, EEselection, numberOfLoopRepetitions, viewVisualization, hipParalleltoBody, dataExtraction) 
+function robot = buildRobotRigidBodyModel(actuatorProperties, actuateJointsDirectly, hipAttachmentOffset, linkCount, quadruped, Leg, meanCyclicMotionHipEE, EEselection, numberOfStepsVisualized, viewVisualization, hipParalleltoBody, dataExtraction) 
 jointNames = ['HAA'; 'HFE'; 'KFE'; 'AFE'; 'DFE'];
 
 %% get quadruped properties for selected end effector  
@@ -356,23 +356,25 @@ groundCoordinatesZ = -Leg.base.position.(EEselection)(:,3)*[1 1 1 1] - quadruped
     
 if viewVisualization
     figure(1);   
-    for j = 1: numberOfLoopRepetitions
+    for j = 1: numberOfStepsVisualized
         for i = 1:finalPlottingIndex
             set(gcf, 'Position', get(0, 'Screensize'));
             xlim([-0.75 0.75]);
             ylim([-0.5 0.5]);
             zlim([-1.4 0.4]);
             figure(1);
+            
+            % Leg visualization
             show(robot,config(i,:));
 
             hold on
-            %plot desired trajectory to observe tracking
+            % Plot desired trajectory to observe tracking
             plot3(meanCyclicMotionHipEE.(EEselection).position(1:end-2,1), ...
                   meanCyclicMotionHipEE.(EEselection).position(1:end-2,2), ...
                   meanCyclicMotionHipEE.(EEselection).position(1:end-2,3),'r', 'LineWidth', 3)
             title(EEselection)
             
-            % define the vertices to show robot body on same figure
+            % Define the vertices to show robot body
             vert = patchShift + ...
                    [0           0           -0.04;...
                    -bodyLength  0           -0.04;...
@@ -383,9 +385,9 @@ if viewVisualization
                    -bodyLength -bodyWidth    0.04;...
                     0          -bodyWidth    0.04];
                 
-            % compute body rotation with rotation matrix about y axis
+            % compute body rotation about y axis with elementary rotation matrix
             bodyRotation = [cos(-config(i,1)), 0, sin(-config(i,1));
-                            0                 1, 0;
+                            0                  1, 0;
                             -sin(-config(i,1)), 0 cos(-config(i,1))];
                         
             % apply body rotation to obtain new vertices

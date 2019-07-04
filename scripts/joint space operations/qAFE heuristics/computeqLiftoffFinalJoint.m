@@ -1,5 +1,5 @@
-function qLiftoff = computeqLiftoffFinalJoint(heuristic, hipAttachmentOffset, linkCount, meanCyclicMotionHipEE, quadruped, EEselection, taskSelection, configSelection, hipParalleltoBody, Leg);
- % solve the angle of all joints such that the angle beetween the final link and the ground at liftoff is as desired. 
+function qLiftoff = computeqLiftoffFinalJoint(heuristic, hipAttachmentOffset, linkCount, meanCyclicMotionHipEE, quadruped, EEselection, configSelection, hipParalleltoBody)
+ % Using inverse kinematics, solve the angle of all joints for the first timestep such that the angle between the final link and the ground at liftoff is as desired. 
  %% Setup
   tol = 0.0001;
   it = 0;
@@ -21,9 +21,9 @@ function qLiftoff = computeqLiftoffFinalJoint(heuristic, hipAttachmentOffset, li
       end
   end
 
-  % the desired position of the final joint (AFE or DFE) is determined by
-  % the desired EE position and the desired liftoff angle between the
-  % horizonal and the final link.
+  %% Get desired position of final joint
+  % the desired Cartesian position of the final joint (AFE or DFE depending on linkCount) is determined by
+  % the desired EE position and the desired liftoff angle between the horizonal and the final link.
   r_H_0finalJoint_des = [r_H_0EE_des(1,1) - finalLinkLength*cos(thetaLiftoff_des), ...
                          r_H_0EE_des(1,2), ...
                          r_H_0EE_des(1,3) + finalLinkLength*sin(thetaLiftoff_des)];
@@ -31,6 +31,8 @@ function qLiftoff = computeqLiftoffFinalJoint(heuristic, hipAttachmentOffset, li
   %% Initialize IK algorithm
   q0 = getInitialJointAnglesForDesiredConfig(EEselection, configSelection);
   q = q0';
+  rotBodyY = meanCyclicMotionHipEE.body.eulerAngles.(EEselection)(1,2); % body rotation at first timestep
+  
   if linkCount == 3
       q = [q; 0];
   end
@@ -39,8 +41,7 @@ function qLiftoff = computeqLiftoffFinalJoint(heuristic, hipAttachmentOffset, li
   end
  
   lambda = 0.001; % damping factor -> values below lambda are set to zero in matrix inversion
-  % Initialize error -> only position because we don't have orientation data
-  rotBodyY = 0;
+  % Initialize error
   [~, ~, ~, ~, ~, r_H_04, r_H_05, r_H_0EE] = jointToPosJac(hipAttachmentOffset, linkCount, rotBodyY, q, quadruped, EEselection, hipParalleltoBody);
   
   if linkCount == 3 
@@ -73,7 +74,6 @@ function qLiftoff = computeqLiftoffFinalJoint(heuristic, hipAttachmentOffset, li
         q(4,1) = -q(3,1); % foot parallel to thigh requires qAFE = -qKFE 
      end
   end  
-%  fprintf('Inverse kinematics terminated after %d iterations.\n',it)
  
  % Now we have the joint angles to get the final joint in the desired
  % position. We just need to rotate this joint until the end effector is in
