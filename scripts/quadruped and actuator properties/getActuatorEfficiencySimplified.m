@@ -2,9 +2,11 @@ function [efficiency, efficiencyMapPlot] = getActuatorEfficiencySimplified(actua
     
     % get the properties of the selected actuator
     [torqueMax, qdotMax, mechPowerMax, ~, gearRatio] = getActuatorProperties(actuatorName{1});
-
     efficiencyMax = 0.95; % efficiency map scaled such that this is the peak value
     efficiencyMin = 0.1; % efficiency values below efficiencyMin are set equal to efficiencyMin
+
+    efficiencyLossGearing = 0.05;
+    efficiencyMax = efficiencyMax - efficiencyLossGearing;
     stepSize = 1;
     
     %% Convert from actuator level to motor level by transmission
@@ -73,8 +75,6 @@ function [efficiency, efficiencyMapPlot] = getActuatorEfficiencySimplified(actua
     k23 = 0.1;
     k33 = 0.1;
     
-    % power loss terms
-    % P_loss  = k0*P_loss00 + k1*P_lossElec + k2*P_lossIron + k3*P_loss3 + k4*P_loss4;
     P_loss = k00 * P_loss00 + ...
              k10 * P_loss10 + ...
              k20 * P_loss20 + ...

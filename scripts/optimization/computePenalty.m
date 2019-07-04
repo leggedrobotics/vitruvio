@@ -2,7 +2,7 @@
 % lengths back to m to run the simulation and obtain results with base
 % units.
 
-function penalty = computePenalty(actuatorProperties, imposeJointLimits, heuristic, legDesignParameters, actuateJointsDirectly, linkCount, optimizationProperties, quadruped, selectFrontHind, taskSelection, dt, configSelection, EEselection, meanCyclicMotionHipEE, hipParalleltoBody, Leg, meanTouchdownIndex, actuatorEfficiency, actuatorSelection)
+function penalty = computePenalty(actuatorProperties, imposeJointLimits, heuristic, legDesignParameters, actuateJointsDirectly, linkCount, optimizationProperties, quadruped, selectFrontHind, taskSelection, dt, configSelection, EEselection, meanCyclicMotionHipEE, hipParalleltoBody, Leg, actuatorEfficiency, actuatorSelection, dataExtraction)
 jointNames = ['HAA'; 'HFE'; 'KFE'; 'DFE'; 'AFE'];
 
 kTorsionalSpring = heuristic.torqueAngle.kTorsionalSpring;
@@ -49,7 +49,7 @@ end
 %% Build robot model with joint angles from inverse kinematics tempLeg
 numberOfLoopRepetitions = 1;
 viewVisualization = 0;
-tempLeg.(EEselection).rigidBodyModel = buildRobotRigidBodyModel(actuatorProperties, actuateJointsDirectly, hipAttachmentOffset, linkCount, quadruped, tempLeg, meanCyclicMotionHipEE, EEselection, numberOfLoopRepetitions, viewVisualization, hipParalleltoBody);
+tempLeg.(EEselection).rigidBodyModel = buildRobotRigidBodyModel(actuatorProperties, actuateJointsDirectly, hipAttachmentOffset, linkCount, quadruped, tempLeg, meanCyclicMotionHipEE, EEselection, numberOfLoopRepetitions, viewVisualization, hipParalleltoBody, dataExtraction);
 
 %% Get joint velocities and accelerations with finite differences
 [tempLeg.(EEselection).qdot, tempLeg.(EEselection).qdotdot] = getJointVelocitiesUsingFiniteDifference(EEselection, Leg);
@@ -281,7 +281,6 @@ lowestJoint =  min([min(tempLeg.(EEselection).r.HAA(:,3)), ...
                     min(tempLeg.(EEselection).r.AFE(:,3)),  ...
                     min(tempLeg.(EEselection).r.DFE(:,3))]);
                 
-% if non zero, this must be the largest penalty as it is an infeasible solution
 if (lowestJoint < min(min(tempLeg.(EEselection).r.EE(:,3))))
     jointBelowEEPenalty = 10;
 else

@@ -38,13 +38,21 @@ ylimANYmalpower  = [-35 35];
 ylimANYmalMechEnergy = [0 10];
 ylimANYmalElecEnergy = [0 10];
 
-xlimit.time   = xlimANYmal;
-ylimit.q      = ylimANYmalq;
-ylimit.qdot   = ylimANYmalqdot;
-ylimit.torque   = ylimANYmaltorque;
-ylimit.power  = ylimANYmalpower;
-ylimit.mechEnergy = ylimANYmalMechEnergy;
-ylimit.elecEnergy = ylimANYmalElecEnergy;
+xlimdefaultHopper       = [0, 9];
+ylimdefaultHopperq      = [-60 60];
+ylimdefaultHopperqdot   = [-15 15];
+ylimdefaultHoppertorque = [-250 250];
+ylimdefaultHopperpower  = [-1000 1000];
+ylimdefaultHopperMechEnergy = [0 2000];
+ylimdefaultHopperElecEnergy = [0 2000];
+
+xlimit.time   = xlimdefaultHopper;
+ylimit.q      = ylimdefaultHopperq;
+ylimit.qdot   = ylimdefaultHopperqdot;
+ylimit.torque   = ylimdefaultHoppertorque;
+ylimit.power  = ylimdefaultHopperpower;
+ylimit.mechEnergy = ylimdefaultHopperMechEnergy;
+ylimit.elecEnergy = ylimdefaultHopperElecEnergy;
 
 lineColour = 'r';
 faceColour = 'r';

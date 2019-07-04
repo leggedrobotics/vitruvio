@@ -1,5 +1,5 @@
 function [removalRatioStart, removalRatioEnd] = getSuggestedRemovalRatios(taskSelection)
-% GETSUGGESTEDREMOVALRATIOS  Returns hardcoded ratios to crop data range.
+% GETSUGGESTEDREMOVALRATIOS  Returns hardcoded ratios to crop data range at the start and end of the motion. The values can range from 0 to 1 but start and end values should not overlap. 
 %   [removalRatioStart, removalRatioEnd] = GETSUGGESTEDREMOVALRATIOS(taskSelection) returns removal ratios for selected task.
 
 suggestedRemovalRatioStart.universalStairs = 0.1;
@@ -35,15 +35,14 @@ suggestedRemovalRatioEnd.ANYmalTrot = 0.5;
 suggestedRemovalRatioStart.ANYmalSlowTrot = 0.2;
 suggestedRemovalRatioEnd.ANYmalSlowTrot = 0.2;
 
-suggestedRemovalRatioStart.ANYmalSlowTrotGoodMotionBadForce = 0.2;
-suggestedRemovalRatioEnd.ANYmalSlowTrotGoodMotionBadForce = 0.2;
+suggestedRemovalRatioStart.ANYmalSlowTrotGoodMotionBadForce = 0;
+suggestedRemovalRatioEnd.ANYmalSlowTrotGoodMotionBadForce = 0;
 
-suggestedRemovalRatioStart.ANYmalSlowTrotOriginal = 0.2;
-suggestedRemovalRatioEnd.ANYmalSlowTrotOriginal = 0.2;
+suggestedRemovalRatioStart.ANYmalSlowTrotOriginal = 0;
+suggestedRemovalRatioEnd.ANYmalSlowTrotOriginal = 0;
 
-suggestedRemovalRatioStart.defaultHopperHop = 0.1;
-suggestedRemovalRatioEnd.defaultHopperHop = 0.1;
-
+suggestedRemovalRatioStart.defaultHopperHop = 0;
+suggestedRemovalRatioEnd.defaultHopperHop = 0;
 
 removalRatioStart = suggestedRemovalRatioStart.(taskSelection);
 removalRatioEnd = suggestedRemovalRatioEnd.(taskSelection);

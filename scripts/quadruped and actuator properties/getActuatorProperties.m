@@ -13,17 +13,17 @@ function [maxTorqueLimit, maxqdotLimit, maxPowerLimit, actuatorMass, gearRatio] 
     if isequal(actuatorName,'Neo')
         maxTorqueLimit = 230;  % [Nm]
         maxqdotLimit   = 17;   % [rad/s]
-        maxPowerLimit  = 2000; % [W] These values are conservative estimates on mechanical power
+        maxPowerLimit  = 4000; % [W] 
         actuatorMass   = 4.5;  % [kg]
-        gearRatio      = 9.55;
+        gearRatio      = 6.6;
     end
     
-    if isequal(actuatorName,'Capler')
+    if isequal(actuatorName,'RoboDrive') % RoboDrive 115x25
         maxTorqueLimit = 70;  % [Nm]     
         maxqdotLimit   = 40; % [rad/s] 
         maxPowerLimit  = 4200; % [W] 
         actuatorMass   = 3; % [kg]
-        gearRatio      = 50;    % Get this number from Hendrik     
+        gearRatio      = 4.5;    % Get this number from Hendrik     
     end
     
     if isequal(actuatorName,'other')

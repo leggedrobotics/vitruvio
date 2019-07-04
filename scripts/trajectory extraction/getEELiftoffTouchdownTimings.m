@@ -1,6 +1,11 @@
 %% getEELiftoffTouchdownTimings
 function [tLiftoff, tTouchdown, minStepCount] = getEELiftoffTouchdownTimings(Leg, EE)
 t = Leg.time;
+
+%% intialize liftoff and touchdown timings with zero. This prevents errors in the case where there is no liftoff or touchdown (pushup motion)
+tLiftoffLF = 0; tLiftoffLH = 0; tLiftoffRF = 0; tLiftoffRH = 0;
+tTouchdownLF = 0; tTouchdownLH = 0; tTouchdownRF = 0; tTouchdownRH = 0;
+
 %% LF
 j = 1;
 k = 1;

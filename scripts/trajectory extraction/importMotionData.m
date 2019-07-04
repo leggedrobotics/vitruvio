@@ -126,9 +126,8 @@ save('defaultHopper.mat', '-struct','motion')
 % % 
 % m = 29.52;   % weight of the robot
 % g = 9.81; % gravity acceleration
-% startPoint = 150;
-% endPoint = 350;
-% F_ext = motion.EE.LF.force(startPoint:endPoint,3) + motion.EE.RF.force(startPoint:endPoint,3) + motion.EE.LH.force(startPoint:endPoint,3) + motion.EE.RH.force(startPoint:endPoint,3);
+
+% F_ext = motion.EE.LF.force(:,3) + motion.EE.RF.force(:,3) + motion.EE.LH.force(:,3) + motion.EE.RH.force(:,3);
 % base_zdd_dynamics = 1/m*F_ext - g;
 % % calculate Root mean square error
 % base_zdd_error = base_zdd_dynamics - base_zdd(startPoint:endPoint);

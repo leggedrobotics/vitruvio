@@ -1,6 +1,7 @@
 %% Read in data for quadruped geometry
-function robot = buildRobotRigidBodyModel(actuatorProperties, actuateJointsDirectly, hipAttachmentOffset, linkCount, quadruped, Leg, meanCyclicMotionHipEE, EEselection, numberOfLoopRepetitions, viewVisualization, hipParalleltoBody) 
+function robot = buildRobotRigidBodyModel(actuatorProperties, actuateJointsDirectly, hipAttachmentOffset, linkCount, quadruped, Leg, meanCyclicMotionHipEE, EEselection, numberOfLoopRepetitions, viewVisualization, hipParalleltoBody, dataExtraction) 
 jointNames = ['HAA'; 'HFE'; 'KFE'; 'AFE'; 'DFE'];
+
 %% get quadruped properties for selected end effector  
 if strcmp(EEselection, 'LF') || strcmp(EEselection, 'RF')
     selectFrontHind = 1;
@@ -302,8 +303,18 @@ end
 
 robot.Gravity = [0 0 -9.8];
             
-%% Display robot 
-for i = 1:length(Leg.(EEselection).q)
+%% Save the joint positions into an array containing the robot configuration 
+% If we average the steps to create a cyclical motion, we plot the robot up
+% until the last point - 2. This is because we added two points to the end
+% of the cycle for the finite dynamics. If the motion is NOT averaged into
+% cycles, we plot the full length of q.
+if dataExtraction.averageStepsForCyclicalMotion
+    finalPlottingIndex = length(Leg.(EEselection).q) - 2;
+else
+    finalPlottingIndex = length(Leg.(EEselection).q);
+end
+
+for i = 1:finalPlottingIndex
     if (linkCount == 2)
         config(i,:) = [-meanCyclicMotionHipEE.body.eulerAngles.(EEselection)(i,2), ... %body rotation about inertial y
                        Leg.(EEselection).q(i,1), ... % HAA
@@ -324,6 +335,7 @@ for i = 1:length(Leg.(EEselection).q)
                        Leg.(EEselection).q(i,5)];    % DFE
     end
 end
+%% Display robot visualization
 
 % define patch shift which allows for body visualization
 bodyLength = 2*quadruped.xNom(1);
@@ -340,16 +352,16 @@ end
 
 groundCoordinatesX = [0.2 0.2 -0.2 -0.2];
 groundCoordinatesY = [0.2 -0.2 -0.2 0.2];
-groundCoordinatesZ = -Leg.base.position(:,3)*[1 1 1 1] - quadruped.nomHipPos(1,3);
+groundCoordinatesZ = -Leg.base.position.(EEselection)(:,3)*[1 1 1 1] - quadruped.nomHipPos(1,3);
     
 if viewVisualization
     figure(1);   
     for j = 1: numberOfLoopRepetitions
-        for i = 1:length(Leg.(EEselection).q)
+        for i = 1:finalPlottingIndex
             set(gcf, 'Position', get(0, 'Screensize'));
             xlim([-0.75 0.75]);
             ylim([-0.5 0.5]);
-            zlim([-1.6 0.6]);
+            zlim([-1.4 0.4]);
             figure(1);
             show(robot,config(i,:));
 

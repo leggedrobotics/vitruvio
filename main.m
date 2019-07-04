@@ -25,17 +25,17 @@ heuristic.torqueAngle.kTorsionalSpring = 50; % spring constant for torsional spr
 heuristic.torqueAngle.apply = true;
 
 %% Toggle trajectory plots and initial design viz
-viewVisualization            = true; % initial leg design tracking trajectory plan
+viewVisualization            = false; % initial leg design tracking trajectory plan
 numberOfLoopRepetitions      = 1;     % number of steps visualized for leg motion
 viewPlots.trajectoryPlots    = false;
 viewPlots.rangeOfMotionPlots = false;
-viewPlots.efficiencyMap      = false;
+viewPlots.efficiencyMap      = true;
 
 %% Toggle optimization for each leg
-runOptimization = false;
+runOptimization = true;
 viewOptimizedLegPlot = true; % master level switch to disable all the optimization plots
-viewOptimizedResults.jointDataPlot = true;
-viewOptimizedResults.metaParameterPlot = true;
+viewOptimizedResults.jointDataPlot = false;
+viewOptimizedResults.metaParameterPlot = false;
 viewOptimizedResults.efficiencyMap = false;
 
 optimizeLF = true; 
@@ -87,7 +87,7 @@ end
 
 %% Toggle robots and tasks to be simulated and optimized
 universalTrot   = false;
-universalStairs = false;
+universalStairs = true;
 speedyStairs    = false;
 speedyGallop    = false;
 massivoWalk     = false;
@@ -99,23 +99,23 @@ ANYmalTrot      = false;
 ANYmalSlowTrot  = false; % stance torque a high
 ANYmalSlowTrotGoodMotionBadForce = false;
 ANYmalSlowTrotOriginal = false; % stance torque good but motion not the same as in measured
-defaultHopperHop = true;
+defaultHopperHop = false;
 
 numberOfRepetitions = 0; % number of times that leg is reoptimized
 
 %% Select actuators for each joint
-actuatorSelection.HAA = 'Capler'; % {ANYdrive, Neo, Capler, other}
-actuatorSelection.HFE = 'Capler'; 
-actuatorSelection.KFE = 'Capler';
-actuatorSelection.AFE = 'Capler'; 
-actuatorSelection.DFE = 'Capler'; 
+actuatorSelection.HAA = 'Neo'; % {ANYdrive, Neo, Capler, other}
+actuatorSelection.HFE = 'ANYdrive'; 
+actuatorSelection.KFE = 'RoboDrive';
+actuatorSelection.AFE = 'ANYdrive'; 
+actuatorSelection.DFE = 'ANYdrive'; 
 
 % Impose limits on maximum joint torque, speed and power
 % the values are defined in getActuatorLimits. There is a penalty term fro
 % violations of these limits.
 imposeJointLimits.maxTorque = false;
-imposeJointLimits.maxqdot   = true;
-imposeJointLimits.maxPower  = true;
+imposeJointLimits.maxqdot   = false;
+imposeJointLimits.maxPower  = false;
 
 %% run the simulation
 simulateSelectedTasks;
