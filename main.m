@@ -10,10 +10,10 @@ dataExtraction.averageStepsForCyclicalMotion = true;
 dataExtraction.allowableDeviation = 0.03; % [m] Deviation between neighbouring points. If the deviation is larger, additional points are interpolated.
 
 %% Toggle leg properties: leg count, link count, configuration, direct/remote joint actuation, spider/serial leg
-legCount = 4;
-linkCount = 2; % number of links from 2 to 4. [thigh, shank, foot, phalanges]. Hip link connects HAA and HFE but is not included in link count.
-configSelection = 'X'; % X or M
-actuateJointsDirectly = false; % If true, actuators are positioned in each joint which contributes to leg mass and inertia. If false, there is no actuator mass at joints.
+legCount = 4;                   % Accepts values from 1 to 4.
+linkCount = 2;                  % Accepts values from 2 to 4. [thigh, shank, foot, phalanges]. Hip link connects HAA and HFE but is not included in link count.
+configSelection = 'X';          % X or M
+actuateJointsDirectly = true;   % If true, actuators are positioned in each joint which contributes to leg mass and inertia. If false, there is no actuator mass at joints.
 
 % Specify hip orientation
 % if true: Serial configuration. Offset from HAA to HFE parallel to the body as with ANYmal 
@@ -26,12 +26,12 @@ hipParalleltoBody = true;
 % foot are maintained parallel.
 heuristic.torqueAngle.apply = true; % Choose whether to apply the heuristic.
 heuristic.torqueAngle.thetaLiftoff_des = pi/2; % Specify desired angle between final link and horizonal at liftoff. If the desired angle is impossible for the given link lengths, the closest feasible angle is obtained.
-heuristic.torqueAngle.kTorsionalSpring = 50; % Spring constant for torsional spring at final joint [Nm/rad]
+heuristic.torqueAngle.kTorsionalSpring = 20; % Spring constant for torsional spring at final joint [Nm/rad]
 
 %% Toggle trajectory plots and initial design viz
 viewVisualization            = false; % initial leg design tracking trajectory plan
 numberOfStepsVisualized      = 1;     % number of steps visualized for leg motion
-viewPlots.trajectoryPlots    = false;
+viewPlots.motionData         = false;
 viewPlots.rangeOfMotionPlots = false;
 viewPlots.efficiencyMap      = false;
 
@@ -45,19 +45,19 @@ optimizeLeg.RH = false;
 
 %% Set optimization properties
 % toggle visualization 
-optimizationProperties.viz.viewVisualization = false;
+optimizationProperties.viz.viewVisualization = true;
 optimizationProperties.viz.numberOfCyclesVisualized = 1;
 optimizationProperties.viz.displayBestCurrentLinkLengths = true; % display chart of current best leg design parameters while running ga
 
 % Set number of generations and population size
-optimizationProperties.options.maxGenerations = 1;
+optimizationProperties.options.maxGenerations = 4;
 optimizationProperties.options.populationSize = 4;
 
 % Impose limits on maximum joint torque, speed and power
 % the values are defined in getActuatorProperties. A penalty term is incurred
 % for violations of these limits.
-imposeJointLimits.maxTorque = false;
-imposeJointLimits.maxqdot   = false;
+imposeJointLimits.maxTorque = true;
+imposeJointLimits.maxqdot   = true;
 imposeJointLimits.maxPower  = false;
 
 % Set weights for fitness function terms
@@ -93,12 +93,12 @@ if linkCount == 4
 end
 
 % Select the plots which are to be created
-viewOptimizedLegPlot                   = true; % master level switch to disable all the optimization plots
-viewOptimizedResults.jointDataPlot     = false;
-viewOptimizedResults.metaParameterPlot = false;
-viewOptimizedResults.efficiencyMap     = false;
+viewPlots.optimization.optimizedLegPlot  = true; % master level switch to disable all the optimization plots
+viewPlots.optimization.jointDataPlot     = true;
+viewPlots.optimization.metaParameterPlot = true;
+viewPlots.optimization.efficiencyMap     = false;
 
-%% Toggle robots and tasks to be simulated and optimized
+%% Select a .mat trajectory data file to be simulated and optimized
 % Select from the below options or import a new data .mat set using the
 % importMotionData script
 universalTrot   = true;
@@ -111,9 +111,7 @@ centaurWalk     = false;
 centaurStairs   = false;
 miniPronk       = false;
 ANYmalTrot      = false;
-ANYmalSlowTrot  = false; 
-ANYmalSlowTrotGoodMotionBadForce = false;
-ANYmalSlowTrotOriginal = false; 
+ANYmalSlowTrotAccurateMotion = false;
 defaultHopperHop = false;
 
 numberOfRepetitions = 0; % Number of times that leg is reoptimized. This allows for an easy check if the same optimal solution is found each time the optimization is run.
@@ -128,11 +126,8 @@ actuatorSelection.AFE = 'ANYdrive';
 actuatorSelection.DFE = 'ANYdrive'; 
 
 %% run the simulation
+if ~runOptimization % if optimization turned off, set values to zero.
+    optimizeLeg.LF = 0; optimizeLeg.RF = 0; optimizeLeg.LH = 0; optimizeLeg.RH = 0;
+end
 simulateSelectedTasks;
-
-%% additional plotting available via:
-% the plotJointDataForAllLegs script has the following form:
-% plotJointDataForAllLegs(classSelection, 'taskSelection', classSelection2, 'taskSelection2' plotOptimizedLeg, 'plotType') 
-% it can be used as follows. plotType = {'linePlot, scatterPlot'}
-% plotJointDataForAllLegs(ANYmal, 'slowTrot', [], [], plotOptimizedLeg, 'scatterPlot');
 fprintf('Done.\n');

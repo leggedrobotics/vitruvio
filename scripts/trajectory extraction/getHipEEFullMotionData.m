@@ -1,7 +1,7 @@
 % Takes the relative motion data and force data as input and returns the
 % data after cropping by the start and end removal ratios. The data is not
 % averaged or made cyclical.
-function [meanCyclicMotionHipEE, meanCyclicC_IBody, basePosition] = getHipEEFullMotionData(relativeMotionHipEE, EE, removalRatioStart, removalRatioEnd, C_IBody, EEnames, base, legCount)   
+function [meanCyclicMotionHipEE, meanCyclicC_IBody, basePosition] = getHipEEFullMotionData(relativeMotionHipEE, removalRatioStart, removalRatioEnd, C_IBody, EEnames, trajectoryData, legCount)   
     for i = 1:legCount
         EEselection = EEnames(i,:);
 
@@ -14,10 +14,10 @@ function [meanCyclicMotionHipEE, meanCyclicC_IBody, basePosition] = getHipEEFull
       
         meanCyclicMotionHipEE.(EEselection).position = relativeMotionHipEE.(EEselection).position(startIndex:endIndex,:);
         meanCyclicMotionHipEE.(EEselection).velocity = relativeMotionHipEE.(EEselection).velocity(startIndex:endIndex-1,:);
-        meanCyclicMotionHipEE.(EEselection).force = EE.(EEselection).force(startIndex:endIndex,:);
+        meanCyclicMotionHipEE.(EEselection).force    = trajectoryData.(EEselection).force(startIndex:endIndex,:);
        
         meanEuler = rotm2eul(C_IBody(:,:,startIndex:endIndex), 'ZYX');
         meanCyclicMotionHipEE.body.eulerAngles.(EEselection) = meanEuler;
-        basePosition.(EEselection) = base.position(startIndex:endIndex,:);  % here we save the same data for each EEselection to generalize visualization
+        basePosition.(EEselection) = trajectoryData.base.position(startIndex:endIndex,:);  % here we save the same data for each EEselection to generalize visualization
     end     
 end

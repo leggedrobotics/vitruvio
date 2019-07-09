@@ -19,7 +19,9 @@ function [J_P, C_0EE, r_H_01, r_H_02, r_H_03, r_H_04, r_H_05, r_H_0EE]  = jointT
   l_phalanges = quadruped.phalanges(selectFrontHind).length;
 
   
-  % rotation about y of inertial frame to create hip attachment frame
+  % Rotation about y in inertial frame to align hip attachment with body
+  % rotation about y. The rotation about the body x and z are neglected but
+  % assumed small for forward motion on even terrain.
   T_0H = [cos(rotBodyY), 0, sin(rotBodyY), 0;
          0,              1, 0,             0;
         -sin(rotBodyY),  0, cos(rotBodyY), 0;
@@ -33,19 +35,19 @@ function [J_P, C_0EE, r_H_01, r_H_02, r_H_03, r_H_04, r_H_05, r_H_0EE]  = jointT
           0, 0,          0,          1];
 
   % transformation from HFE to HAA
-  % rotation about y, translation along hip link
-% 
-if hipParalleltoBody == true
-    T_12 = [cos(q(2)), 0,  sin(q(2)),  hipOffsetDirection*l_hip;
-            0,         1,  0,          0;
-           -sin(q(2)), 0,  cos(q(2)),  0;
-            0,         0,  0,          1];  
-else
-    T_12 = [cos(q(2)), 0,  sin(q(2)),  0;
-            0,         1,  0,          0;
-           -sin(q(2)), 0,  cos(q(2)),  l_hip;
-            0,         0,  0,          1];   
-end   
+  % rotation about y, translation along hip link 
+   if hipParalleltoBody == true
+       T_12 = [cos(q(2)), 0,  sin(q(2)),  hipOffsetDirection*l_hip;
+               0,         1,  0,          0;
+              -sin(q(2)), 0,  cos(q(2)),  0;
+                0,         0,  0,          1];  
+   else
+       T_12 = [cos(q(2)), 0,  sin(q(2)),  0;
+               0,         1,  0,          0;
+              -sin(q(2)), 0,  cos(q(2)),  l_hip;
+               0,         0,  0,          1];   
+   end   
+    
   % transformation from HFE to KFE
   % rotation about y, translation along z
   T_23 = [cos(q(3)), 0,  sin(q(3)),  l_thigh;
@@ -60,34 +62,34 @@ end
             0,    0,   1,   0;
             0,    0,   0,   1];
 
-% if there is a third link, overwrite T_34 and compute T_45        
-        if (linkCount == 3) | (linkCount == 4)
-          % ankle joint q(4)
-          T_34 = [cos(q(4)), 0,  sin(q(4)),  l_shank;
-                  0,         1,  0,          0;
-                 -sin(q(4)), 0,  cos(q(4)),  0;
-                  0,         0,  0,          1]; 
+    % if there is a third or fourth link, overwrite T_34 and compute T_45        
+    if (linkCount == 3) || (linkCount == 4)
+     
+      T_34 = [cos(q(4)), 0,  sin(q(4)),  l_shank;
+              0,         1,  0,          0;
+             -sin(q(4)), 0,  cos(q(4)),  0;
+              0,         0,  0,          1]; 
 
-          T_45 = [1, 0,  0,  l_foot;
-                  0, 1,  0,  0;
-                  0, 0,  1,  0;
-                  0, 0,  0,  1];
-        end
+      T_45 = [1, 0,  0,  l_foot;
+              0, 1,  0,  0;
+              0, 0,  1,  0;
+              0, 0,  0,  1];
+    end
         
-% if there is a fourth link, overwrite T_45 and compute T_56        
-        if linkCount == 4
-          % distal joint q(5)
-          T_45 = [cos(q(5)), 0,  sin(q(5)),  l_foot;
-                  0,         1,  0,          0;
-                 -sin(q(5)), 0,  cos(q(5)),  0;
-                  0,         0,  0,          1]; 
+    % if there is a fourth link, overwrite T_45 and compute T_56        
+    if linkCount == 4
 
-           T_56 = [1, 0,  0,  l_phalanges;
-                   0, 1,  0,  0;
-                   0, 0,  1,  0;
-                   0, 0,  0,  1]; 
-        end
-       
+       T_45 = [cos(q(5)), 0,  sin(q(5)),  l_foot;
+               0,         1,  0,          0;
+              -sin(q(5)), 0,  cos(q(5)),  0;
+               0,         0,  0,          1]; 
+
+       T_56 = [1, 0,  0,  l_phalanges;
+               0, 1,  0,  0;
+               0, 0,  1,  0;
+               0, 0,  0,  1]; 
+    end
+
   % Compute the homogeneous transformation matrices from frame k to the
   % inertial frame I
   T_01 = T_0H*T_H1;
@@ -95,7 +97,7 @@ end
   T_03 = T_02*T_23;
   T_04 = T_03*T_34; %EE for 2 link leg
   
-  if (linkCount == 3) | (linkCount == 4)
+  if (linkCount == 3) || (linkCount == 4)
       T_05 = T_04*T_45;   %EE for 3 link leg
   end
   
@@ -110,9 +112,11 @@ end
   R_02 = T_02(1:3,1:3);
   R_03 = T_03(1:3,1:3);
   R_04 = T_04(1:3,1:3);
+  
   if (linkCount == 3) || (linkCount == 4)
       R_05 = T_05(1:3,1:3);
   end
+  
   if (linkCount == 4)
       R_06 = T_06(1:3,1:3);
   end
@@ -124,7 +128,7 @@ end
   r_H_02 = T_02(1:3,4); % HFE
   r_H_03 = T_03(1:3,4); % KFE
   r_H_04 = T_04(1:3,4); % EE or AFE
-  r_H_05 = [0; 0; 0]; % zeros if these joints do not exist
+  r_H_05 = [0; 0; 0];   % zeros if these joints do not exist
   r_H_06 = [0; 0; 0]; 
 
   if (linkCount == 3) || (linkCount == 4)
@@ -141,10 +145,12 @@ end
   n_2 = [0 1 0]';
   n_3 = [0 1 0]';
   n_4 = [0 0 0]'; % translation from knee to EE
+  
   if (linkCount == 3)
       n_4 = [0 1 0]'; % rotation about AFE
       n_5 = [0 0 0]'; % translation from ankle to EE
   end
+  
   if (linkCount == 4)
       n_4 = [0 1 0]';
       n_5 = [0 1 0]'; % rotation about distal joint
@@ -156,16 +162,18 @@ end
       r_H_0EE = r_H_04; 
       C_0EE = T_04(1:3,1:3);
   end
+  
   if (linkCount == 3)
       r_H_0EE = r_H_05; 
       C_0EE = T_05(1:3,1:3);
   end
+  
   if (linkCount == 4)
       r_H_0EE = r_H_06; 
       C_0EE = T_06(1:3,1:3);
   end
   
-  % Compute the translational jacobian.
+  % Compute the position jacobian.
   if (linkCount == 2)
       J_P = [   cross(R_01*n_1, r_H_0EE - r_H_01) ...
                 cross(R_02*n_2, r_H_0EE - r_H_02) ...

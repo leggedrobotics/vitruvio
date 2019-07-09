@@ -2,36 +2,43 @@ function [efficiency, efficiencyMapPlot] = getActuatorEfficiencySimplified(actua
     
     % get the properties of the selected actuator
     [torqueMax, qdotMax, mechPowerMax, ~, gearRatio] = getActuatorProperties(actuatorName{1});
-    efficiencyMax = 0.95; % efficiency map scaled such that this is the peak value
-    efficiencyMin = 0.1; % efficiency values below efficiencyMin are set equal to efficiencyMin
+    efficiencyMaxMotor = 0.95; % efficiency map scaled such that this is the peak value
+    efficiencyMin      = 0.1; % efficiency values below efficiencyMin are set equal to efficiencyMin
 
     efficiencyLossGearing = 0.05;
-    efficiencyMax = efficiencyMax - efficiencyLossGearing;
-    stepSize = 1;
-    
-    %% Convert from actuator level to motor level by transmission
-    torqueMax = torqueMax/gearRatio;
-    qdotMax = qdotMax*gearRatio;
-    
+    efficiencyMax = efficiencyMaxMotor - efficiencyLossGearing;
+    stepSize = 0.01;
+
     %% compute torque envelope 
     torqueEnvelope = zeros(length(0:stepSize:qdotMax),1);
     qdotIntercept = mechPowerMax/torqueMax; % [kr/min]
+
     i = 1;
-    % constant torque region
-    for qdotEnvelope = 0:stepSize:qdotIntercept
-        torqueEnvelope(i,1) = torqueMax;
-        i = i+1;
+    if qdotIntercept <= qdotMax
+        % constant torque region
+        for qdotEnvelope = 0:stepSize:qdotIntercept
+            torqueEnvelope(i,1) = torqueMax;
+            i = i+1;
+        end
+        % constant power region
+        for qdotEnvelope = qdotIntercept+stepSize:stepSize:qdotMax
+            torqueEnvelope(i,1) = mechPowerMax/qdotEnvelope; % [Nm]
+            i = i+1;
+        end
+        qdotEnvelope = [0:stepSize:qdotMax]';
+        meshDimension = length(qdotEnvelope);
+    else
+        % constant torque region
+        for qdotEnvelope = 0:stepSize:qdotMax
+            torqueEnvelope(i,1) = torqueMax;
+            i = i+1;
+        end
+        qdotEnvelope = [0:stepSize:qdotMax]';
+        meshDimension = length(qdotEnvelope);
     end
-    % constant power region
-    for qdotEnvelope = qdotIntercept+stepSize:stepSize:qdotMax
-        torqueEnvelope(i,1) = mechPowerMax/qdotEnvelope; % [Nm]
-        i = i+1;
-    end
-    qdotEnvelope = [0:stepSize:qdotMax]';
-    meshDimension = length(qdotEnvelope);
 
     %% approximate the efficiency map with loss function
-    qdot = linspace(0, qdotMax, meshDimension); % [kr/min]
+    qdot = (linspace(0, qdotMax, meshDimension))'; % [kr/min]
     torque = (linspace(0, torqueMax, meshDimension))'; % [Nm]
 
     % loss terms of form k_mn * torque^m * qdot^n
@@ -92,6 +99,7 @@ function [efficiency, efficiencyMapPlot] = getActuatorEfficiencySimplified(actua
              k23 * P_loss23 + ...
              k33 * P_loss33;    
          
+    % normalized power terms efficiency = P/(P+P_loss);     
     efficiency = (qdot/qdotMax).*(torque/torqueMax) ./ (((qdot/qdotMax).*(torque/torqueMax) + P_loss));
 
     % scale efficiency to the desired maximum efficiency value
@@ -117,4 +125,5 @@ function [efficiency, efficiencyMapPlot] = getActuatorEfficiencySimplified(actua
     efficiencyMapPlot.qdotEnvelope = qdotEnvelope;
     efficiencyMapPlot.torqueEnvelope = torqueEnvelope;
     efficiencyMapPlot.efficiencyMapCropped = efficiencyMap;
+    efficiencyMapPlot.qdotIntercept = qdotIntercept;
 end

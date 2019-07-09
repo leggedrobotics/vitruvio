@@ -28,26 +28,12 @@ l_shank = quadruped.shank(selectFrontHind).length;
 l_foot  = quadruped.foot(selectFrontHind).length;
 l_phalanges = quadruped.phalanges(selectFrontHind).length;
 
-% hip attachment points
-xNom.LF = quadruped.xNom(1);
-yNom.LF = quadruped.yNom(1);
-
-xNom.LH = -quadruped.xNom(2);
-yNom.LH = quadruped.yNom(2);
-
-xNom.RF = quadruped.xNom(1);
-yNom.RF = -quadruped.yNom(1);
-
-xNom.RH = -quadruped.xNom(2);
-yNom.RH = -quadruped.yNom(2);
-
-zNom = quadruped.zNom; % equal for each hip attachment point
-
 %% Build quadruped rigid body model 
-% rotations to align z axis with rotational axis of joint and translations
-% along length of link
+% The transformations describe rotations and translations. These align the 
+% z axis of the coordinate system with the desired rotational axis of the 
+% joint and translations along length of link.
 
-% rotation about x by -pi/2 to align z with inertial y. Rotation about this
+% Rotation about x by -pi/2 to align z with inertial y. Rotation about this
 % z gives the angle of attack of the base 
 T_body =             [1, 0, 0, hipAttachmentOffsetX;
                       0, 0, 1,  0;
@@ -86,7 +72,7 @@ T_KFE =           [1, 0, 0, l_shank;
                    0, 0, 1, 0;
                    0, 0, 0, 1];
 
-if (linkCount == 3) | (linkCount ==4)
+if (linkCount == 3) || (linkCount ==4)
     % AFE to EE (or AFE to DFE for higher link counts) translation
     T_AFE =           [1, 0, 0, l_foot;
                        0, 1, 0, 0;
@@ -350,12 +336,13 @@ elseif strcmp(EEselection, 'RH')
     patchShift = [bodyLength bodyWidth 0];
 end
 
-groundCoordinatesX = [0.2 0.2 -0.2 -0.2];
-groundCoordinatesY = [0.2 -0.2 -0.2 0.2];
-groundCoordinatesZ = -Leg.base.position.(EEselection)(:,3)*[1 1 1 1] - quadruped.nomHipPos(1,3);
+groundCoordinatesX = [0.2 0.2 -0.2 -0.2] + Leg.(EEselection).r.EE(:,1); % ground centered at EE position
+groundCoordinatesY = [0.2 -0.2 -0.2 0.2] + Leg.(EEselection).r.EE(:,2);
+groundCoordinatesZ = -Leg.base.position.(EEselection)(:,3)*[1 1 1 1] - quadruped.nomHipPos.(EEselection)(3);
     
 if viewVisualization
-    figure(1);   
+    figure(1); 
+    set(gcf,'color','w')
     for j = 1: numberOfStepsVisualized
         for i = 1:finalPlottingIndex
             set(gcf, 'Position', get(0, 'Screensize'));
@@ -396,7 +383,7 @@ if viewVisualization
             patch('Vertices',vert,'Faces',fac,'FaceColor','w', 'FaceAlpha', 0.8)
             
             % plot surface for ground visualization on the same figure
-            patch(groundCoordinatesX, groundCoordinatesY, groundCoordinatesZ(i,:), 'k', 'FaceAlpha', 0.2)
+            patch(groundCoordinatesX(i,:), groundCoordinatesY(i,:), groundCoordinatesZ(i,:), 'k', 'FaceAlpha', 0.2)
             hold off          
         end
     end

@@ -1,43 +1,70 @@
-function reachablePositions = getRangeofMotion(quadruped, Leg)
+function reachablePositions = getRangeofMotion(robotClass, task)
+    EEnames   = robotClass.(task).basicProperties.EEnames;
+    legCount  = robotClass.(task).basicProperties.legCount;
+    linkCount = robotClass.(task).basicProperties.linkCount;
+    stepSize = 0.1;
+    %% Initialize using position of HFE at first time step.
+    for i = 1:legCount
+        EEselection = EEnames(i,:);
+        HFExPos.(EEselection) = robotClass.(task).(EEselection).r.HFE(1,1); % initial x position of HFE joint
+        HFEyPos.(EEselection) = robotClass.(task).(EEselection).r.HFE(1,2); % initial y position of HFE joint
+        HFEzPos.(EEselection) = robotClass.(task).(EEselection).r.HFE(1,3); % initial z position of HFE joint
+        
+        %% Read in leg link lengths
+        l_hip.(EEselection)       = robotClass.(task).(EEselection).linkLengths(1);
+        l_thigh.(EEselection)     = robotClass.(task).(EEselection).linkLengths(2);
+        l_shank.(EEselection)     = robotClass.(task).(EEselection).linkLengths(3);
+        if linkCount > 2
+            l_foot.(EEselection)  = robotClass.(task).(EEselection).linkLengths(4);
+        end
+        if linkCount > 3
+            l_phalanges.(EEselection) = robotClass.(task).(EEselection).linkLengths(5);
+        end
 
-% position of HFE.
-HFExPos(1) = Leg.LF.r.HFE(1,1); % x position front legs
-HFEzPos(1) = Leg.LF.r.HFE(1,3); % z position front legs
-HFExPos(2) = Leg.LH.r.HFE(1,1); % x position hind legs
-HFEzPos(2) = Leg.LH.r.HFE(1,3); % z position hind legs
+        %% Read in max and min joint angles from quadruped properties
+        q2_min = robotClass.(task).(EEselection).qLimits.min(2);
+        q2_max = robotClass.(task).(EEselection).qLimits.max(2);
+        q3_min = robotClass.(task).(EEselection).qLimits.min(3);
+        q3_max = robotClass.(task).(EEselection).qLimits.max(3);
 
-l_hip(1) = quadruped.hip(1).length;
-l_thigh(1) = quadruped.thigh(1).length; 
-l_shank(1) = quadruped.shank(1).length; 
+        q2 = q2_min:stepSize:q2_max; % all possible HFE
+        q3 = q3_min:stepSize:q3_max; % all possible KFE
 
-l_hip(2) = quadruped.hip(2).length;
-l_thigh(2) = quadruped.thigh(2).length; 
-l_shank(2) = quadruped.shank(2).length; 
+        if linkCount > 2
+            q4_min = robotClass.(task).(EEselection).qLimits.min(4);
+            q4_max = robotClass.(task).(EEselection).qLimits.max(4);
+            q4 = q4_min:stepSize:q4_max; % all possible AFE
+        end
 
-q1_min = quadruped.q1.minAngle;
-q1_max = quadruped.q1.maxAngle;
-q2_min = quadruped.q2.minAngle;
-q2_max = quadruped.q2.maxAngle;
-q3_min = quadruped.q3.minAngle;
-q3_max = quadruped.q3.maxAngle;
-q4_min = quadruped.q4.minAngle;
-q4_max = quadruped.q4.maxAngle;
+        if linkCount > 3
+            q5_min = robotClass.(task).(EEselection).qLimits.min(5);
+            q5_max = robotClass.(task).(EEselection).qLimits.max(5);
+            q5 = q5_min:stepSize:q5_max; % all possible DFE
+        end
 
-q1 = q1_min:0.1:q1_max; % all possible HAA
-q2 = q2_min:0.1:q2_max; % all possible HFE
-q3 = q3_min:0.1:q3_max; % all possible KFE
-q4 = q4_min:0.1:q4_max;
+        %% Create a grid of the joint angles
+        if linkCount == 2
+            [q2_, q3_] = ndgrid(q2, q3);
+        elseif linkCount == 3
+            [q2_, q3_, q4_] = ndgrid(q2, q3, q4);
+        else
+            [q2_, q3_, q4_, q5_] = ndgrid(q2, q3, q4, q5);
+        end
+        
+        %% Compute the possible EE positions for all joint angle combinations
+        % this neglects HAA angle
+        X.(EEselection) = HFExPos.(EEselection) + l_thigh.(EEselection) * sin(q2_) + l_shank.(EEselection) * sin(q2_ + q3_); 
+        Z.(EEselection) = HFEzPos.(EEselection) - l_thigh.(EEselection) * cos(q2_) - l_shank.(EEselection) * cos(q2_ + q3_);
 
-[THETA2,THETA3] = meshgrid(q2,q3); % generate a grid of theta1 and theta2 values
-
-X_front = HFExPos(1) + l_thigh(1) * sin(THETA2) + l_shank(1) * sin(THETA2 + THETA3); % compute x coordinates
-Z_front = HFEzPos(1) - l_thigh(1) * cos(THETA2) - l_shank(1) * cos(THETA2 + THETA3); % compute z coordinates
-X_hind =  HFExPos(2) + l_thigh(2) * sin(THETA2) + l_shank(2) * sin(THETA2 + THETA3); % compute x coordinates
-Z_hind =  HFEzPos(1) - l_thigh(2) * cos(THETA2) - l_shank(2) * cos(THETA2 + THETA3); % compute z coordinates
-
-% both front feet have same reachable space as do both hind feet
-reachablePositions.LF = [X_front(:) Z_front(:)];
-reachablePositions.LH = [X_hind(:) Z_hind(:)];
-
-reachablePositions.RF = reachablePositions.LF;
-reachablePositions.RH = reachablePositions.LH;
+        if linkCount > 2
+            X.(EEselection) = X.(EEselection) + l_foot.(EEselection) * sin(q2_ + q3_ + q4_);
+            Z.(EEselection) = Z.(EEselection) - l_foot.(EEselection) * cos(q2_ + q3_ + q4_);
+        end
+        if linkCount > 3
+            X.(EEselection) = X.(EEselection) + l_phalanges.(EEselection) * sin(q2_ + q3_ + q4_ + q5_);
+            Z.(EEselection) = Z.(EEselection) - l_phalanges.(EEselection) * cos(q2_ + q3_ + q4_ + q5_);
+        end
+        % save reachable positions for front and hind legs
+        reachablePositions.(EEselection) = [X.(EEselection)(:) Z.(EEselection)(:)];
+    end
+end
