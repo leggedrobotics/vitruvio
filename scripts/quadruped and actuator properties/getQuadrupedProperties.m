@@ -10,14 +10,13 @@ function quadruped = getQuadrupedProperties(robotSelection, linkCount)
     robot.ANYmal.EE(1).mass = 0.19;
     robot.ANYmal.EE(2).mass = 0.19;
 
-    % offset from CoM to each hip
+    % offset from CoM to HAA for each leg.
     robot.ANYmal.xNom(1) = 0.34;
     robot.ANYmal.xNom(2) = 0.34;
     robot.ANYmal.yNom(1) = 0.19;
     robot.ANYmal.yNom(2) = 0.19;
-    robot.ANYmal.zNom = 0.05; % offset from CoM to hip attachment in z direction Hip height 0.47m CoM at 0.42
-
-    % column order: x, y, z
+    robot.ANYmal.zNom = 0.05; % offset from CoM to HAA in z direction. Positive value means HAA above CoM.
+    
     robot.ANYmal.nomHipPos.LF = [ robot.ANYmal.xNom(1),  robot.ANYmal.yNom(1), robot.ANYmal.zNom];
     robot.ANYmal.nomHipPos.LH = [-robot.ANYmal.xNom(2),  robot.ANYmal.yNom(2), robot.ANYmal.zNom];
     robot.ANYmal.nomHipPos.RF = [ robot.ANYmal.xNom(1), -robot.ANYmal.yNom(1), robot.ANYmal.zNom];
@@ -49,7 +48,7 @@ function quadruped = getQuadrupedProperties(robotSelection, linkCount)
     robot.ANYmal.phalanges(1).radius = 0.05;
     robot.ANYmal.phalanges(2).radius = 0.05;
 
-    %link mass [kg] and inertia [kg.m^2] based on cylindrical link with constant density
+    % Link mass [kg] and inertia [kg.m^2] based on cylindrical link with constant density
     link = {'hip','thigh' 'shank' 'foot' 'phalanges'};
     for i = 1:length(link)
         for j = 1:2
@@ -71,6 +70,12 @@ function quadruped = getQuadrupedProperties(robotSelection, linkCount)
     robot.ANYmal.q5.minAngle = -pi/2;
     robot.ANYmal.q5.maxAngle = pi/2;
 
+    % Hip offset. This shifts HAA along the body x direction. It is
+    % an optimization parameter and is initially set to the hip length such
+    % that HFE is at the location specified above by nomHipPos.
+     robot.ANYmal.hipOffset(1) = robot.ANYmal.hip(1).length;
+     robot.ANYmal.hipOffset(2) = robot.ANYmal.hip(2).length;
+     
     %% Universal
     robot.universal.mass.total = 39.53; % with payload
     robot.universal.legDensity = 249.4;
@@ -138,6 +143,12 @@ function quadruped = getQuadrupedProperties(robotSelection, linkCount)
     robot.universal.q5.minAngle = -2*pi;
     robot.universal.q5.maxAngle = 2*pi;
     
+    % Hip offset. This shifts HAA along the body x direction. It is
+    % an optimization parameter and is initially set to the hip length such
+    % that HFE is at the location specified above by nomHipPos.
+     robot.universal.hipOffset(1) = robot.universal.hip(1).length;
+     robot.universal.hipOffset(2) = robot.universal.hip(2).length;
+     
     %% Speedy 
     robot.speedy.mass.total = 22.52;
     robot.speedy.legDensity = 249.4;
@@ -202,6 +213,12 @@ function quadruped = getQuadrupedProperties(robotSelection, linkCount)
     robot.speedy.q4.minAngle = -pi;
     robot.speedy.q4.maxAngle = pi;
     
+    % Hip offset. This shifts HAA along the body x direction. It is
+    % an optimization parameter and is initially set to the hip length such
+    % that HFE is at the location specified above by nomHipPos.
+     robot.speedy.hipOffset(1) = robot.speedy.hip(1).length;
+     robot.speedy.hipOffset(2) = robot.speedy.hip(2).length;
+
     %% Massivo 
     robot.massivo.mass.total = 80;
     robot.massivo.legDensity = 249.4;
@@ -268,6 +285,12 @@ function quadruped = getQuadrupedProperties(robotSelection, linkCount)
     robot.massivo.q5.minAngle = -pi;
     robot.massivo.q5.maxAngle = pi;
     
+    % Hip offset. This shifts HAA along the body x direction. It is
+    % an optimization parameter and is initially set to the hip length such
+    % that HFE is at the location specified above by nomHipPos.
+     robot.massivo.hipOffset(1) = robot.massivo.hip(1).length;
+     robot.massivo.hipOffset(2) = -robot.massivo.hip(2).length;
+     
     %% Centaur 
     robot.centaur.mass.total = 80;
     robot.centaur.legDensity = 249.4;
@@ -332,11 +355,17 @@ function quadruped = getQuadrupedProperties(robotSelection, linkCount)
     robot.centaur.q4.minAngle = -pi/2;
     robot.centaur.q4.maxAngle = pi/2;
 
+    % Hip offset. This shifts HAA along the body x direction. It is
+    % an optimization parameter and is initially set to the hip length such
+    % that HFE is at the location specified above by nomHipPos.
+     robot.centaur.hipOffset(1) = robot.centaur.hip(1).length;
+     robot.centaur.hipOffset(2) = robot.centaur.hip(2).length;    
+    
     %% Mini 
     robot.mini.mass.total = 10;
     robot.mini.legDensity = 249.4;
-    robot.ANYmal.EE(1).mass = 0.19;
-    robot.ANYmal.EE(2).mass = 0.19;
+    robot.mini.EE(1).mass = 0.19;
+    robot.mini.EE(2).mass = 0.19;
     
     robot.mini.xNom(1) = 0.18;
     robot.mini.xNom(2) = 0.18;
@@ -395,6 +424,12 @@ function quadruped = getQuadrupedProperties(robotSelection, linkCount)
     robot.mini.q4.minAngle = -pi/2;
     robot.mini.q4.maxAngle = pi/2;
 
+    % Hip offset. This shifts HAA along the body x direction. It is
+    % an optimization parameter and is initially set to the hip length such
+    % that HFE is at the location specified above by nomHipPos.
+     robot.mini.hipOffset(1) = robot.mini.hip(1).length;
+     robot.mini.hipOffset(2) = robot.mini.hip(2).length;    
+    
     %% defaultHopper 
     robot.defaultHopper.mass.total = 10;
     robot.defaultHopper.legDensity = 249.4;
@@ -441,14 +476,11 @@ function quadruped = getQuadrupedProperties(robotSelection, linkCount)
     robot.defaultHopper.q4.minAngle = -pi/2;
     robot.defaultHopper.q4.maxAngle = pi/2;
 
+    % Hip offset. This shifts HAA along the body x direction. It is
+    % an optimization parameter and is initially set to the hip length such
+    % that HAA is at the location specified above by nomHipPos.
+     robot.defaultHopper.hipOffset(1) = robot.defaultHopper.hip(1).length;
+     
     %% load in the parameters of the selected robot into the struct quadruped which is then used by the rest of the program
     quadruped = robot.(robotSelection);
-
-    % Offset to hip attachment point. This translates the hip attachment point
-    % along the x direction of the body. Here the initial offset is set such
-    % that the hip is centered above the trajectory.
-    quadruped.hipOffset(1) = quadruped.hip(1).length;
-    if length(quadruped.hip) > 1 % if hind legs exist
-        quadruped.hipOffset(2) = -quadruped.hip(2).length;
-    end
 end

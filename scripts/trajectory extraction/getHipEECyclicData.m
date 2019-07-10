@@ -25,7 +25,7 @@ meanIndexCount = round(mean(indexCount)); % mean number of points (time) in one 
 % The 3rd dimension of the array is the step number.
 for i = 1:legCount
     EEselection = EEnames(i,:);
-    for i = 1:minStepCount-1 
+    for i = 1:minStepCount-2 % because we sample to next step + 20% we only count up until the final step -2
         % Save position elements from liftoff through to +120% of a
         % cycle. This helps us to get a more smooth average motion as the
         % duration for one step can vary slightly.
@@ -38,7 +38,7 @@ for i = 1:legCount
 end
 
 %% body rotation and position in inertial frame
-for i = 1:minStepCount-1
+for i = 1:minStepCount-2 
     for j = 1:legCount
         EEselection = EEnames(j,:);
         % by saving the body rotation separately for each leg we can synchronize
@@ -53,8 +53,11 @@ end
 % The steps from samplingStart to samplingEnd are used in the average
 % calculation
 samplingStart = round(removalRatioStart*minStepCount);
-samplingStart(samplingStart<1) = 1; % minimum starting index is 1
+% minimum starting index is 1
+samplingStart(samplingStart<1) = 1;
 samplingEnd = round((1-removalRatioEnd)*minStepCount-1);
+% maximum ending index is number of steps captured in cyclicMotionHipEE
+samplingEnd(samplingEnd>length(cyclicMotionHipEE.(EEselection).position(1,1,:))) = length(cyclicMotionHipEE.(EEselection).position(1,1,:));
 
 % average of corresponding points in each cycle
 for i = 1:legCount

@@ -7,7 +7,7 @@ close all;
 % If false the individual steps are not averaged. This should be selected
 % when the generated motion is irregular.
 dataExtraction.averageStepsForCyclicalMotion = true; 
-dataExtraction.allowableDeviation = 0.04; % [m] Deviation between neighbouring points. If the deviation is larger, additional points are interpolated.
+dataExtraction.allowableDeviation = 0.03; % [m] Deviation between neighbouring points. If the deviation is larger, additional points are interpolated.
 
 %% Toggle leg properties: leg count, link count, configuration, direct/remote joint actuation, spider/serial leg
 legCount = 4;                   % Accepts values from 1 to 4.
@@ -31,11 +31,11 @@ heuristic.torqueAngle.kTorsionalSpring = 20; % Spring constant for torsional spr
 %% Toggle trajectory plots and initial design viz
 viewVisualization            = true; % initial leg design tracking trajectory plan
 numberOfStepsVisualized      = 1;     % number of steps visualized for leg motion
-viewPlots.motionData         = false;
-viewPlots.rangeOfMotionPlots = false;
+viewPlots.motionData         = true;
+viewPlots.rangeOfMotionPlots = true;
 viewPlots.efficiencyMap      = false;
 
-%% Select a .mat trajectory data file to be simulated and optimized
+%% Select a .mat trajectory data file to be simulated
 % Select from the below options or import a new data .mat set using the
 % importMotionData script
 universalTrot   = true;
@@ -77,8 +77,8 @@ optimizationProperties.viz.numberOfCyclesVisualized = 1;
 optimizationProperties.viz.displayBestCurrentLinkLengths = true; % display chart of current best leg design parameters while running ga
 
 % Set number of generations and population size
-optimizationProperties.options.maxGenerations = 20;
-optimizationProperties.options.populationSize = 20;
+optimizationProperties.options.maxGenerations = 10;
+optimizationProperties.options.populationSize = 10;
 
 % Impose limits on maximum joint torque, speed and power
 % the values are defined in getActuatorProperties. A penalty term is incurred

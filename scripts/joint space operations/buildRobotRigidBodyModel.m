@@ -348,7 +348,7 @@ if viewVisualization
             set(gcf, 'Position', get(0, 'Screensize'));
             xlim([-0.75 0.75]);
             ylim([-0.5 0.5]);
-            zlim([-1.4 0.4]);
+            zlim([-1 0.4]);
             figure(1);
             
             % Leg visualization

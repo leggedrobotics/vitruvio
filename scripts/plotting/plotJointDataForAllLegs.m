@@ -39,6 +39,13 @@ ylimANYmalpower  = [-35 35];
 ylimANYmalMechEnergy = [0 10];
 ylimANYmalElecEnergy = [0 10];
 
+ylimuniversalq      = [-30 30];
+ylimuniversalqdot   = [-15 15];
+ylimuniversaltorque = [-350 350];
+ylimuniversalpower  = [-1200 1200];
+ylimuniversalMechEnergy = [0 80];
+ylimuniversalElecEnergy = [0 80];
+
 ylimdefaultHopperq      = [-60 60];
 ylimdefaultHopperqdot   = [-15 15];
 ylimdefaultHoppertorque = [-250 250];
@@ -47,12 +54,12 @@ ylimdefaultHopperMechEnergy = [0 2000];
 ylimdefaultHopperElecEnergy = [0 2000];
 
 xlimit.time   = [0, time.LF(end)];
-ylimit.q      = ylimdefaultHopperq;
-ylimit.qdot   = ylimdefaultHopperqdot;
-ylimit.torque   = ylimdefaultHoppertorque;
-ylimit.power  = ylimdefaultHopperpower;
-ylimit.mechEnergy = ylimdefaultHopperMechEnergy;
-ylimit.elecEnergy = ylimdefaultHopperElecEnergy;
+ylimit.q      = ylimuniversalq;
+ylimit.qdot   = ylimuniversalqdot;
+ylimit.torque   = ylimuniversaltorque;
+ylimit.power  = ylimuniversalpower;
+ylimit.mechEnergy = ylimuniversalMechEnergy;
+ylimit.elecEnergy = ylimuniversalElecEnergy;
 
 lineColour = 'r';
 faceColour = 'r';
