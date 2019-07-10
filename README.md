@@ -16,9 +16,9 @@ Towr allows for quick computation of trajectories for different tasks using a sm
 
 ## Features
 
-:white_check_mark: Computation of joint speed, torque, power and energy required to track an input trajectory.
+:heavy_check_mark: Computation of joint speed, torque, power and energy required to track an input trajectory.
 
-:white_check_mark: Highly versatile to different user design choices and robot properties allowing for quick comparison of high level design decisions.
+:heavy_check_mark: Highly versatile to different user design choices and robot properties allowing for quick comparison of high level design decisions.
 
    * Direct actuation with actuator placement in the joints or remote actuation with actuators placed in the body.
    * Leg quantity ranging from one to four legs.
@@ -28,16 +28,16 @@ Towr allows for quick computation of trajectories for different tasks using a sm
    * Actuator selection from a list of existing actuators including ANYdrive and Neo.
    * The input trajectory can be tracked in its entirety, only for a sample of the entire motion, or averaged into a single representative step cycle.
 
-:white_check_mark: Motion visualization.
+:heavy_check_mark: Motion visualization.
 
-:white_check_mark: Meta parameter computation including:
+:heavy_check_mark: Meta parameter computation including:
 
    * Cost of transport.
    * Range of joint angles required for motion tracking.
    * Maximum values of joint speed, torque, and power.
    * Energy consumed per step cycle.
 
-:white_check_mark: Design parameter optimization.
+:heavy_check_mark: Design parameter optimization.
 
    * Link lengths
    
@@ -48,9 +48,9 @@ Towr allows for quick computation of trajectories for different tasks using a sm
    * Link quantity
    * Actuator placement
 
-:white_check_mark: Result plotting.
+:heavy_check_mark: Result plotting.
 
-:white_check_mark: Facilitated addition of new robot classes and motion tasks.
+:heavy_check_mark: Facilitated addition of new robot classes and motion tasks.
 
 
 ## Installation
