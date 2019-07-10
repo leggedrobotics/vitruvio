@@ -11,6 +11,9 @@ https://github.com/ethz-adrl/towr
 
 Towr allows for quick computation of trajectories for different tasks using a small set of robot design parameters and as such is well suited to aiding in simulation in the early design stages. 
 
+
+[![IMAGE ALT TEXT HERE](https://img.youtube.com/vi/oqQyCcB4QVo/0.jpg)](https://www.youtube.com/watch?v=oqQyCcB4QVo)
+
 ## Features
 
 :heavy_check_mark: Computation of joint speed, torque, power and energy required to track an input trajectory.
