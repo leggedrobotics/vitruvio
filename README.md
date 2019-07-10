@@ -16,9 +16,9 @@ Towr allows for quick computation of trajectories for different tasks using a sm
 
 ## Features
 
-:heavy_check_mark: Computation of joint speed, torque, power and energy required to track an input trajectory.
+:white_check_mark: Computation of joint speed, torque, power and energy required to track an input trajectory.
 
-:heavy_check_mark: Highly versatile to different user design choices and robot properties allowing for quick comparison of high level design decisions.
+:white_check_mark: Highly versatile to different user design choices and robot properties allowing for quick comparison of high level design decisions.
 
    * Direct actuation with actuator placement in the joints or remote actuation with actuators placed in the body.
    * Leg quantity ranging from one to four legs.
@@ -28,16 +28,16 @@ Towr allows for quick computation of trajectories for different tasks using a sm
    * Actuator selection from a list of existing actuators including ANYdrive and Neo.
    * The input trajectory can be tracked in its entirety, only for a sample of the entire motion, or averaged into a single representative step cycle.
 
-:heavy_check_mark: Motion visualization.
+:white_check_mark: Motion visualization.
 
-:heavy_check_mark: Meta parameter computation including:
+:white_check_mark: Meta parameter computation including:
 
    * Cost of transport.
    * Range of joint angles required for motion tracking.
    * Maximum values of joint speed, torque, and power.
    * Energy consumed per step cycle.
 
-:heavy_check_mark: Design parameter optimization.
+:white_check_mark: Design parameter optimization.
 
    * Link lengths
    
@@ -48,9 +48,9 @@ Towr allows for quick computation of trajectories for different tasks using a sm
    * Link quantity
    * Actuator placement
 
-:heavy_check_mark: Result plotting.
+:white_check_mark: Result plotting.
 
-:heavy_check_mark: Facilitated addition of new robot classes and motion tasks.
+:white_check_mark: Facilitated addition of new robot classes and motion tasks.
 
 
 ## Installation
@@ -62,7 +62,7 @@ Clone the _vitruvio_ repository and open it in Matlab. Right click on the _vitru
    
 These can be added using the Add-Ons button in the Matlab Home tab.
 
-## Use
+## Usage
 
 The intended work flow is as follows:
    
@@ -98,7 +98,7 @@ Play around with the different toggle options to understand the different degree
 To add your own robot and task, first the trajectory data must be input into _vitruvio_. We recommend using Towr for the trajectory planning but any trajectory set consisting of base pose, end effector position and forces is sufficient. If using Towr, the first step is to run the __importMotionData.m__ script which allows you to select a rosbag to read the data from and a name to save your data into a .mat file.
 
 
-After importing the motion data, you will need to add your robot to the following points in _vitruvio_.
+After importing the motion data, you will need to add your robot to the following scripts in _vitruvio_.
 
    1. main
    2. simulateSelectedTasks
