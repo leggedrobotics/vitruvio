@@ -23,7 +23,7 @@ function [maxTorqueLimit, maxqdotLimit, maxPowerLimit, actuatorMass, gearRatio] 
         maxqdotLimit   = 40; % [rad/s] 
         maxPowerLimit  = 4200; % [W] 
         actuatorMass   = 3; % [kg]
-        gearRatio      = 4.5;    % Get this number from Hendrik     
+        gearRatio      = 4.5;   
     end
     
     if isequal(actuatorName,'other')

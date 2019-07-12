@@ -9,7 +9,8 @@ linkCount            = data.(task).basicProperties.linkCount;
 EEnames              = data.(task).basicProperties.EEnames;
 removalRatioStart    = data.(task).basicProperties.trajectory.removalRatioStart;
 removalRatioEnd      = data.(task).basicProperties.trajectory.removalRatioEnd;
-fontSize = 14; 
+fontSize = 10; 
+
 %% link lengths
 if linkCount == 2
     legendLabels = {'Hip','Thigh','Shank'};
@@ -31,14 +32,18 @@ for i = 1:legCount
         set(gcf,'color','w')
         ax1 = subplot(1,2,1);
         pie(ax1, 100*data.(task).(EEselection).linkLengths, valueLabels) % multiply values by 100 to avoid having a partial pie plot
-        title(ax1, 'Link lengths, nominal leg design [m]', 'FontSize', fontSize);
+        title(ax1, ({'Link lengths [m]',['Nominal ', EEselection]}), 'FontSize', fontSize);
         legend(legendLabels,'Location','southoutside','Orientation','horizontal')
+        view([90 90])   % this is to rotate the chart
+        
         ax2 = subplot(1,2,2);
         pie(ax2, 100*data.(task).(EEselection).linkLengthsOpt, valueLabelsOpt)
-        title(ax2, 'Link lengths, optimized leg design [m]', 'FontSize', fontSize);
+        title(ax2, ({'Link lengths [m]',['Optimized ', EEselection]}), 'FontSize', fontSize);
         legend(legendLabels,'Location','southoutside','Orientation','horizontal')
+        view([90 90])   % this is to rotate the chart
+        export_fig results.pdf -nocrop -append
 
-        %% peak joint torque comparison of actuators
+        %% Peak joint torque comparison of actuators
         if linkCount == 2
             legendLabels = {'HAA','HFE','KFE'};
         elseif linkCount == 3
@@ -55,45 +60,58 @@ for i = 1:legCount
         set(gcf,'color','w')        
         ax1 = subplot(1,2,1);
         pie(ax1, data.(task).metaParameters.jointTorqueMax.(EEselection), valueLabels)
-        title(ax1, 'Peak joint torques, nominal leg design [Nm]', 'FontSize', fontSize);        
+        title(ax1, ({'Peak joint torques [Nm]',['Nominal ', EEselection]}), 'FontSize', fontSize);        
         legend(legendLabels,'Location','southoutside','Orientation','horizontal')
+        view([90 90])   % this is to rotate the chart
 
         ax2 = subplot(1,2,2);
         pie(ax2, data.(task).metaParameters.jointTorqueMaxOpt.(EEselection), valueLabelsOpt)
-        title(ax2, 'Peak joint torques, optimized leg design [Nm]', 'FontSize', fontSize);        
+        title(ax2, ({'Peak joint torques [Nm]',['Optimized ', EEselection]}), 'FontSize', fontSize);        
         legend(legendLabels,'Location','southoutside','Orientation','horizontal')
+        view([90 90])   % this is to rotate the chart
+        export_fig results.pdf -nocrop -append
 
-        %% energy consumption comparison of actuators
-        
-        valueLabelsMechEnergy    = string(data.(task).metaParameters.mechEnergyPerCycle.(EEselection));
-        valueLabelsMechEnergyOpt = string(data.(task).metaParameters.mechEnergyPerCycleOpt.(EEselection));
-        valueLabelsElecEnergy    = string(data.(task).metaParameters.elecEnergyPerCycle.(EEselection));
-        valueLabelsElecEnergyOpt = string(data.(task).metaParameters.elecEnergyPerCycleOpt.(EEselection));
+        %% Energy consumption comparison of actuators
        
-        figureName = 'Energy demand' + " " + EEselection;
+        valueLabelsMechEnergy    = string(round(data.(task).metaParameters.mechEnergyPerCycle.(EEselection)));
+        valueLabelsMechEnergyOpt = string(round(data.(task).metaParameters.mechEnergyPerCycleOpt.(EEselection)));
+        valueLabelsElecEnergy    = string(round(data.(task).metaParameters.elecEnergyPerCycle.(EEselection)));
+        valueLabelsElecEnergyOpt = string(round(data.(task).metaParameters.elecEnergyPerCycleOpt.(EEselection)));
+       
+        % Mechanical energy demand        
+        figureName = 'Mechanical energy' + " " + EEselection;
         figure('name', figureName, 'DefaultAxesFontSize', 10)
         set(gcf,'color','w')        
 
-        % Mechanical energy demand
-        ax1 = subplot(2,2,1);
+        ax1 = subplot(1,2,1);
         pie(ax1,  data.(task).metaParameters.mechEnergyPerCycle.(EEselection), valueLabelsMechEnergy)
-        title(ax1, 'Mechanical energy demand, nominal leg design [J/cycle]', 'FontSize', fontSize);                
+        title(ax1, ({'Mechanical energy [J/cycle]',['Nominal ', EEselection]}), 'FontSize', fontSize);                
         legend(legendLabels,'Location','southoutside','Orientation','horizontal')
+        view([90 90])   % this is to rotate the chart
 
-        ax2 = subplot(2,2,2);
+        ax2 = subplot(1,2,2);
         pie(ax2, data.(task).metaParameters.mechEnergyPerCycleOpt.(EEselection), valueLabelsMechEnergyOpt)
-        title(ax2, 'Mechanical energy demand, optimized leg design [J/cycle]', 'FontSize', fontSize);                
+        title(ax2, ({'Mechanical energy [J/cycle]',['Optimized ', EEselection]}), 'FontSize', fontSize);                
         legend(legendLabels,'Location','southoutside','Orientation','horizontal')
-
+        view([90 90])   % this is to rotate the chart
+        export_fig results.pdf -nocrop -append
+ 
         % Electrical energy demand
-        ax3 = subplot(2,2,3);
-        pie(ax3,  data.(task).metaParameters.elecEnergyPerCycle.(EEselection), valueLabelsElecEnergy)
-        title(ax3, 'Electrical energy demand, nominal leg design [J/cycle]', 'FontSize', fontSize);                
-        legend(legendLabels,'Location','southoutside','Orientation','horizontal')
+        figureName = 'Electrical demand' + " " + EEselection;
+        figure('name', figureName, 'DefaultAxesFontSize', 10)
+        set(gcf,'color','w')    
 
-        ax4 = subplot(2,2,4);
-        pie(ax4, data.(task).metaParameters.elecEnergyPerCycleOpt.(EEselection), valueLabelsElecEnergyOpt)
-        title(ax4, 'Electrical energy demand, optimized leg design [J/cycle]', 'FontSize', fontSize);                
+        ax1 = subplot(1,2,1);
+        pie(ax1,  data.(task).metaParameters.elecEnergyPerCycle.(EEselection), valueLabelsElecEnergy)
+        title(ax1, ({'Electrical energy [J/cycle]',['Nominal ', EEselection]}), 'FontSize', fontSize);                
         legend(legendLabels,'Location','southoutside','Orientation','horizontal')
+        view([90 90])   % this is to rotate the chart
+
+        ax2 = subplot(1,2,2);
+        pie(ax2, data.(task).metaParameters.elecEnergyPerCycleOpt.(EEselection), valueLabelsElecEnergyOpt)
+        title(ax2, ({'Electrical energy [J/cycle]',['Optimized ', EEselection]}), 'FontSize', fontSize);                
+        legend(legendLabels,'Location','southoutside','Orientation','horizontal')
+        view([90 90])   % this is to rotate the chart        
+        export_fig results.pdf -nocrop -append        
     end
 end

@@ -47,6 +47,8 @@ xlabel('time [s]');
 ylabel('z velocity [m/s]');
 grid on
 
+export_fig results.pdf -nocrop -append
+
 %% End effector forces.
 figure(3)
 set(gcf,'color','w')
@@ -56,7 +58,7 @@ for i = 1:legCount
     hold on
     EEselection = EEnames(i,:);
     p(i) = plot(t, force.fullTrajectory.(EEselection)(1:length(t),1), lineColor{i}, 'DisplayName', EEselection);
-    title('End Effector forces')
+    title('End effector forces')
     xlabel('time [s]')    
     ylabel('force in x-direction [N]')
     grid on
@@ -80,11 +82,11 @@ if legCount > 1 % only display legend if there are multiple legs
     lgd.FontSize = 14;
 end
 hold off
+export_fig results.pdf -nocrop -append
 
 %% Plot x vs z position of EE for the final trajectory (after trimming and averaging).
 figure(4)
 set(gcf,'color','w')
-title('Final end effector trajectory')
 subplotRows = floor(legCount/2);
 subplotRows(subplotRows<1) = 1;
 subplotColumns = ceil(legCount/2);
@@ -101,17 +103,18 @@ for i = 1:legCount
     axis equal
     xlabel('x position [m]')
     ylabel('z position [m]')
-    title(EEselection)
+    title(['Resulting ', EEselection, ' end effector trajectory'])
     grid on
     hold off
 end
+export_fig results.pdf -nocrop -append
 
 %% End effector z motion with rectangle showing sampled range of data.
 figure(5)
 set(gcf,'color','w')
 % EE Position 
 subplot(2,2,[1 2])
-    title('End effector position and force over sampled data range')
+    title('End effector z position and force over sampled data range')
     hold on
     for i = 1:legCount
         EEselection = EEnames(i,:);
@@ -150,4 +153,5 @@ subplot(2,2,[3 4])
     rectangle('Position', [rectanglePos.bottomLeft(1), rectanglePos.bottomLeft(2), rectanglePos.width, rectanglePos.height], 'LineWidth', 2);            
     grid on
     hold off
+    export_fig results.pdf -nocrop -append 
 end

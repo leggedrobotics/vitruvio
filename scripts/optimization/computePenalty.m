@@ -49,45 +49,49 @@ end
 %% Build robot model with joint angles from inverse kinematics tempLeg
 numberOfLoopRepetitions = 1;
 viewVisualization = 0;
-tempLeg.(EEselection).rigidBodyModel = buildRobotRigidBodyModel(actuatorProperties, actuateJointsDirectly, hipAttachmentOffset, linkCount, quadruped, tempLeg, meanCyclicMotionHipEE, EEselection, numberOfLoopRepetitions, viewVisualization, hipParalleltoBody, dataExtraction);
+optimized = true;
+tempLeg.(EEselection).rigidBodyModel = buildRobotRigidBodyModel(actuatorProperties, actuateJointsDirectly, hipAttachmentOffset, linkCount, quadruped, tempLeg, meanCyclicMotionHipEE, EEselection, numberOfLoopRepetitions, viewVisualization, hipParalleltoBody, dataExtraction, optimized);
 
 %% Get joint velocities and accelerations with finite differences
-[tempLeg.(EEselection).qdot, tempLeg.(EEselection).qdotdot] = getJointVelocitiesUsingFiniteDifference(EEselection, Leg);
+[tempLeg.(EEselection).qdot, tempLeg.(EEselection).qdotdot] = getJointVelocitiesUsingFiniteDifference(EEselection, tempLeg, dt);
 
 %% Get joint torques using inverse dynamics
 tempLeg.(EEselection).jointTorque = inverseDynamics(EEselection, tempLeg, meanCyclicMotionHipEE, linkCount);
 
 %% Mechanical power
-jointPowerInitial                = Leg.(EEselection).jointTorque .* Leg.(EEselection).qdot(:,1:end-1);
+jointPowerInitial = Leg.(EEselection).jointTorque .* Leg.(EEselection).qdot(:,1:end-1);
 tempLeg.(EEselection).jointPower = tempLeg.(EEselection).jointTorque .* tempLeg.(EEselection).qdot(:,1:end-1);
 jointPower = tempLeg.(EEselection).jointPower;
+% Set negative terms to zero
+jointPowerInitial(jointPowerInitial<0) = 0;
+jointPower(jointPower<0) = 0;
 
 %% Get electrical power and efficiency at each operating point
 [tempLeg.(EEselection).electricalPower, tempLeg.(EEselection).operatingPointEfficiency] = computeElectricalPowerInput(tempLeg, EEselection, actuatorProperties, linkCount, actuatorEfficiency, actuatorSelection);
 
  %% Energy consumption 
 % here we assume no recuperation of energy possible. This means the
-% negative power terms are set to zero.
-[tempLeg.(EEselection).mechEnergy, tempLeg.metaParameters.mechEnergyPerCycle.(EEselection), tempLeg.(EEselection).elecEnergy, tempLeg.metaParameters.elecEnergyPerCycle.(EEselection)]  = computeEnergyConsumption(tempLeg, EEselection, dt);
- tempLeg.metaParameters.mechEnergyPerCycleTotal.(EEselection) = tempLeg.metaParameters.mechEnergyPerCycle.(EEselection) + sum(tempLeg.metaParameters.mechEnergyPerCycle.(EEselection));
- tempLeg.metaParameters.elecEnergyPerCycleTotal.(EEselection) = tempLeg.metaParameters.elecEnergyPerCycle.(EEselection) + sum(tempLeg.metaParameters.elecEnergyPerCycle.(EEselection));    
+% negative power terms are set to zero. Integral computed using trapezoids.
+[tempLeg.(EEselection).mechEnergy, tempLeg.metaParameters.mechEnergyPerCycle.(EEselection), tempLeg.(EEselection).elecEnergy, tempLeg.metaParameters.elecEnergyPerCycle.(EEselection)]  = computeEnergyConsumption(jointPower, tempLeg.(EEselection).electricalPower, dt);
+%  tempLeg.metaParameters.mechEnergyPerCycleTotal.(EEselection) = tempLeg.metaParameters.mechEnergyPerCycle.(EEselection) + sum(tempLeg.metaParameters.mechEnergyPerCycle.(EEselection));
+%  tempLeg.metaParameters.elecEnergyPerCycleTotal.(EEselection) = tempLeg.metaParameters.elecEnergyPerCycle.(EEselection) + sum(tempLeg.metaParameters.elecEnergyPerCycle.(EEselection));    
 
 %% Load in penalty weights
-W_totalSwingTorque   = optimizationProperties.penaltyWeight.totalSwingTorque;
+W_totalSwingTorque    = optimizationProperties.penaltyWeight.totalSwingTorque;
 W_totalStanceTorque   = optimizationProperties.penaltyWeight.totalStanceTorque;
-W_totalTorque        = optimizationProperties.penaltyWeight.totalTorque;
-W_totalTorqueHFE  = optimizationProperties.penaltyWeight.totalTorqueHFE;
-W_swingTorqueHFE  = optimizationProperties.penaltyWeight.swingTorqueHFE;
-W_totalqdot     = optimizationProperties.penaltyWeight.totalqdot;
-W_totalPower    = optimizationProperties.penaltyWeight.totalPower;
-W_totalMechEnergy   = optimizationProperties.penaltyWeight.totalMechEnergy;
-W_totalElecEnergy   = optimizationProperties.penaltyWeight.totalElecEnergy;
-W_averageEfficiency  =  optimizationProperties.penaltyWeight.averageEfficiency;
-W_maxTorque     = optimizationProperties.penaltyWeight.maxTorque;
-W_maxqdot       = optimizationProperties.penaltyWeight.maxqdot;
-W_maxPower      = optimizationProperties.penaltyWeight.maxPower;
-W_antagonisticPower  = optimizationProperties.penaltyWeight.antagonisticPower;
-allowableExtension = optimizationProperties.allowableExtension; % as ratio of total possible extension
+W_totalTorque         = optimizationProperties.penaltyWeight.totalTorque;
+W_totalTorqueHFE      = optimizationProperties.penaltyWeight.totalTorqueHFE;
+W_swingTorqueHFE      = optimizationProperties.penaltyWeight.swingTorqueHFE;
+W_totalqdot           = optimizationProperties.penaltyWeight.totalqdot;
+W_totalPower          = optimizationProperties.penaltyWeight.totalPower;
+W_totalMechEnergy     = optimizationProperties.penaltyWeight.totalMechEnergy;
+W_totalElecEnergy     = optimizationProperties.penaltyWeight.totalElecEnergy;
+W_averageEfficiency   = optimizationProperties.penaltyWeight.averageEfficiency;
+W_maxTorque           = optimizationProperties.penaltyWeight.maxTorque;
+W_maxqdot             = optimizationProperties.penaltyWeight.maxqdot;
+W_maxPower            = optimizationProperties.penaltyWeight.maxPower;
+W_antagonisticPower   = optimizationProperties.penaltyWeight.antagonisticPower;
+allowableExtension    = optimizationProperties.allowableExtension; % as ratio of total possible extension
 
 % initialize torque, qdot and power limits.
 maxTorqueLimit = [0 0 0 0 0];    
@@ -138,6 +142,7 @@ averageEfficiency = 1;
 averageEfficiencyInitial = 1;
 antagonisticPower = 1;
 antagonisticPowerInitial = 1;
+maximumExtensionPenalty = 0;
 
 %% Compute penalty terms          
 if W_totalSwingTorque
@@ -173,12 +178,12 @@ if W_totalPower
     totalPower     = sum(sum(jointPower));
 end
 if W_totalMechEnergy
-    totalMechEnergyInitial    = sum(sum(Leg.(EEselection).mechEnergy));
-    totalMechEnergy    = sum(sum(tempLeg.(EEselection).mechEnergy));
+    totalMechEnergyInitial    = sum(Leg.(EEselection).mechEnergy(end,:)); % sum of mech energy consumed over all joints during the motion
+    totalMechEnergy    = sum(tempLeg.(EEselection).mechEnergy(end,:));
 end
 if W_totalElecEnergy
-    totalElecEnergyInitial    = sum(sum(Leg.(EEselection).elecEnergy));
-    totalElecEnergy    = sum(sum(tempLeg.(EEselection).elecEnergy));
+    totalElecEnergyInitial    = sum(Leg.(EEselection).elecEnergy(end,:)); % sum of elec energy consumed over all joints during the motion
+    totalElecEnergy    = sum(tempLeg.(EEselection).elecEnergy(end,:));
 end
 if W_averageEfficiency
     % Efficiency is NaN in quadrants I and III. Set this to 0.0001 to penalize it avoid
@@ -206,7 +211,8 @@ if W_antagonisticPower
     antagonisticPower             = 0.5*(sum(sum(jointPower)) - sum(sum(abs(jointPower))));
 end
 
-%% get the maximum joint torque speed and power for each joint
+%% Soft constraints due to actuator limits
+% get the maximum joint torque speed and power for each joint
 % joint torque speed and power limits for 2 link leg
 maxTorqueHAA = max(max(abs(tempLeg.(EEselection).jointTorque(:,1))));
 maxTorqueHFE = max(max(abs(tempLeg.(EEselection).jointTorque(:,2))));
@@ -265,57 +271,58 @@ end
 % TRACKING ERROR PENALTY
 % impose tracking error penalty if any point has tracking error above an
 % allowable threshhold
-trackingError = meanCyclicMotionHipEE.(EEselection).position(1:end-2,:)-tempLeg.(EEselection).r.EE;
-if max(abs(trackingError)) > 0.001
+trackingError = meanCyclicMotionHipEE.(EEselection).position(1:length(tempLeg.(EEselection).r.EE),:)-tempLeg.(EEselection).r.EE;
+trackingError = sqrt(sum(trackingError.^2,2)); % Magnitude of tracking error at each timestep
+if max(trackingError) > 0.001 % If tracking error ever exceeds this tolerance, impose a penalty.
     trackingErrorPenalty = 10;
 else
     trackingErrorPenalty = 0;
 end
 
-% JOINT BELOW GROUND PENALTY
-% find lowest joint and penalize if it is below the EE's lowest point ie
-% penetrating the ground
-lowestJoint =  min([min(tempLeg.(EEselection).r.HAA(:,3)), ...
-                    min(tempLeg.(EEselection).r.HFE(:,3)), ...
-                    min(tempLeg.(EEselection).r.KFE(:,3)), ...
-                    min(tempLeg.(EEselection).r.AFE(:,3)),  ...
-                    min(tempLeg.(EEselection).r.DFE(:,3))]);
-                
-if (lowestJoint < min(min(tempLeg.(EEselection).r.EE(:,3))))
-    jointBelowEEPenalty = 10;
-else
-    jointBelowEEPenalty = 0;
-end
+%% JOINT BELOW GROUND PENALTY
+% Requires us to bring in hipNomZ
+% For flat ground, ground height is the distance CoM z position.
+    groundHeight = -Leg.base.position.(EEselection)(:,3);
+    % Get the height of the lowest joint at each time step.
+    for i = 1:length(tempLeg.(EEselection).r.HAA(:,3))
+        jointHeight = []; % Initialize jointHeight to be empty
+        for j = 1:linkCount+1 
+            % Fill in joint heights for all of the joints in the leg.
+            jointHeight = [jointHeight, tempLeg.(EEselection).r.(jointNames(j,:))(i,3)];         
+        end
+        lowestJoint(i,1) =  min(jointHeight);
+    end              
+    % Apply penalty if the lowest joint is ever too close to the ground                 
+    if any(lowestJoint - groundHeight(1:length(lowestJoint)) < 0.05)
+        jointBelowGroundPenalty = 10;
+    else
+        jointBelowGroundPenalty = 0;
+    end
 
-% KFE ABOVE HFE PENALTY - otherwise spider config preferred
+%% KFE ABOVE HFE PENALTY - otherwise spider config preferred
 % find max z position of KFE and penalize if above origin
-maxHeightKFE = max(tempLeg.(EEselection).r.KFE(:,3));
-% if non zero, this must be the largest penalty as it is an infeasible solution
-if (maxHeightKFE > 0)
-    KFEHeightPenalty = 10;
-else
-    KFEHeightPenalty = 0;
-end
+    for i = 1:length(tempLeg.(EEselection).r.HAA(:,3))
+        jointHeightHFE(i,1) = tempLeg.(EEselection).r.HFE(i,3);
+        jointHeightKFE(i,1) = tempLeg.(EEselection).r.KFE(i,3);
+    end   
 
-% KFE WITHIN x TOL / IN FRONT OF HFE - for hopper
-% find z position of ground (initial EE height)
-maxPosKFE_x = max(tempLeg.(EEselection).r.KFE(:,1));
-if (abs(maxPosKFE_x) > 0.01)
-    KFEPosPenalty_x = 5;
-else
-    KFEPosPenalty_x = 0;
-end
+    % Apply penalty if KFE joint is ever above HFE joint
+    if any(jointHeightKFE > jointHeightHFE)
+        KFEAboveHFEPenalty = 10;
+    else
+        KFEAboveHFEPenalty = 0;
+    end
 
 % OVEREXTENSION PENALTY
-if optimizationProperties.penaltyWeight.maximumExtension % if true, calculate and penalize for overzealous extension
-    offsetHFE2EEdes = tempLeg.(EEselection).r.HFE - meanCyclicMotionHipEE.(EEselection).position(1:end-2,:); % offset from HFE to desired EE position at all time steps
-    maxOffsetHFE2EEdes = max(sqrt(sum(offsetHFE2EEdes.^2,2))); % max euclidian distance from HFE to desired EE position
-        if maxOffsetHFE2EEdes > allowableExtension*sum(linkLengths(2:end))
-            maximumExtensionPenalty = 10;
-        else 
-            maximumExtensionPenalty = 0;
+    if optimizationProperties.penaltyWeight.maximumExtension % if true, calculate and penalize for overzealous extension
+        offsetHFE2EEdes = tempLeg.(EEselection).r.HFE - meanCyclicMotionHipEE.(EEselection).position(1:end-2,:); % offset from HFE to desired EE position at all time steps
+        maxOffsetHFE2EEdes = max(sqrt(sum(offsetHFE2EEdes.^2,2))); % max euclidian distance from HFE to desired EE position
+            if maxOffsetHFE2EEdes > allowableExtension*sum(linkLengths(2:end))
+                maximumExtensionPenalty = 10;
+            else 
+                maximumExtensionPenalty = 0;
+        end
     end
-end
 
 %% Compute penalty
 penalty = W_totalTorque * (totalTorque/totalTorqueInitial) + ...
@@ -333,10 +340,9 @@ penalty = W_totalTorque * (totalTorque/totalTorqueInitial) + ...
           W_totalElecEnergy * (totalElecEnergy/totalElecEnergyInitial)     + ...
           W_averageEfficiency / (averageEfficiency/averageEfficiencyInitial)     + ... % minimize 1/efficiency
           trackingErrorPenalty + ...
-          jointBelowEEPenalty + ...
-          maximumExtensionPenalty + ...
-          KFEHeightPenalty + ...
-          KFEPosPenalty_x + ...
+          jointBelowGroundPenalty + ...
+          KFEAboveHFEPenalty + ...
+          optimizationProperties.penaltyWeight.maximumExtension * maximumExtensionPenalty + ...
           torqueLimitPenalty + ...
           speedLimitPenalty + ...
           powerLimitPenalty;

@@ -15,7 +15,7 @@ for i = 1:numberOfRepetitions+1
             EEselection = EEnames(j,:);
             universal.(task)(i).(EEselection) = orderfields(universal.(task)(i).(EEselection));
         end
-        generatePlots(viewPlots, universal, task); % classSelection, task
+        generatePlots(viewPlots, universal, task, optimizeLeg); % classSelection, task
     end
     
     if universalStairs
@@ -28,7 +28,7 @@ for i = 1:numberOfRepetitions+1
             EEselection = EEnames(j,:);
             universal.(task)(i).(EEselection) = orderfields(universal.(task)(i).(EEselection));
         end
-        generatePlots(viewPlots, universal, task);        
+        generatePlots(viewPlots, universal, task, optimizeLeg);        
     end
     
     if speedyGallop
@@ -41,7 +41,7 @@ for i = 1:numberOfRepetitions+1
             EEselection = EEnames(j,:);
             speedy.(task)(i).(EEselection) = orderfields(speedy.(task)(i).(EEselection));
         end
-          generatePlots(viewPlots, speedy, task);      
+          generatePlots(viewPlots, speedy, task, optimizeLeg);      
     end
         
     if speedyStairs
@@ -54,7 +54,7 @@ for i = 1:numberOfRepetitions+1
             EEselection = EEnames(j,:);
             speedy.(task)(i).(EEselection) = orderfields(speedy.(task)(i).(EEselection));
         end
-        generatePlots(viewPlots, speedy, task);          
+        generatePlots(viewPlots, speedy, task, optimizeLeg);          
     end
         
     if massivoWalk
@@ -67,7 +67,7 @@ for i = 1:numberOfRepetitions+1
             EEselection = EEnames(j,:);
             massivo.(task)(i).(EEselection) = orderfields(massivo.(task)(i).(EEselection));
         end
-        generatePlots(viewPlots, massivo, task);        
+        generatePlots(viewPlots, massivo, task, optimizeLeg);        
     end
         
     if massivoStairs
@@ -80,7 +80,7 @@ for i = 1:numberOfRepetitions+1
             EEselection = EEnames(j,:);
             massivo.(task)(i).(EEselection) = orderfields(massivo.(task)(i).(EEselection));
         end
-        generatePlots(viewPlots, massivo, task);        
+        generatePlots(viewPlots, massivo, task, optimizeLeg);        
     end
         
     if centaurWalk
@@ -92,7 +92,7 @@ for i = 1:numberOfRepetitions+1
             EEselection = EEnames(j,:);
             centaur.(task)(i).(EEselection) = orderfields(centaur.(task)(i).(EEselection));
         end
-        generatePlots(viewPlots, centaur, task);        
+        generatePlots(viewPlots, centaur, task, optimizeLeg);        
     end
         
     if centaurStairs
@@ -104,7 +104,7 @@ for i = 1:numberOfRepetitions+1
             EEselection = EEnames(j,:);
             centaur.(task)(i).(EEselection) = orderfields(centaur.(task)(i).(EEselection));
         end
-        generatePlots(viewPlots, centaur, task);        
+        generatePlots(viewPlots, centaur, task, optimizeLeg);        
     end
         
     if miniPronk
@@ -117,7 +117,7 @@ for i = 1:numberOfRepetitions+1
             EEselection = EEnames(j,:);
             mini.(task)(i).(EEselection) = orderfields(mini.(task)(i).(EEselection));
         end
-        generatePlots(viewPlots, mini, task);        
+        generatePlots(viewPlots, mini, task, optimizeLeg);        
     end
 
     if ANYmalTrot
@@ -129,7 +129,7 @@ for i = 1:numberOfRepetitions+1
             EEselection = EEnames(j,:);
             ANYmal.(task)(i).(EEselection) = orderfields(ANYmal.(task)(i).(EEselection));
         end
-        generatePlots(viewPlots, ANYmal, task);        
+        generatePlots(viewPlots, ANYmal, task, optimizeLeg);        
     end
     
     if ANYmalSlowTrotAccurateMotion
@@ -142,7 +142,7 @@ for i = 1:numberOfRepetitions+1
             EEselection = EEnames(j,:);
             ANYmal.(task)(i).(EEselection) = orderfields(ANYmal.(task)(i).(EEselection));
         end
-        generatePlots(viewPlots, ANYmal, task);        
+        generatePlots(viewPlots, ANYmal, task, optimizeLeg);        
     end
     
     if defaultHopperHop
@@ -155,6 +155,6 @@ for i = 1:numberOfRepetitions+1
             EEselection = EEnames(j,:);
             defaultHopper.(task)(i).(EEselection) = orderfields(defaultHopper.(task)(i).(EEselection));
         end
-        generatePlots(viewPlots, defaultHopper, task);        
+        generatePlots(viewPlots, defaultHopper, task, optimizeLeg);        
     end
 end

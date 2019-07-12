@@ -92,12 +92,13 @@ end
 
 %% build rigid body model
 tempLeg.base = Leg.base;
-tempLeg.(EEselection).rigidBodyModel = buildRobotRigidBodyModel(actuatorProperties, actuateJointsDirectly, hipAttachmentOffset, linkCount, quadruped, tempLeg, meanCyclicMotionHipEE, EEselection, numberOfLoopRepetitions, viewVisualization, hipParalleltoBody, dataExtraction);
+optimized = true;
+tempLeg.(EEselection).rigidBodyModel = buildRobotRigidBodyModel(actuatorProperties, actuateJointsDirectly, hipAttachmentOffset, linkCount, quadruped, tempLeg, meanCyclicMotionHipEE, EEselection, numberOfLoopRepetitions, viewVisualization, hipParalleltoBody, dataExtraction, optimized);
 
 %% get joint velocities and accelerations using finite difference
 % finite difference to compute qdot
 tempLeg.time = Leg.time;
-[tempLeg.(EEselection).qdot, tempLeg.(EEselection).qdotdot] = getJointVelocitiesUsingFiniteDifference(EEselection, tempLeg);
+[tempLeg.(EEselection).qdot, tempLeg.(EEselection).qdotdot] = getJointVelocitiesUsingFiniteDifference(EEselection, tempLeg, dt);
 tempLeg.(EEselection).q = tempLeg.(EEselection).q(1:end-2,:); % no longer need the two additional points for position after solving for joint speed and acceleration
 
 %% inverse dynamics
@@ -116,10 +117,9 @@ tempLeg.(EEselection).jointPower = tempLeg.(EEselection).jointTorque .* tempLeg.
 [tempLeg.(EEselection).electricalPower, tempLeg.(EEselection).operatingPointEfficiency] = computeElectricalPowerInput(tempLeg, EEselection, actuatorProperties, linkCount, actuatorEfficiency, actuatorSelection);
 
 %% Get meta parameters
-[tempLeg.(EEselection).mechEnergyOpt, tempLeg.metaParameters.mechEnergyPerCycleOpt.(EEselection), tempLeg.(EEselection).elecEnergyOpt, tempLeg.metaParameters.elecEnergyPerCycleOpt.(EEselection)]  = computeEnergyConsumption(tempLeg, EEselection, dt);
- tempLeg.metaParameters.mechEnergyPerCycleTotalOpt.(EEselection) = tempLeg.metaParameters.mechEnergyPerCycleOpt.(EEselection) + sum(tempLeg.metaParameters.mechEnergyPerCycleOpt.(EEselection));
- tempLeg.metaParameters.elecEnergyPerCycleTotalOpt.(EEselection) = tempLeg.metaParameters.elecEnergyPerCycleOpt.(EEselection) + sum(tempLeg.metaParameters.elecEnergyPerCycleOpt.(EEselection));    
-
+[tempLeg.(EEselection).mechEnergyOpt, tempLeg.metaParameters.mechEnergyPerCycleOpt.(EEselection), tempLeg.(EEselection).elecEnergyOpt, tempLeg.metaParameters.elecEnergyPerCycleOpt.(EEselection)]  = computeEnergyConsumption(tempLeg.(EEselection).jointPower, tempLeg.(EEselection).electricalPower, dt);
+ tempLeg.metaParameters.mechEnergyPerCycleTotalOpt.(EEselection) = sum(tempLeg.metaParameters.mechEnergyPerCycleOpt.(EEselection)(end,:));
+ tempLeg.metaParameters.elecEnergyPerCycleTotalOpt.(EEselection) = sum(tempLeg.metaParameters.elecEnergyPerCycleOpt.(EEselection)(end,:));  
 
 %% return joint data
 linkLengthsOpt = linkLengths;

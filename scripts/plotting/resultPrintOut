@@ -1,0 +1,52 @@
+Optimization count:   1 
+Quadruped class: universal.
+Task: trot.
+Actuator HAA: ANYdrive.
+Actuator HFE: ANYdrive.
+Actuator KFE: ANYdrive.
+Links: hip, thigh, shank.
+Hip parallel to body, serial leg configuration. 
+
+Loading quadruped properties for universal.
+Loading actuator propertiesComputing motion of end effectors relative to hip attachment points. 
+Computing end effector liftoff and touchdown timings. 
+Computing average relative motion of end effectors over one step. 
+Computing joint angles using inverse kinematics.
+Creating and visualizing robot rigid body model. 
+Computing joint velocities and accelerations. 
+Computing joint torques using inverse dynamics. 
+Computing joint power. 
+Computing electrical power. 
+
+Initiating optimization of link lengths for LF
+
+Lower bound on link lengths [m]:    0.1400    0.1500    0.1500   -0.1400
+
+Upper bound on link lengths [m]:    0.1400    0.6000    0.6000   -0.1400
+
+Running optimization. Population: 4, Max Generations: 1
+
+                                  Best          Mean         Stall
+Generation      Func-count     Penalty         Penalty    Generations
+    1                8            1.08            3.62        0
+Optimization terminated: maximum number of generations exceeded.
+Final penalty function value: 1.0805
+Optimized leg design parameters [m]:    0.1400    0.1700    0.4500   -0.1400
+
+
+T1 =
+
+  7×1 <a href="matlab:helpPopup table" style="font-weight:bold">table</a>
+
+                              <strong>      Basic_Properties      </strong>
+                              <strong>____________________________</strong>
+
+    <strong>Robot class           </strong>    "universal"                 
+    <strong>Task                  </strong>    "trot"                      
+    <strong>Leg quantity          </strong>    "4"                         
+    <strong>Link names            </strong>    "hip thigh shank"           
+    <strong>Joint names           </strong>    "HAA HFE KFE"               
+    <strong>Joint actuation method</strong>    "direct"                    
+    <strong>Actuator selection    </strong>    "ANYdrive ANYdrive ANYdrive"
+
+Done.

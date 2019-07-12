@@ -1,6 +1,8 @@
-% input EE forces and joint position which defines robot stance at each 
-% time step, joint speed and acceleration. Output joint torques required to
-% achieve the specified motion given the EE forces
+% Input the robot defined in buildRigidBodyModel. Compute external forces from
+% wrench - note that as we have no moment exerted on the end effectors, the
+% external forces are the same as the input end effector forces but ordered into an fext matrix. 
+% Compute joint torque for the given joint angles, velocities, acclerations 
+% and force at each timestep.
 
 function jointTorque = inverseDynamics(EEselection, Leg, meanCyclicMotionHipEE, linkCount)
 if linkCount == 2
@@ -20,8 +22,12 @@ jointTorque = zeros(length(Leg.(EEselection).qdotdot),linkCount+2);
         rigidBodyModel = Leg.(EEselection).rigidBodyModel;
         wrench = [0 0 0 meanCyclicMotionHipEE.(EEselection).force(i,1:3)]; % torques and forces applied to the body [Tx Ty Tz Fx Fy Fz]
         fext = externalForce(rigidBodyModel,endEffector,wrench); % apply force on end effector
+        
+        % inverse dynamics solver of form:
+        % jointTorq = inverseDynamics(robot,configuration,jointVel,jointAccel,fext) computes joint torques for the specified joint configuration, velocities, accelerations, and external forces. 
         jointTorque(i,:) = inverseDynamics(rigidBodyModel, [rotBodyY q], [0 qdot], [0 qdotdot], fext);
     end
+    
 % the first term is due to body rotation but this is not related to an actuated joint so we neglect it    
 jointTorque = jointTorque(:,2:end);
 end

@@ -31,6 +31,8 @@ for i = 1:legCount
     axis equal
     xlabel('x position [m]')
     ylabel('z position [m]')
-    title(EEselection)
+    title(['Range of motion ', EEselection])
     hold off
 end
+export_fig results.pdf -nocrop -append
+

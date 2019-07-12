@@ -1,7 +1,7 @@
 %% get joint velocities
-function [qdot, qdotdot] = getJointVelocitiesUsingFiniteDifference(EEselection, Leg)
-    dt = Leg.time(2) - Leg.time(1);
-    q = Leg.(EEselection).q;
+function [qdot, qdotdot] = getJointVelocitiesUsingFiniteDifference(EEselection, Leg, dt)
+   
+    q = Leg.(EEselection).q;    
     
     for i =1:length(q)-1
         qdot(i,:) = (q(i+1,:) - q(i,:)) /dt;
