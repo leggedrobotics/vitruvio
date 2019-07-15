@@ -227,7 +227,7 @@ function [] = plotJointDataForAllLegs(data, task, data2, task2, optimizeLeg)
     end
     export_fig results.pdf -nocrop -append
 
-    
+    %% Joint Velocity
     figure('name', 'Joint Velocity', 'DefaultAxesFontSize', 10, 'units','normalized','outerposition',[0 0 1 1])
     set(gcf,'color','w')
     plotTitle = {'\omega_{HAA}','\omega_{HFE}','\omega_{KFE}','\omega_{AFE}','\omega_{DFE}'};
@@ -248,12 +248,14 @@ function [] = plotJointDataForAllLegs(data, task, data2, task2, optimizeLeg)
             p(4) = line([min(xlim),max(xlim)],[data.(task).actuatorProperties.maxqdotLimit.(jointNames(j,:)), data.(task).actuatorProperties.maxqdotLimit.(jointNames(j,:))], 'Color', 'k', 'LineStyle', '--');
             p(5) = line([min(xlim),max(xlim)],[-data.(task).actuatorProperties.maxqdotLimit.(jointNames(j,:)), -data.(task).actuatorProperties.maxqdotLimit.(jointNames(j,:))], 'Color', 'k', 'LineStyle', '--');            
             
-            if plotDataSet2 
-                legend([p(1) p(2) p(4)],'nominal data','data set 2', 'actuator limits')
-            elseif optimizeLeg.(EEselection)
-                legend([p(1) p(3) p(4)],'nominal','optimized', 'actuator limits')
-            else 
-                legend([p(4)], 'actuator limits')
+            if j == 1 % only show legend on HAA subplots
+                if plotDataSet2 
+                    legend([p(1) p(2) p(4)],'nominal data','data set 2', 'actuator limits')
+                elseif optimizeLeg.(EEselection)
+                    legend([p(1) p(3) p(4)],'nominal','optimized', 'actuator limits')
+                else
+                    legend(p(4), 'actuator limits')
+                end
             end
                 
             grid on
@@ -268,6 +270,7 @@ function [] = plotJointDataForAllLegs(data, task, data2, task2, optimizeLeg)
     end
     export_fig results.pdf -nocrop -append
     
+    %% Joint Torque
     figure('name', 'Joint Torque', 'DefaultAxesFontSize', 10, 'units','normalized','outerposition',[0 0 1 1])
     set(gcf,'color','w')
     plotTitle = {'\tau_{HAA}','\tau_{HFE}','\tau_{KFE}','\tau_{AFE}','\tau_{DFE}'};
@@ -277,18 +280,27 @@ function [] = plotJointDataForAllLegs(data, task, data2, task2, optimizeLeg)
         for j = 1:linkCount+1
             subplot(linkCount+1, legCount, i + (j-1)*legCount);
             hold on
-            plot(data.(task).time(startTimeIndex:startTimeIndex+length(jointTorque.(EEselection))-1),  jointTorque.(EEselection)(:,j), lineColour, 'LineWidth', LineWidth);
+            p(1) = plot(data.(task).time(startTimeIndex:startTimeIndex+length(jointTorque.(EEselection))-1),  jointTorque.(EEselection)(:,j), lineColour, 'LineWidth', LineWidth);
             if plotDataSet2    
-                plot(data2.(task2).time(startTimeIndex:startTimeIndex+length(jointTorque2.(EEselection))-1),  jointTorque2.(EEselection)(:,j), lineColourOpt, 'LineWidth', LineWidth,'MarkerFaceColor', faceColourOpt);
-                legend('with interpolated points', 'original points')  
+                p(2) = plot(data2.(task2).time(startTimeIndex:startTimeIndex+length(jointTorque2.(EEselection))-1),  jointTorque2.(EEselection)(:,j), lineColourOpt, 'LineWidth', LineWidth,'MarkerFaceColor', faceColourOpt);
             end
             if optimizeLeg.(EEselection)
-                plot(data.(task).time(startTimeIndex:startTimeIndex+length(jointTorqueOpt.(EEselection))-1),  jointTorqueOpt.(EEselection)(:,j), lineColourOpt, 'LineWidth', LineWidth);
-                legend('nominal', 'optimized')
+                p(3) = plot(data.(task).time(startTimeIndex:startTimeIndex+length(jointTorqueOpt.(EEselection))-1),  jointTorqueOpt.(EEselection)(:,j), lineColourOpt, 'LineWidth', LineWidth);
             end
             % plot actuator limits on the same plot
-            line([min(xlim),max(xlim)],[data.(task).actuatorProperties.maxTorqueLimit.(jointNames(j,:)), data.(task).actuatorProperties.maxTorqueLimit.(jointNames(j,:))], 'Color', 'k', 'LineStyle', '--')
-            line([min(xlim),max(xlim)],[-data.(task).actuatorProperties.maxTorqueLimit.(jointNames(j,:)), -data.(task).actuatorProperties.maxTorqueLimit.(jointNames(j,:))], 'Color', 'k', 'LineStyle', '--')                     
+            p(4) = line([min(xlim),max(xlim)],[data.(task).actuatorProperties.maxTorqueLimit.(jointNames(j,:)), data.(task).actuatorProperties.maxTorqueLimit.(jointNames(j,:))], 'Color', 'k', 'LineStyle', '--');
+            p(5) = line([min(xlim),max(xlim)],[-data.(task).actuatorProperties.maxTorqueLimit.(jointNames(j,:)), -data.(task).actuatorProperties.maxTorqueLimit.(jointNames(j,:))], 'Color', 'k', 'LineStyle', '--');               
+            
+            if j == 1 % only show legend on HAA subplots
+                if plotDataSet2 
+                    legend([p(1) p(2) p(4)],'nominal data','data set 2', 'actuator limits')
+                elseif optimizeLeg.(EEselection)
+                    legend([p(1) p(3) p(4)],'nominal','optimized', 'actuator limits')
+                else
+                    legend(p(4), 'actuator limits')
+                end
+            end
+            
             grid on
             xlabel('Time [s]')
             ylabel('Torque [Nm]')
@@ -300,7 +312,8 @@ function [] = plotJointDataForAllLegs(data, task, data2, task2, optimizeLeg)
         end
     end
     export_fig results.pdf -nocrop -append
-
+  
+    %% Joint Power
     figure('name', 'Joint Power', 'DefaultAxesFontSize', 10, 'units','normalized','outerposition',[0 0 1 1])
     set(gcf,'color','w')
     plotTitle = {'P_{mech HAA}','P_{mech HFE}','P_{mech KFE}','P_{mech AFE}','P_{mech DFE}'};
@@ -310,18 +323,27 @@ function [] = plotJointDataForAllLegs(data, task, data2, task2, optimizeLeg)
         for j = 1:linkCount+1
             subplot(linkCount+1, legCount, i + (j-1)*legCount);
             hold on
-            plot(data.(task).time(startTimeIndex:startTimeIndex+length(jointPower.(EEselection))-1),  jointPower.(EEselection)(:,j), lineColour, 'LineWidth', LineWidth);
+            p(1) = plot(data.(task).time(startTimeIndex:startTimeIndex+length(jointPower.(EEselection))-1),  jointPower.(EEselection)(:,j), lineColour, 'LineWidth', LineWidth);
             if plotDataSet2    
-                plot(data2.(task2).time(startTimeIndex:startTimeIndex+length(jointTorque2.(EEselection))-1),  jointPower2.(EEselection)(:,j), 'LineWidth', LineWidth,'MarkerFaceColor', faceColourOpt);
-                legend('with interpolated points', 'original points')  
+                p(2) = plot(data2.(task2).time(startTimeIndex:startTimeIndex+length(jointTorque2.(EEselection))-1),  jointPower2.(EEselection)(:,j), 'LineWidth', LineWidth,'MarkerFaceColor', faceColourOpt);
             end
             if optimizeLeg.(EEselection)
-                plot(data.(task).time(startTimeIndex:startTimeIndex+length(jointTorqueOpt.(EEselection))-1),  jointPowerOpt.(EEselection)(:,j), lineColourOpt, 'LineWidth', LineWidth);
-                legend('nominal', 'optimized')
+                p(3) = plot(data.(task).time(startTimeIndex:startTimeIndex+length(jointTorqueOpt.(EEselection))-1),  jointPowerOpt.(EEselection)(:,j), lineColourOpt, 'LineWidth', LineWidth);
             end
             % plot actuator limits on the same plot
-            line([min(xlim),max(xlim)],[data.(task).actuatorProperties.maxPowerLimit.(jointNames(j,:)), data.(task).actuatorProperties.maxPowerLimit.(jointNames(j,:))], 'Color', 'k', 'LineStyle', '--')
+            p(4) = line([min(xlim),max(xlim)],[data.(task).actuatorProperties.maxPowerLimit.(jointNames(j,:)), data.(task).actuatorProperties.maxPowerLimit.(jointNames(j,:))], 'Color', 'k', 'LineStyle', '--');
             grid on
+            
+            if j == 1 % only show legend on HAA subplots
+                if plotDataSet2 
+                    legend([p(1) p(2) p(4)],'nominal data','data set 2', 'actuator limits')
+                elseif optimizeLeg.(EEselection)
+                    legend([p(1) p(3) p(4)],'nominal','optimized', 'actuator limits')
+                else
+                    legend(p(4), 'actuator limits')
+                end
+            end
+            
             xlabel('Time [s]')
             ylabel('P_{mech} [W]')
             xlim(xlimit.time)
@@ -332,7 +354,8 @@ function [] = plotJointDataForAllLegs(data, task, data2, task2, optimizeLeg)
         end
     end
     export_fig results.pdf -nocrop -append
-    
+   
+    %% Joint Energy
     figure('name', 'Joint Energy Consumption', 'DefaultAxesFontSize', 10, 'units','normalized','outerposition',[0 0 1 1])
     set(gcf,'color','w')
     plotTitle = {'E_{mech HAA}','E_{mech HFE}','E_{mech KFE}','E_{mech AFE}','E_{mech DFE}'};

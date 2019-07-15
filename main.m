@@ -31,11 +31,11 @@ heuristic.torqueAngle.kTorsionalSpring = 20; % Spring constant for torsional spr
 %% Toggle trajectory plots and initial design viz
 viewVisualization            = false; % initial leg design tracking trajectory plan
 numberOfStepsVisualized      = 1;     % number of steps visualized for leg motion
-viewPlots.motionData         = true;  % CoM position, speed. EE position and forces.
-viewPlots.rangeOfMotionPlots = true; % range of motion of leg for given link lengths and angle limits
-viewPlots.efficiencyMap      = true; % actuator operating efficiency map
+viewPlots.motionData         = false;  % CoM position, speed. EE position and forces.
+viewPlots.rangeOfMotionPlots = false; % range of motion of leg for given link lengths and angle limits
+viewPlots.efficiencyMap      = false; % actuator operating efficiency map
 viewPlots.jointDataPlot      = true; % angle, speed, torque, power, energy data
-viewPlots.metaParameterPlot  = true; % design parameters and key results plotted as pie charts
+viewPlots.metaParameterPlot  = false; % design parameters and key results plotted as pie charts
 
 %% Select a .mat trajectory data file to be simulated and optimized
 % Select from the below options or import a new data .mat set using the
@@ -80,13 +80,13 @@ optimizeLeg.RH = false;
 
 %% Set optimization properties
 % toggle visualization 
-optimizationProperties.viz.viewVisualization = true;
+optimizationProperties.viz.viewVisualization = false;
 optimizationProperties.viz.numberOfCyclesVisualized = 1;
 optimizationProperties.viz.displayBestCurrentLinkLengths = true; % display chart of current best leg design parameters while running ga
 
 % Set number of generations and population size
-optimizationProperties.options.maxGenerations = 20;
-optimizationProperties.options.populationSize = 20;
+optimizationProperties.options.maxGenerations = 1;
+optimizationProperties.options.populationSize = 4;
 
 % Impose limits on maximum joint torque, speed and power
 % the values are defined in getActuatorProperties. A penalty term is incurred
