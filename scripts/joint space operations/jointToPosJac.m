@@ -1,4 +1,4 @@
-function [J_P, C_0EE, r_H_01, r_H_02, r_H_03, r_H_04, r_H_05, r_H_0EE]  = jointToPosJac(hipAttachmentOffset, linkCount, rotBodyY, q, quadruped, EEselection, hipParalleltoBody)
+function [J_P, C_0EE, r_H_01, r_H_02, r_H_03, r_H_04, r_H_05, r_H_0EE]  = jointToPosJac(hipAttachmentOffset, linkCount, rotBodyY, q, robotProperties, EEselection, hipParalleltoBody)
   % Input: vector of generalized coordinates (joint angles)
   % Output: Jacobian of the end-effector translation which maps joint
   % velocities to end-effector linear velocities in hip attachmemt frame.
@@ -12,11 +12,11 @@ function [J_P, C_0EE, r_H_01, r_H_02, r_H_03, r_H_04, r_H_05, r_H_0EE]  = jointT
   end
     
   % Compute the relative homogeneous transformation matrices.
-  l_hip = quadruped.hip(selectFrontHind).length;
-  l_thigh = quadruped.thigh(selectFrontHind).length;
-  l_shank = quadruped.shank(selectFrontHind).length;
-  l_foot = quadruped.foot(selectFrontHind).length;
-  l_phalanges = quadruped.phalanges(selectFrontHind).length;
+  l_hip = robotProperties.hip(selectFrontHind).length;
+  l_thigh = robotProperties.thigh(selectFrontHind).length;
+  l_shank = robotProperties.shank(selectFrontHind).length;
+  l_foot = robotProperties.foot(selectFrontHind).length;
+  l_phalanges = robotProperties.phalanges(selectFrontHind).length;
 
   
   % Rotation about y in inertial frame to align hip attachment with body

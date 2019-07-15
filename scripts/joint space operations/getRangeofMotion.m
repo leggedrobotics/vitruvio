@@ -2,7 +2,7 @@ function reachablePositions = getRangeofMotion(robotClass, task)
     EEnames   = robotClass.(task).basicProperties.EEnames;
     legCount  = robotClass.(task).basicProperties.legCount;
     linkCount = robotClass.(task).basicProperties.linkCount;
-    stepSize = 0.1;
+    stepSize = 0.2;
     %% Initialize using position of HFE at first time step.
     for i = 1:legCount
         EEselection = EEnames(i,:);

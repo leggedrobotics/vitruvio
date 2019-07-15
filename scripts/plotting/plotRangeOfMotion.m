@@ -8,31 +8,28 @@ reachablePositions = getRangeofMotion(robotClass, task);
 
 %% Plot mean x vs z position with reachable positions
 
-if legCount == 1
-    subplotRows = 1;
+subplotRows = ceil(legCount/2);
+if legCount < 2
     subplotColumns = 1;
-elseif legCount == 2
-    subplotRows = 1;
+else
     subplotColumns = 2;
-elseif legCount > 2
-    subplotRows = 2;
-    subplotColumns = 2;   
 end
 
+figure('units','normalized','outerposition',[0 0 1 1])
+set(gcf,'color','w')
 for i = 1:legCount
     EEselection = EEnames(i,:);
-    figure(7)
     set(gcf,'color','w')
     subplot(subplotRows,subplotColumns,i)
     hold on
     plot(reachablePositions.(EEselection)(:,1),reachablePositions.(EEselection)(:,2), 'color', [0.5843 0.8157 0.9882])
-    plot(robotClass.(task).(EEselection).r.EEdes(:,1), robotClass.(task).(EEselection).r.EEdes(:,3), 'k', 'LineWidth', 2)
+    plot(robotClass.(task).(EEselection).r.EEdes(:,1), robotClass.(task).(EEselection).r.EEdes(:,3), 'k', 'LineWidth', 1)
     plot(0,0,'o')
+    hold off
     axis equal
     xlabel('x position [m]')
     ylabel('z position [m]')
     title(['Range of motion ', EEselection])
-    hold off
 end
 export_fig results.pdf -nocrop -append
 

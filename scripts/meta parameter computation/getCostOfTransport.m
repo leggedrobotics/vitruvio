@@ -1,6 +1,6 @@
-function CoT = getCostOfTransport(Leg, power, quadruped)
+function CoT = getCostOfTransport(Leg, power, robotProperties)
 % CoT = power / m*g*v
-    m = quadruped.mass.total;
+    m = robotProperties.mass.total;
     g = 9.81;
     % mean velocity in x direction
     v = mean(Leg.CoM.velocity(:,1));

@@ -1,7 +1,7 @@
 % Input the raw motion data from the extracted towr bag. Output the
 % relative motion of each end effector with respect to the leg's hip
 % attachment point.
-function [relativeMotionHipEE, IF_hip, C_IBody] = getRelativeMotionEEHips(quat, quadruped, trajectoryData, dt, EEnames, legCount)
+function [relativeMotionHipEE, IF_hip, C_IBody] = getRelativeMotionEEHips(quat, robotProperties, trajectoryData, dt, EEnames, legCount)
 
     %% Calculate hip positions in inertial frame
     % First calculate hip position relative to center of mass from the nominal
@@ -11,7 +11,7 @@ function [relativeMotionHipEE, IF_hip, C_IBody] = getRelativeMotionEEHips(quat, 
         EEselection = EEnames(j,:);
         for i = 1:length(quat)
             C_IBody(:,:,i) = quat2rotm(quat(i,:));  % Body rotation matrix in inertial frame.
-            IF_hip.(EEselection).position(i,:) = quadruped.nomHipPos.(EEselection)*C_IBody(:,:,i) + [trajectoryData.base.position(i,1) trajectoryData.base.position(i,2) trajectoryData.base.position(i,3)];
+            IF_hip.(EEselection).position(i,:) = robotProperties.nomHipPos.(EEselection)*C_IBody(:,:,i) + [trajectoryData.base.position(i,1) trajectoryData.base.position(i,2) trajectoryData.base.position(i,3)];
         end
     end
 

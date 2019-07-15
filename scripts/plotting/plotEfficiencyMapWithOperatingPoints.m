@@ -7,48 +7,47 @@ function [] = plotEfficiencyMapWithOperatingPoints(classSelection, task)
     jointNames        = classSelection.(task).basicProperties.jointNames;
     actuatorSelection = classSelection.(task).actuatorProperties.actuatorSelection;
     
+ %% Read in qdot and torque values for nominal and optimized designs
  for i = 1:legCount
     EEselection = EEnames(i,:);
-
-    %% Optimized qdot and torque values
+    % Optimized qdot and torque values
     if classSelection.(task).basicProperties.optimizedLegs.(EEselection)      
         % Convert qdot and torque values from joint level to motor level.
-        for i = 1:linkCount+1
-            qdotMotorOpt.(EEselection)(:,i)   =  classSelection.(task).(EEselection).qdotOpt(:,i) *gearRatio.(jointNames(i,:));        
-            torqueMotorOpt.(EEselection)(:,i) =  classSelection.(task).(EEselection).jointTorqueOpt(:,i)/gearRatio.(jointNames(i,:));
+        for j = 1:linkCount+1
+            qdotMotorOpt.(EEselection)(:,j)   =  classSelection.(task).(EEselection).qdotOpt(:,j) *gearRatio.(jointNames(j,:));        
+            torqueMotorOpt.(EEselection)(:,j) =  classSelection.(task).(EEselection).jointTorqueOpt(:,j)/gearRatio.(jointNames(j,:));
         end
     end
-
-    %% Nominal qdot and torque values
-    for i = 1:linkCount+1 % joint count = linkCount+1
-        qdotMotor.(EEselection)(:,i)   = classSelection.(task).(EEselection).qdot(:,i)*gearRatio.(jointNames(i,:));        
-        torqueMotor.(EEselection)(:,i) = classSelection.(task).(EEselection).jointTorque(:,i)/gearRatio.(jointNames(i,:));
+    % Nominal qdot and torque values
+    for j = 1:linkCount+1 % joint count = linkCount+1
+        qdotMotor.(EEselection)(:,j)   = classSelection.(task).(EEselection).qdot(:,j)*gearRatio.(jointNames(j,:));        
+        torqueMotor.(EEselection)(:,j) = classSelection.(task).(EEselection).jointTorque(:,j)/gearRatio.(jointNames(j,:));
     end
  end
  
-%% Read in the values for plotting the envelope and efficiency map
+%% Read in the values for plotting the envelope and efficiency map for each actuator and convert to motor level using gear ratio
     for i = 1:linkCount+1
         actuator = actuatorSelection.(jointNames(i,:));
-        qdotEnvelope.(jointNames(i,:))         = classSelection.(task).efficiencyMap.(actuator).qdotEnvelope;
-        torqueEnvelope.(jointNames(i,:))       = classSelection.(task).efficiencyMap.(actuator).torqueEnvelope;  
-        qdotMap.(jointNames(i,:))              = classSelection.(task).efficiencyMap.(actuator).qdot;
-        torqueMap.(jointNames(i,:))            = classSelection.(task).efficiencyMap.(actuator).torque;  
+        qdotEnvelope.(jointNames(i,:))         = classSelection.(task).efficiencyMap.(actuator).qdotEnvelope * gearRatio.(jointNames(i,:));
+        torqueEnvelope.(jointNames(i,:))       = classSelection.(task).efficiencyMap.(actuator).torqueEnvelope / gearRatio.(jointNames(i,:));  
+        qdotMap.(jointNames(i,:))              = classSelection.(task).efficiencyMap.(actuator).qdot * gearRatio.(jointNames(i,:));
+        torqueMap.(jointNames(i,:))            = classSelection.(task).efficiencyMap.(actuator).torque / gearRatio.(jointNames(i,:));  
         efficiencyMapCropped.(jointNames(i,:)) = classSelection.(task).efficiencyMap.(actuator).efficiencyMapCropped;  
-
     end
     
 %     if classSelection.trot.basicProperties.trajectory.averageStepsForCyclicalMotion  % if true, the points are averaged and we can differentiate swing and stance
-        markerType          = 'x';
+        markerType          = 'o';
+        markerWeight = 4;
         markerColorSwing    = 'r';
         labelName1          = 'nominal swing phase';
         
-        markerColorStance   = '[0.5430 0 0]'; % dark red
+        markerColorStance   = 'r'; %'[0.5430 0 0]'; % dark red
         labelName2          = 'nominal stance phase';
         
         markerColorSwingOpt = 'b';
         labelName3          = 'optimized swing phase';
         
-        markerColorStanceOpt = '[0 0 0.5430]'; % dark blue 
+        markerColorStanceOpt = 'b'; % dark blue 
         labelName4           = 'optimized stance phase';        
 
 %     else % leg not optimized but the points are averaged so we have distinct swing and stance phases
@@ -62,42 +61,50 @@ function [] = plotEfficiencyMapWithOperatingPoints(classSelection, task)
 %     end
      
         %% plot
-        figure('name', 'Actuator efficiency map with operating points', 'DefaultAxesFontSize', 10)
-        jointNames = {'HAA'; 'HFE'; 'KFE'; 'AFE'; 'DFE'};
-          for j = 1:legCount
-            EEselection = EEnames(j,:);
-            for i = 1:linkCount+1  
-                subplot(linkCount+1,4, j+4*(i-1))
+        numberOfContours = 10;
+          for i = 1:legCount
+            EEselection = EEnames(i,:);
+            for j = 1:linkCount+1  
+                figure('units', 'normalized','outerposition',[0 0 1 1])
+                set(gcf,'color','w')
                 hold on
-                contourf(qdotMap.(jointNames{i}), torqueMap.(jointNames{i}), efficiencyMapCropped.(jointNames{i}), 10, 'ShowText', 'off', 'LabelSpacing', 800)
-                plot(qdotEnvelope.(jointNames{i}), torqueEnvelope.(jointNames{i}), 'k', 'lineWidth', 2)
-                s1 = scatter(qdotMotor.(EEselection)(:,i),torqueMotor.(EEselection)(:,i), markerType, 'MarkerEdgeColor', markerColorSwing, 'lineWidth', 2, 'DisplayName', labelName1);
-                s2 = scatter(qdotMotor.(EEselection)(:,i),torqueMotor.(EEselection)(:,i), markerType, 'MarkerEdgeColor', markerColorStance, 'lineWidth', 2, 'DisplayName', labelName2);                
+                contourf(qdotMap.(jointNames(j,:)), torqueMap.(jointNames(j,:)), efficiencyMapCropped.(jointNames(j,:)), numberOfContours, 'ShowText', 'on', 'LabelSpacing', 800)
+                plot(qdotEnvelope.(jointNames(j,:)), torqueEnvelope.(jointNames(j,:)), 'k', 'lineWidth', markerWeight)
+                
+                % Mirror plots to quadrant III where power is also positive
+                plot(-qdotEnvelope.(jointNames(j,:)), -torqueEnvelope.(jointNames(j,:)), 'k', 'lineWidth', markerWeight)
+                contourf(-qdotMap.(jointNames(j,:)), -torqueMap.(jointNames(j,:)), efficiencyMapCropped.(jointNames(j,:)), numberOfContours, 'ShowText', 'on', 'LabelSpacing', 800)
+
+                s1 = scatter(qdotMotor.(EEselection)(:,j),torqueMotor.(EEselection)(:,j), 'filled', markerType, markerColorSwing, 'lineWidth', markerWeight, 'DisplayName', labelName1);
+                %s2 = scatter(qdotMotor.(EEselection)(:,j),torqueMotor.(EEselection)(:,j), 'filled', markerType, markerColorStance, 'lineWidth', markerWeight, 'DisplayName', labelName2);                
                
 %                 s1 = scatter(qdotMotor.(EEselection)(1:meanTouchdownIndex.(EEselection)-1,i),torqueMotor.(EEselection)(1:meanTouchdownIndex.(EEselection)-1,i), markerTypeSwing, 'MarkerEdgeColor', markerColorSwing, 'lineWidth', 2, 'DisplayName', labelName1);
 %                 s2 = scatter(qdotMotor.(EEselection)(meanTouchdownIndex.(EEselection):end,i),torqueMotor.(EEselection)(meanTouchdownIndex.(EEselection):end,i), markerTypeStance, 'MarkerEdgeColor', markerColorStance, 'lineWidth', 2, 'DisplayName', labelName2);                
                
                 if classSelection.(task).basicProperties.optimizedLegs.(EEselection)   
-                    s3 = scatter(qdotMotorOpt.(EEselection)(:,i),torqueMotorOpt.(EEselection)(:,i), markerType, 'MarkerEdgeColor', markerColorSwingOpt, 'lineWidth', 2, 'DisplayName', labelName3);
-                    s4 = scatter(qdotMotorOpt.(EEselection)(:,i),torqueMotorOpt.(EEselection)(:,i), markerType, 'MarkerEdgeColor', markerColorStanceOpt, 'lineWidth', 2, 'DisplayName', labelName4);                
+                    s3 = scatter(qdotMotorOpt.(EEselection)(:,j),torqueMotorOpt.(EEselection)(:,j), 'filled', markerType, markerColorSwingOpt, 'lineWidth', markerWeight, 'DisplayName', labelName3);
+                    %s4 = scatter(qdotMotorOpt.(EEselection)(:,j),torqueMotorOpt.(EEselection)(:,j), 'filled', markerType, markerColorStanceOpt, 'lineWidth', markerWeight, 'DisplayName', labelName4);                
                     
 %                     s3 = scatter(qdotMotorOpt.(EEselection)(1:meanTouchdownIndex.(EEselection)-1,i),torqueMotorOpt.(EEselection)(1:meanTouchdownIndex.(EEselection)-1,i), markerTypeSwingOpt, 'MarkerEdgeColor', markerColorSwingOpt, 'lineWidth', 2, 'DisplayName', labelName3);
 %                     s4 = scatter(qdotMotorOpt.(EEselection)(meanTouchdownIndex.(EEselection):end,i),torqueMotorOpt.(EEselection)(meanTouchdownIndex.(EEselection):end,i), markerTypeStanceOpt, 'MarkerEdgeColor', markerColorStanceOpt, 'lineWidth', 2, 'DisplayName', labelName4);                
                 end
                 
-                title(['Efficiency map for ', EEselection, ' ', (jointNames{i})])
+                title(['Efficiency map for ', EEselection, ' ', jointNames(j,:)])
                 xlabel('qdot [rad/s]')
                 ylabel('torque [Nm]')
                 
                 % motion averaged, design optimized 
-                if classSelection.(task).basicProperties.optimizedLegs.(EEselection) 
-                    legend([s1 s2 s3 s4])
-                % motion averaged, design NOT optimized
-                else
-                    legend([s1 s2])
-%                 xlim([-0.1*qdotMap.(jointNames{i})(end), 1.2*qdotMap.(jointNames{i})(end)])
-%                 ylim([-0.1*torqueMap.(jointNames{i})(end), 1.2*torqueMap.(jointNames{i})(end)])
+                if classSelection.(task).basicProperties.optimizedLegs.(EEselection)
+                    legend([s1 s3])
+%                 % motion averaged, design not optimized
+%                 else
+%                     legend([s1 s2])
+                end
+                xlim([-1.1*qdotMap.(jointNames(j,:))(end), 1.1*qdotMap.(jointNames(j,:))(end)])
+                ylim([-1.5*torqueMap.(jointNames(j,:))(end), 1.5*torqueMap.(jointNames(j,:))(end)])
                 hold off
+                export_fig results.pdf -nocrop -append % Append the figure to the results pdf document
+
             end
           end
 end

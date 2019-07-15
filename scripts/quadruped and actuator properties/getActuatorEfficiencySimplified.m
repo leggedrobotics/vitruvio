@@ -4,10 +4,13 @@ function [efficiency, efficiencyMapPlot] = getActuatorEfficiencySimplified(actua
     [torqueMax, qdotMax, mechPowerMax, ~, gearRatio] = getActuatorProperties(actuatorName{1});
     efficiencyMaxMotor = 0.95; % efficiency map scaled such that this is the peak value
     efficiencyMin      = 0.1; % efficiency values below efficiencyMin are set equal to efficiencyMin
-
+    % base speed and torque for normalization of power loss terms
+    qdotBase   = 0.8*qdotMax;
+    torqueBase = 0.8*torqueMax;
+    
     efficiencyLossGearing = 0.05;
     efficiencyMax = efficiencyMaxMotor - efficiencyLossGearing;
-    stepSize = 0.01;
+    stepSize = 0.1;
 
     %% compute torque envelope 
     torqueEnvelope = zeros(length(0:stepSize:qdotMax),1);
@@ -38,29 +41,29 @@ function [efficiency, efficiencyMapPlot] = getActuatorEfficiencySimplified(actua
     end
 
     %% approximate the efficiency map with loss function
-    qdot = (linspace(0, qdotMax, meshDimension))'; % [kr/min]
+    qdot = (linspace(0, qdotMax, meshDimension)); % [kr/min]
     torque = (linspace(0, torqueMax, meshDimension))'; % [Nm]
 
     % loss terms of form k_mn * torque^m * qdot^n
     P_loss00 = 1;
-    P_loss10 = (torque/torqueMax)    .*(ones(1,meshDimension)); 
-    P_loss20 = (torque/torqueMax).^2 .*(ones(1,meshDimension)); 
-    P_loss30 = (torque/torqueMax).^3 .*(ones(1,meshDimension)); 
+    P_loss10 = (torque/torqueBase)    .*(ones(1,meshDimension)); 
+    P_loss20 = (torque/torqueBase).^2 .*(ones(1,meshDimension)); 
+    P_loss30 = (torque/torqueBase).^3 .*(ones(1,meshDimension)); 
 
-    P_loss01 = (qdot/qdotMax)        .* (ones(meshDimension,1));     
-    P_loss11 = (torque/torqueMax)    .* (qdot/qdotMax); 
-    P_loss21 = (torque/torqueMax).^2 .* (qdot/qdotMax); 
-    P_loss31 = (torque/torqueMax).^3 .* (qdot/qdotMax); 
+    P_loss01 = (qdot/qdotBase)        .* (ones(meshDimension,1));     
+    P_loss11 = (torque/torqueBase)    .* (qdot/qdotBase); 
+    P_loss21 = (torque/torqueBase).^2 .* (qdot/qdotBase); 
+    P_loss31 = (torque/torqueBase).^3 .* (qdot/qdotBase); 
     
-    P_loss02 = (qdot/qdotMax).^2     .*(ones(meshDimension,1)); 
-    P_loss12 = (torque/torqueMax)    .* (qdot/qdotMax).^2; 
-    P_loss22 = (torque/torqueMax).^2 .* (qdot/qdotMax).^2; 
-    P_loss32 = (torque/torqueMax).^3 .* (qdot/qdotMax).^2; 
+    P_loss02 = (qdot/qdotBase).^2     .*(ones(meshDimension,1)); 
+    P_loss12 = (torque/torqueBase)    .* (qdot/qdotBase).^2; 
+    P_loss22 = (torque/torqueBase).^2 .* (qdot/qdotBase).^2; 
+    P_loss32 = (torque/torqueBase).^3 .* (qdot/qdotBase).^2; 
     
-    P_loss03 = (qdot/qdotMax).^3     .*(ones(meshDimension,1)); 
-    P_loss13 = (torque/torqueMax)    .* (qdot/qdotMax).^3; 
-    P_loss23 = (torque/torqueMax).^2 .* (qdot/qdotMax).^3; 
-    P_loss33 = (torque/torqueMax).^3 .* (qdot/qdotMax).^3;     
+    P_loss03 = (qdot/qdotBase).^3     .*(ones(meshDimension,1)); 
+    P_loss13 = (torque/torqueBase)    .* (qdot/qdotBase).^3; 
+    P_loss23 = (torque/torqueBase).^2 .* (qdot/qdotBase).^3; 
+    P_loss33 = (torque/torqueBase).^3 .* (qdot/qdotBase).^3;     
 
     k00 = 0.1;
     k10 = 0.1;
@@ -98,16 +101,17 @@ function [efficiency, efficiencyMapPlot] = getActuatorEfficiencySimplified(actua
              k13 * P_loss13 + ...
              k23 * P_loss23 + ...
              k33 * P_loss33;    
-         
-    % normalized power terms efficiency = P/(P+P_loss);     
-    efficiency = (qdot/qdotMax).*(torque/torqueMax) ./ (((qdot/qdotMax).*(torque/torqueMax) + P_loss));
+               
+    % Normalized power terms efficiency = P/(P+P_loss);     
+    efficiency = (qdot/qdotBase).*(torque/torqueBase) ./ ((qdot/qdotBase).*(torque/torqueBase) + P_loss);
 
-    % scale efficiency to the desired maximum efficiency value
+    % Scale efficiency to the desired maximum efficiency value
     efficiency = efficiencyMax*efficiency/max(max(efficiency));
     [torqueOptIndex, qdotOptIndex] = find(efficiency == 0.95);
     optimalOperatingPoint = [qdot(qdotOptIndex), torque(torqueOptIndex)];
 
-    % remove efficiency values beyond the max power limit to make plot clearer
+    % Remove efficiency values beyond the max power limit to make plot
+    % clearer. NaN region is white on contour plot.
     efficiencyMap = efficiency;
     for i = 1:length(qdot)
         for j = 1:length(torque)
@@ -116,6 +120,7 @@ function [efficiency, efficiencyMapPlot] = getActuatorEfficiencySimplified(actua
             end
         end
     end
+    
     % set minimum efficiency
     efficiencyMap(efficiencyMap<efficiencyMin) = efficiencyMin;
 

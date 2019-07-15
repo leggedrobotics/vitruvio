@@ -5,9 +5,9 @@ close all;
 % if averageStepsForCyclicalMotion is true, the motion is segmented into individual steps which are averaged
 % to create an average cycle. This works well when the motion is very cyclical.
 % If false the individual steps are not averaged. This should be selected
-% when the generated motion is irregular.
+% when the generated motion is irregular and highly cyclical.
 dataExtraction.averageStepsForCyclicalMotion = true; 
-dataExtraction.allowableDeviation = 0.04; % [m] Deviation between neighbouring points. If the deviation is larger, additional points are interpolated.
+dataExtraction.allowableDeviation = 0.05; % [m] Deviation between neighbouring points. If the deviation is larger, additional points are interpolated.
 
 %% Toggle leg properties: leg count, link count, configuration, direct/remote joint actuation, spider/serial leg
 legCount = 4;                   % Accepts values from 1 to 4.
@@ -29,17 +29,24 @@ heuristic.torqueAngle.thetaLiftoff_des = pi/2; % Specify desired angle between f
 heuristic.torqueAngle.kTorsionalSpring = 20; % Spring constant for torsional spring at final joint [Nm/rad]
 
 %% Toggle trajectory plots and initial design viz
-viewVisualization            = true; % initial leg design tracking trajectory plan
+viewVisualization            = false; % initial leg design tracking trajectory plan
 numberOfStepsVisualized      = 1;     % number of steps visualized for leg motion
-viewPlots.motionData         = true;
-viewPlots.rangeOfMotionPlots = true;
-viewPlots.efficiencyMap      = false;
+viewPlots.motionData         = true;  % CoM position, speed. EE position and forces.
+viewPlots.rangeOfMotionPlots = false; % range of motion of leg for given link lengths and angle limits
+viewPlots.efficiencyMap      = false; % actuator operating efficiency map
+viewPlots.jointDataPlot      = true; % angle, speed, torque, power, energy data
+viewPlots.metaParameterPlot  = false; % design parameters and key results plotted as pie charts
 
 %% Select a .mat trajectory data file to be simulated and optimized
 % Select from the below options or import a new data .mat set using the
 % importMotionData script
+
+%%% Add your trajectory data file here %%%
+yourTrajectoryData = false;
+%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+
 universalTrot   = false;
-universalStairs = false;
+universalStairs = true;
 speedyStairs    = false;
 speedyGallop    = false;
 massivoWalk     = false;
@@ -47,9 +54,10 @@ massivoStairs   = false;
 centaurWalk     = false;
 centaurStairs   = false;
 miniPronk       = false;
-ANYmalTrot      = true;
+ANYmalTrot      = false;
 ANYmalSlowTrotAccurateMotion = false;
 defaultHopperHop = false;
+ANYmalSlowTrot2  = false;
 
 numberOfRepetitions = 0; % Number of times that leg is reoptimized. This allows for an easy check if the same optimal solution is found each time the optimization is run.
 
@@ -67,38 +75,39 @@ runOptimization = true;
 % select which legs are to be optimized
 optimizeLeg.LF = true; 
 optimizeLeg.RF = false; 
-optimizeLeg.LH = true; 
+optimizeLeg.LH = false; 
 optimizeLeg.RH = false;
 
 %% Set optimization properties
 % toggle visualization 
-optimizationProperties.viz.viewVisualization = true;
+optimizationProperties.viz.viewVisualization = false;
 optimizationProperties.viz.numberOfCyclesVisualized = 1;
 optimizationProperties.viz.displayBestCurrentLinkLengths = true; % display chart of current best leg design parameters while running ga
 
 % Set number of generations and population size
-optimizationProperties.options.maxGenerations = 25;
-optimizationProperties.options.populationSize = 25;
+optimizationProperties.options.maxGenerations = 10;
+optimizationProperties.options.populationSize = 10;
 
 % Impose limits on maximum joint torque, speed and power
 % the values are defined in getActuatorProperties. A penalty term is incurred
 % for violations of these limits.
-imposeJointLimits.maxTorque = false;
-imposeJointLimits.maxqdot   = false;
-imposeJointLimits.maxPower  = false;
+imposeJointLimits.maxTorque = true;
+imposeJointLimits.maxqdot   = true;
+imposeJointLimits.maxPower  = true;
 
-% Set weights for fitness function terms
+% Set weights for fitness function terms. Total means summed over all
+% joints in the leg.
 optimizationProperties.penaltyWeight.totalSwingTorque  = 0;
 optimizationProperties.penaltyWeight.totalStanceTorque = 0;
-optimizationProperties.penaltyWeight.totalTorque       = 1;
+optimizationProperties.penaltyWeight.totalTorque       = 0;
 optimizationProperties.penaltyWeight.totalTorqueHFE    = 0;
 optimizationProperties.penaltyWeight.swingTorqueHFE    = 0;
 optimizationProperties.penaltyWeight.totalqdot         = 0;
 optimizationProperties.penaltyWeight.totalPower        = 0;     % only considers power terms > 0
 optimizationProperties.penaltyWeight.totalMechEnergy   = 0;
 optimizationProperties.penaltyWeight.totalElecEnergy   = 0;
-optimizationProperties.penaltyWeight.averageEfficiency = 0;
-optimizationProperties.penaltyWeight.maxTorque         = 0;
+optimizationProperties.penaltyWeight.averageEfficiency = 0;     % Maximizes average efficiency (even though this could increase overall energy use)
+optimizationProperties.penaltyWeight.maxTorque         = 1;
 optimizationProperties.penaltyWeight.maxqdot           = 0;
 optimizationProperties.penaltyWeight.maxPower          = 0;     % only considers power terms > 0
 optimizationProperties.penaltyWeight.antagonisticPower = 0;     % seeks to minimize antagonistic power which improves power quality
@@ -107,7 +116,7 @@ optimizationProperties.allowableExtension              = 0.9;   % [0 1] penalize
 
 % Set bounds for link lengths as multipliers of initial values
 if linkCount == 2
-    optimizationProperties.bounds.upperBoundMultiplier = [2,   0.4,   0.5,  2]; % [hip thigh shank hipAttachmentOffset]
+    optimizationProperties.bounds.upperBoundMultiplier = [2,   0.5,   0.5,  2]; % [hip thigh shank hipAttachmentOffset]
     optimizationProperties.bounds.lowerBoundMultiplier = [0.5,  2,  2,  0.5]; % [hip thigh shank hipAttachmentOffset]
 end
 if linkCount == 3
@@ -118,11 +127,6 @@ if linkCount == 4
     optimizationProperties.bounds.upperBoundMultiplier = [1, 1.2, 1.2, 1, 1, -1]; % [hip thigh shank foot phalanges hipAttachmentOffset]
     optimizationProperties.bounds.lowerBoundMultiplier = [1, 0.8, 0.8, 1, 1, 1]; % [hip thigh shank foot phalanges hipAttachmentOffset]
 end
-
-% Select the plots which are to be created
-viewPlots.optimization.jointDataPlot     = true;
-viewPlots.optimization.metaParameterPlot = true;
-viewPlots.optimization.efficiencyMap     = false;
 
 %% run the simulation
 if ~runOptimization % if optimization turned off, set values to zero.

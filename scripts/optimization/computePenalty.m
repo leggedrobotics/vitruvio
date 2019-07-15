@@ -2,7 +2,7 @@
 % lengths back to m to run the simulation and obtain results with base
 % units.
 
-function penalty = computePenalty(actuatorProperties, imposeJointLimits, heuristic, legDesignParameters, actuateJointsDirectly, linkCount, optimizationProperties, quadruped, selectFrontHind, taskSelection, dt, configSelection, EEselection, meanCyclicMotionHipEE, hipParalleltoBody, Leg, actuatorEfficiency, actuatorSelection, dataExtraction)
+function penalty = computePenalty(actuatorProperties, imposeJointLimits, heuristic, legDesignParameters, actuateJointsDirectly, linkCount, optimizationProperties, robotProperties, selectFrontHind, taskSelection, dt, configSelection, EEselection, meanCyclicMotionHipEE, hipParalleltoBody, Leg, actuatorEfficiency, actuatorSelection, dataExtraction)
 jointNames = ['HAA'; 'HFE'; 'KFE'; 'DFE'; 'AFE'];
 
 kTorsionalSpring = heuristic.torqueAngle.kTorsionalSpring;
@@ -11,46 +11,46 @@ linkLengths = legDesignParameters(1:linkCount+1)/100;
 hipAttachmentOffset = legDesignParameters(linkCount+2)/100;
 tempLeg.base = Leg.base;
 % Update quadruped properties with newly computed leg design parameters, unit in meters
-quadruped.hip(selectFrontHind).length = linkLengths(1);
-quadruped.thigh(selectFrontHind).length = linkLengths(2);
-quadruped.shank(selectFrontHind).length = linkLengths(3);
+robotProperties.hip(selectFrontHind).length = linkLengths(1);
+robotProperties.thigh(selectFrontHind).length = linkLengths(2);
+robotProperties.shank(selectFrontHind).length = linkLengths(3);
 if (linkCount == 3) || (linkCount == 4)
-    quadruped.foot(selectFrontHind).length = linkLengths(4);
+    robotProperties.foot(selectFrontHind).length = linkLengths(4);
 end
 if linkCount == 4
-    quadruped.phalanges(selectFrontHind).length = linkLengths(5);
+    robotProperties.phalanges(selectFrontHind).length = linkLengths(5);
 end
 
 % Update link mass with assumption of constant density cylinder
-quadruped.hip(selectFrontHind).mass = quadruped.legDensity * pi*(quadruped.hip(selectFrontHind).radius)^2   * linkLengths(1);
-quadruped.thigh(selectFrontHind).mass = quadruped.legDensity * pi*(quadruped.thigh(selectFrontHind).radius)^2 * linkLengths(2);
-quadruped.shank(selectFrontHind).mass = quadruped.legDensity * pi*(quadruped.shank(selectFrontHind).radius)^2 * linkLengths(3);
+robotProperties.hip(selectFrontHind).mass = robotProperties.legDensity * pi*(robotProperties.hip(selectFrontHind).radius)^2   * linkLengths(1);
+robotProperties.thigh(selectFrontHind).mass = robotProperties.legDensity * pi*(robotProperties.thigh(selectFrontHind).radius)^2 * linkLengths(2);
+robotProperties.shank(selectFrontHind).mass = robotProperties.legDensity * pi*(robotProperties.shank(selectFrontHind).radius)^2 * linkLengths(3);
 if (linkCount == 3) || (linkCount == 4)
-    quadruped.foot(selectFrontHind).mass = quadruped.legDensity * pi*(quadruped.foot(selectFrontHind).radius)^2 * linkLengths(4);
+    robotProperties.foot(selectFrontHind).mass = robotProperties.legDensity * pi*(robotProperties.foot(selectFrontHind).radius)^2 * linkLengths(4);
 end
 if linkCount == 4
-    quadruped.phalanges(selectFrontHind).mass = quadruped.legDensity * pi*(quadruped.phalanges(selectFrontHind).radius)^2 * linkLengths(5);
+    robotProperties.phalanges(selectFrontHind).mass = robotProperties.legDensity * pi*(robotProperties.phalanges(selectFrontHind).radius)^2 * linkLengths(5);
 end
 
 %% qAFE, qDFE torque based heuristic computation
 if (heuristic.torqueAngle.apply == true) && (linkCount > 2)
-    [qLiftoff.(EEselection)] = computeqLiftoffFinalJoint(heuristic, hipAttachmentOffset, linkCount, meanCyclicMotionHipEE, quadruped, EEselection, configSelection, hipParalleltoBody);
+    [qLiftoff.(EEselection)] = computeqLiftoffFinalJoint(heuristic, hipAttachmentOffset, linkCount, meanCyclicMotionHipEE, robotProperties, EEselection, configSelection, hipParalleltoBody);
     EE_force = Leg.(EEselection).force(1,1:3);
     rotBodyY = -meanCyclicMotionHipEE.body.eulerAngles.(EEselection)(1,2); % rotation of body about inertial y
     qPrevious = qLiftoff.(EEselection);
-    [springTorque.(EEselection), springDeformation.(EEselection)] = computeFinalJointDeformation(heuristic, qPrevious, EE_force, hipAttachmentOffset, linkCount, rotBodyY, quadruped, EEselection, hipParalleltoBody);      
+    [springTorque.(EEselection), springDeformation.(EEselection)] = computeFinalJointDeformation(heuristic, qPrevious, EE_force, hipAttachmentOffset, linkCount, rotBodyY, robotProperties, EEselection, hipParalleltoBody);      
 else
     qLiftoff.(EEselection) = 0; % if the heuristic does not apply
 end
 
 %% inverse kinematics
-[tempLeg.(EEselection).q, tempLeg.(EEselection).r.HAA, tempLeg.(EEselection).r.HFE, tempLeg.(EEselection).r.KFE, tempLeg.(EEselection).r.AFE, tempLeg.(EEselection).r.DFE, tempLeg.(EEselection).r.EE] = inverseKinematics(heuristic, qLiftoff, hipAttachmentOffset, linkCount, meanCyclicMotionHipEE, quadruped, EEselection, taskSelection, configSelection, hipParalleltoBody);
+[tempLeg.(EEselection).q, tempLeg.(EEselection).r.HAA, tempLeg.(EEselection).r.HFE, tempLeg.(EEselection).r.KFE, tempLeg.(EEselection).r.AFE, tempLeg.(EEselection).r.DFE, tempLeg.(EEselection).r.EE] = inverseKinematics(heuristic, qLiftoff, hipAttachmentOffset, linkCount, meanCyclicMotionHipEE, robotProperties, EEselection, taskSelection, configSelection, hipParalleltoBody);
 
 %% Build robot model with joint angles from inverse kinematics tempLeg
 numberOfLoopRepetitions = 1;
 viewVisualization = 0;
 optimized = true;
-tempLeg.(EEselection).rigidBodyModel = buildRobotRigidBodyModel(actuatorProperties, actuateJointsDirectly, hipAttachmentOffset, linkCount, quadruped, tempLeg, meanCyclicMotionHipEE, EEselection, numberOfLoopRepetitions, viewVisualization, hipParalleltoBody, dataExtraction, optimized);
+tempLeg.(EEselection).rigidBodyModel = buildRobotRigidBodyModel(actuatorProperties, actuateJointsDirectly, hipAttachmentOffset, linkCount, robotProperties, tempLeg, meanCyclicMotionHipEE, EEselection, numberOfLoopRepetitions, viewVisualization, hipParalleltoBody, dataExtraction, optimized);
 
 %% Get joint velocities and accelerations with finite differences
 [tempLeg.(EEselection).qdot, tempLeg.(EEselection).qdotdot] = getJointVelocitiesUsingFiniteDifference(EEselection, tempLeg, dt);

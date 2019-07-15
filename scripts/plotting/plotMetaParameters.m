@@ -28,7 +28,7 @@ for i = 1:legCount
         valueLabelsOpt = string(data.(task).(EEselection).linkLengthsOpt);
         
         figureName = 'Optimized link lengths' + " " + EEselection;
-        figure('name', figureName, 'DefaultAxesFontSize', 10)
+        figure('name', figureName, 'DefaultAxesFontSize', 10, 'units','normalized','outerposition',[0 0 1 1])
         set(gcf,'color','w')
         ax1 = subplot(1,2,1);
         pie(ax1, 100*data.(task).(EEselection).linkLengths, valueLabels) % multiply values by 100 to avoid having a partial pie plot
@@ -56,7 +56,7 @@ for i = 1:legCount
         valueLabelsOpt = string(round(data.(task).metaParameters.jointTorqueMaxOpt.(EEselection)));
         
         figureName = 'Peak joint torques' + " " + EEselection;
-        figure('name', figureName, 'DefaultAxesFontSize', 10)
+        figure('name', figureName, 'DefaultAxesFontSize', 10, 'units','normalized','outerposition',[0 0 1 1])
         set(gcf,'color','w')        
         ax1 = subplot(1,2,1);
         pie(ax1, data.(task).metaParameters.jointTorqueMax.(EEselection), valueLabels)
@@ -80,7 +80,7 @@ for i = 1:legCount
        
         % Mechanical energy demand        
         figureName = 'Mechanical energy' + " " + EEselection;
-        figure('name', figureName, 'DefaultAxesFontSize', 10)
+        figure('name', figureName, 'DefaultAxesFontSize', 10, 'units','normalized','outerposition',[0 0 1 1])
         set(gcf,'color','w')        
 
         ax1 = subplot(1,2,1);
@@ -98,7 +98,7 @@ for i = 1:legCount
  
         % Electrical energy demand
         figureName = 'Electrical demand' + " " + EEselection;
-        figure('name', figureName, 'DefaultAxesFontSize', 10)
+        figure('name', figureName, 'DefaultAxesFontSize', 10, 'units','normalized','outerposition',[0 0 1 1])
         set(gcf,'color','w')    
 
         ax1 = subplot(1,2,1);

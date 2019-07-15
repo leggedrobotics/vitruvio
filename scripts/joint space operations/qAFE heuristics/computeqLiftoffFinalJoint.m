@@ -1,4 +1,4 @@
-function qLiftoff = computeqLiftoffFinalJoint(heuristic, hipAttachmentOffset, linkCount, meanCyclicMotionHipEE, quadruped, EEselection, configSelection, hipParalleltoBody)
+function qLiftoff = computeqLiftoffFinalJoint(heuristic, hipAttachmentOffset, linkCount, meanCyclicMotionHipEE, robotProperties, EEselection, configSelection, hipParalleltoBody)
  % Using inverse kinematics, solve the angle of all joints for the first timestep such that the angle between the final link and the ground at liftoff is as desired. 
  %% Setup
   tol = 0.0001;
@@ -8,16 +8,16 @@ function qLiftoff = computeqLiftoffFinalJoint(heuristic, hipAttachmentOffset, li
   % get length of the final link, either foot or phalanges.
   if linkCount == 3
       if strcmp(EEselection,'LF') || strcmp(EEselection, 'RF')
-        finalLinkLength = quadruped.foot(1).length;
+        finalLinkLength = robotProperties.foot(1).length;
       else
-        finalLinkLength = quadruped.foot(2).length; 
+        finalLinkLength = robotProperties.foot(2).length; 
       end
   end
   if linkCount == 4
       if strcmp(EEselection,'LF') || strcmp(EEselection, 'RF')
-        finalLinkLength = quadruped.phalanges(1).length;
+        finalLinkLength = robotProperties.phalanges(1).length;
       else
-        finalLinkLength = quadruped.phalanges(2).length ;
+        finalLinkLength = robotProperties.phalanges(2).length ;
       end
   end
 
@@ -42,7 +42,7 @@ function qLiftoff = computeqLiftoffFinalJoint(heuristic, hipAttachmentOffset, li
  
   lambda = 0.001; % damping factor -> values below lambda are set to zero in matrix inversion
   % Initialize error
-  [~, ~, ~, ~, ~, r_H_04, r_H_05, r_H_0EE] = jointToPosJac(hipAttachmentOffset, linkCount, rotBodyY, q, quadruped, EEselection, hipParalleltoBody);
+  [~, ~, ~, ~, ~, r_H_04, r_H_05, r_H_0EE] = jointToPosJac(hipAttachmentOffset, linkCount, rotBodyY, q, robotProperties, EEselection, hipParalleltoBody);
   
   if linkCount == 3 
       r_H_0finalJoint = r_H_04;
@@ -61,7 +61,7 @@ function qLiftoff = computeqLiftoffFinalJoint(heuristic, hipAttachmentOffset, li
         q(4,1) = -q(3,1);
     end         
   while (norm(dr)>tol && it < max_it)
-     [J_P, ~, ~, ~, ~, r_H_04, r_H_05, r_H_0EE] = jointToPosJac(hipAttachmentOffset, linkCount, rotBodyY, q, quadruped, EEselection, hipParalleltoBody);
+     [J_P, ~, ~, ~, ~, r_H_04, r_H_05, r_H_0EE] = jointToPosJac(hipAttachmentOffset, linkCount, rotBodyY, q, robotProperties, EEselection, hipParalleltoBody);
      dr = r_H_0finalJoint_des' -  r_H_0finalJoint;
      dq = pinv(J_P, lambda)*dr;
      q = q + k*dq;
@@ -85,7 +85,7 @@ function qLiftoff = computeqLiftoffFinalJoint(heuristic, hipAttachmentOffset, li
  max_it = 2*pi/updateStepSize;
  tol = 0.002;
  while (norm(drEE)>tol && it < max_it)
-    [~, ~, ~, ~, ~, ~, ~, r_H_0EE] = jointToPosJac(hipAttachmentOffset, linkCount, rotBodyY, q, quadruped, EEselection, hipParalleltoBody);
+    [~, ~, ~, ~, ~, ~, ~, r_H_0EE] = jointToPosJac(hipAttachmentOffset, linkCount, rotBodyY, q, robotProperties, EEselection, hipParalleltoBody);
      drEE = r_H_0EE_des' - r_H_0EE;
      % incrementally change final joint angle until error within
      % tolerance

@@ -2,9 +2,19 @@ function [maxTorqueLimit, maxqdotLimit, maxPowerLimit, actuatorMass, gearRatio] 
 % returns the actuator torque, speed, power limits and mass for the
 % actuator present in each joint
 
+%%% Add your actuator properties here %%%
+    if isequal(actuatorName,'yourActuator')
+        maxTorqueLimit = 10;  % [Nm]   
+        maxqdotLimit   = 10;  % [rad/s] 
+        maxPowerLimit  = 100;  % [W]   
+        actuatorMass   = 1;  % [kg]
+        gearRatio      = 10;
+    end
+%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%    
+    
     if isequal(actuatorName,'ANYdrive')
-        maxTorqueLimit =  40;  % [Nm]   
-        maxqdotLimit   =  12;  % [rad/s] 
+        maxTorqueLimit = 40;  % [Nm]   
+        maxqdotLimit   = 12;  % [rad/s] 
         maxPowerLimit  = 240;  % [W]   
         actuatorMass   = 1.09;  % [kg]
         gearRatio      = 50;
@@ -28,7 +38,7 @@ function [maxTorqueLimit, maxqdotLimit, maxPowerLimit, actuatorMass, gearRatio] 
     
     if isequal(actuatorName,'other')
         maxTorqueLimit = 40;  % [Nm]     
-        maxqdotLimit   =  12; % [rad/s] 
+        maxqdotLimit   = 12; % [rad/s] 
         maxPowerLimit  = 240; % [W] 
         actuatorMass   = 4.5; % [kg]
         gearRatio      = 50;        

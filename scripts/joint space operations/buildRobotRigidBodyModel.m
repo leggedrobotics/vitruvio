@@ -347,7 +347,7 @@ function robot = buildRobotRigidBodyModel(actuatorProperties, actuateJointsDirec
         groundCoordinatesY = [0.2 -0.2 -0.2 0.2] + meanCyclicMotionHipEE.(EEselection).position(:,2);
         groundCoordinatesZ = -Leg.base.position.(EEselection)(:,3)*[1 1 1 1] - quadruped.nomHipPos.(EEselection)(3);
 
-        figure(1); 
+        f1 = figure('units','normalized','outerposition',[0 0 1 1]); 
         set(gcf,'color','w')
         for j = 1: numberOfStepsVisualized
             for i = 1:finalPlottingIndex
@@ -355,7 +355,7 @@ function robot = buildRobotRigidBodyModel(actuatorProperties, actuateJointsDirec
                 xlim([-0.75 0.75]);
                 ylim([-0.5 0.5]);
                 zlim([-1 0.4]);
-                figure(1);
+                figure(f1);
 
                 % Leg visualization
                 show(robot,config(i,:));

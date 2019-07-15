@@ -82,15 +82,18 @@ end
 
 for i = 1:legCount
     EEselection = EEnames(i,:);
-    offsetFromLiftoffPosition.(EEselection) = meanCyclicMotionHipEE.(EEselection).position(1,:) - meanCyclicMotionHipEE.(EEselection).position(:,:);
+    % vector from current position to position at first timestep
+    offsetFromLiftoffPosition.(EEselection) = meanCyclicMotionHipEE.(EEselection).position(1,:) - meanCyclicMotionHipEE.(EEselection).position;
    
     for j = 1:length(meanCyclicMotionHipEE.(EEselection).position)
+        % Euclidean norm of the distance from first position at each
+        % timestep
         offsetMagnitude(j,1) = norm(offsetFromLiftoffPosition.(EEselection)(j,:));
     end
-    % only look at the offset data for the second half of the motion to
+    % Look for the minimum offset to the first position. Only look at the offset data for the second half of the motion to
     % avoid finding the minimum offset as the point at liftoff+1.
     for j = 1:round(0.5*length(meanCyclicMotionHipEE.(EEselection).position))
-        offsetMagnitude(j,1) = 1; % forces the min offset to be found in the second half of the motion
+        offsetMagnitude(j,1) = 1; % Force the min offset to be found in the second half of the motion by setting the offset in the first half to be arbitrarily large.
     end
         [minValue.(EEselection), indexMin.(EEselection)] = min(offsetMagnitude); 
         indexMin.(EEselection) = indexMin.(EEselection) - 1; % save data up to point before liftoff so we can complete the loop exactly with the first liftoff position

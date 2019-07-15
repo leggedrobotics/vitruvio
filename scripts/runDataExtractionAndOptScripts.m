@@ -1,7 +1,7 @@
 function Leg = runDataExtractionAndOptScripts(actuatorSelection, dataExtraction, imposeJointLimits, heuristic, actuateJointsDirectly, viewVisualization, numberOfStepsVisualized, linkCount, runOptimization, optimizeLeg, optimizationProperties, dataSelection, classSelection, configSelection, hipParalleltoBody, legCount, task)
 
 %% Display selections
-fprintf('Quadruped class: %s.\n', classSelection);
+fprintf('Robot class: %s.\n', classSelection);
 fprintf('Task: %s.\n', task);
 fprintf('Actuator HAA: %s.\n', actuatorSelection.HAA);
 fprintf('Actuator HFE: %s.\n', actuatorSelection.HFE);
@@ -43,10 +43,9 @@ end
 % Get suggested removal ratio for cropping motion data to useful steady state motion
 [removalRatioStart, removalRatioEnd] = getSuggestedRemovalRatios(dataSelection);
 
-%% Load corresponding robot parameters
-% quadruped properties
+%% Load corresponding robot properties
 fprintf('Loading quadruped properties for %s.\n', classSelection);
-quadruped = getQuadrupedProperties(classSelection, linkCount);
+robotProperties = getRobotProperties(classSelection);
 
 %actuator properties
 fprintf('Loading actuator properties');
@@ -63,15 +62,15 @@ for i = 1:legCount
     EEselection = EEnames(i,:);
     
     % Read in joint angle limits.
-    Leg.(EEselection).qLimits.min = [quadruped.q1.minAngle, quadruped.q2.minAngle, quadruped.q3.minAngle];
-    Leg.(EEselection).qLimits.max = [quadruped.q1.maxAngle, quadruped.q2.maxAngle, quadruped.q3.maxAngle];
+    Leg.(EEselection).qLimits.min = [robotProperties.q1.minAngle, robotProperties.q2.minAngle, robotProperties.q3.minAngle];
+    Leg.(EEselection).qLimits.max = [robotProperties.q1.maxAngle, robotProperties.q2.maxAngle, robotProperties.q3.maxAngle];
     if linkCount > 2
-        Leg.(EEselection).qLimits.min = [Leg.(EEselection).qLimits.min, quadruped.q4.minAngle];
-        Leg.(EEselection).qLimits.max = [Leg.(EEselection).qLimits.max, quadruped.q4.maxAngle];
+        Leg.(EEselection).qLimits.min = [Leg.(EEselection).qLimits.min, robotProperties.q4.minAngle];
+        Leg.(EEselection).qLimits.max = [Leg.(EEselection).qLimits.max, robotProperties.q4.maxAngle];
     end
     if linkCount > 3
-        Leg.(EEselection).qLimits.min = [Leg.(EEselection).qLimits.min, quadruped.q5.minAngle];
-        Leg.(EEselection).qLimits.max = [Leg.(EEselection).qLimits.max, quadruped.q5.maxAngle];       
+        Leg.(EEselection).qLimits.min = [Leg.(EEselection).qLimits.min, robotProperties.q5.minAngle];
+        Leg.(EEselection).qLimits.max = [Leg.(EEselection).qLimits.max, robotProperties.q5.maxAngle];       
     end
     
     % Read in link lengths
@@ -81,7 +80,7 @@ for i = 1:legCount
          selectFrontHind = 2;
      end
      for j = 1:linkCount+1
-        Leg.(EEselection).linkLengths(1,j) = quadruped.(linkNames{j})(selectFrontHind).length;
+        Leg.(EEselection).linkLengths(1,j) = robotProperties.(linkNames{j})(selectFrontHind).length;
     end
 end
 
@@ -99,9 +98,9 @@ Leg.basicProperties.trajectory.averageStepsForCyclicalMotion = dataExtraction.av
 for i = 1:legCount
     EEselection = EEnames(i,:);
     if strcmp(EEselection,'LF') || strcmp(EEselection,'RF')
-        Leg.(EEselection).hipAttachmentOffset = -quadruped.hipOffset(1);
+        Leg.(EEselection).hipAttachmentOffset = -robotProperties.hipOffset(1);
     elseif strcmp(EEselection,'LH') || strcmp(EEselection,'RH')
-        Leg.(EEselection).hipAttachmentOffset = quadruped.hipOffset(2);
+        Leg.(EEselection).hipAttachmentOffset = robotProperties.hipOffset(2);
     end
 end
 
@@ -122,7 +121,7 @@ Leg.optimizationProperties.allowableExtension = optimizationProperties.allowable
 
 %% Get the relative motion of the end effectors to the hips
 fprintf('Computing motion of end effectors relative to hip attachment points. \n');
-[relativeMotionHipEE, IF_hip, C_IBody] = getRelativeMotionEEHips(quat, quadruped, trajectoryData, dt, EEnames, legCount);
+[relativeMotionHipEE, IF_hip, C_IBody] = getRelativeMotionEEHips(quat, robotProperties, trajectoryData, dt, EEnames, legCount);
 
 %% Get deviation from neighbouring point
 setOfNeighbouringPointDeviationMax = [];
@@ -224,7 +223,7 @@ if (heuristic.torqueAngle.apply == true) && (linkCount > 2)
     for i = 1:legCount
         EEselection = EEnames(i,:);
         % Use inverse kinematics to solve joint angles for first time step.
-        [qLiftoff.(EEselection)] = computeqLiftoffFinalJoint(heuristic, Leg.(EEselection).hipAttachmentOffset, linkCount, meanCyclicMotionHipEE, quadruped, EEselection, configSelection, hipParalleltoBody);
+        [qLiftoff.(EEselection)] = computeqLiftoffFinalJoint(heuristic, Leg.(EEselection).hipAttachmentOffset, linkCount, meanCyclicMotionHipEE, robotProperties, EEselection, configSelection, hipParalleltoBody);
         EE_force = Leg.(EEselection).force(1,1:3);
         rotBodyY = -meanCyclicMotionHipEE.body.eulerAngles.(EEselection)(1,2); % rotation of body about inertial y
         qPrevious = qLiftoff.(EEselection);
@@ -237,7 +236,7 @@ end
 fprintf('Computing joint angles using inverse kinematics.\n');
 for i = 1:legCount
     EEselection = EEnames(i,:);
-    [Leg.(EEselection).q, Leg.(EEselection).r.HAA, Leg.(EEselection).r.HFE, Leg.(EEselection).r.KFE, Leg.(EEselection).r.AFE, Leg.(EEselection).r.DFE, Leg.(EEselection).r.EE]  = inverseKinematics(heuristic, qLiftoff, Leg.(EEselection).hipAttachmentOffset, linkCount, meanCyclicMotionHipEE, quadruped, EEselection, dataSelection, configSelection, hipParalleltoBody);
+    [Leg.(EEselection).q, Leg.(EEselection).r.HAA, Leg.(EEselection).r.HFE, Leg.(EEselection).r.KFE, Leg.(EEselection).r.AFE, Leg.(EEselection).r.DFE, Leg.(EEselection).r.EE]  = inverseKinematics(heuristic, qLiftoff, Leg.(EEselection).hipAttachmentOffset, linkCount, meanCyclicMotionHipEE, robotProperties, EEselection, dataSelection, configSelection, hipParalleltoBody);
      Leg.(EEselection).r.EEdes = meanCyclicMotionHipEE.(EEselection).position(1:end,:); % save desired EE position in the same struct for easy comparison
 end
 
@@ -246,7 +245,7 @@ fprintf('Creating and visualizing robot rigid body model. \n');
 optimized = false; % For title of figure, differentiate between nominal and optimized leg.
 for i = 1:legCount
     EEselection = EEnames(i,:);
-    Leg.(EEselection).rigidBodyModel = buildRobotRigidBodyModel(actuatorProperties, actuateJointsDirectly, Leg.(EEselection).hipAttachmentOffset, linkCount, quadruped, Leg, meanCyclicMotionHipEE, EEselection, numberOfStepsVisualized, viewVisualization, hipParalleltoBody, dataExtraction, optimized);
+    Leg.(EEselection).rigidBodyModel = buildRobotRigidBodyModel(actuatorProperties, actuateJointsDirectly, Leg.(EEselection).hipAttachmentOffset, linkCount, robotProperties, Leg, meanCyclicMotionHipEE, EEselection, numberOfStepsVisualized, viewVisualization, hipParalleltoBody, dataExtraction, optimized);
 end
 
 %% Get joint velocities with finite differences
@@ -301,7 +300,7 @@ for i = 1:legCount
    
     % cost of transport
     power = Leg.(EEselection).jointPower;
-    Leg.metaParameters.CoT.(EEselection) = getCostOfTransport(Leg, power, quadruped);
+    Leg.metaParameters.CoT.(EEselection) = getCostOfTransport(Leg, power, robotProperties);
    
     % add contribution of each leg to get the total CoT
     Leg.metaParameters.CoT.total = Leg.metaParameters.CoT.total + Leg.metaParameters.CoT.(EEselection); 
@@ -347,10 +346,10 @@ if runOptimization % master toggle in main
         if optimizeLeg.(EEselection) % toggle in main to select legs for optimization
             fprintf('\nInitiating optimization of link lengths for %s\n', EEselection);
              % evolve leg and return joint data of optimized design
-            [Leg.(EEselection).jointTorqueOpt, Leg.(EEselection).qOpt, Leg.(EEselection).qdotOpt, Leg.(EEselection).qdotdotOpt, Leg.(EEselection).rOpt,  Leg.(EEselection).jointPowerOpt, Leg.(EEselection).linkLengthsOpt, Leg.(EEselection).hipOffsetOpt, Leg.(EEselection).penaltyMinOpt, Leg.metaParameters.elapsedTime.(EEselection), Leg.metaParameters.elapsedTimePerFuncEval.(EEselection), Leg.optimizationProperties.gaSettings.(EEselection), Leg.(EEselection).linkMassOpt, Leg.(EEselection).totalLinkMassOpt, Leg.metaParameters.deltaqMaxOpt.(EEselection), Leg.metaParameters.qdotMaxOpt.(EEselection), Leg.metaParameters.jointTorqueMaxOpt.(EEselection), Leg.metaParameters.jointPowerMaxOpt.(EEselection), Leg.(EEselection).mechEnergyOpt, Leg.metaParameters.mechEnergyPerCycleOpt.(EEselection), Leg.metaParameters.mechEnergyPerCycleTotalOpt.(EEselection), Leg.(EEselection).elecEnergyOpt, Leg.metaParameters.elecEnergyPerCycleOpt.(EEselection), Leg.metaParameters.elecEnergyPerCycleTotalOpt.(EEselection)] = evolveAndVisualizeOptimalLeg(actuatorProperties, imposeJointLimits, heuristic, actuateJointsDirectly, Leg.(EEselection).hipAttachmentOffset, linkCount, optimizationProperties, EEselection, meanCyclicMotionHipEE, quadruped, configSelection, dt, dataSelection, hipParalleltoBody, Leg, actuatorEfficiency, actuatorSelection, dataExtraction);
+            [Leg.(EEselection).jointTorqueOpt, Leg.(EEselection).qOpt, Leg.(EEselection).qdotOpt, Leg.(EEselection).qdotdotOpt, Leg.(EEselection).rOpt,  Leg.(EEselection).jointPowerOpt, Leg.(EEselection).linkLengthsOpt, Leg.(EEselection).hipOffsetOpt, Leg.(EEselection).penaltyMinOpt, Leg.metaParameters.elapsedTime.(EEselection), Leg.metaParameters.elapsedTimePerFuncEval.(EEselection), Leg.optimizationProperties.gaSettings.(EEselection), Leg.(EEselection).linkMassOpt, Leg.(EEselection).totalLinkMassOpt, Leg.metaParameters.deltaqMaxOpt.(EEselection), Leg.metaParameters.qdotMaxOpt.(EEselection), Leg.metaParameters.jointTorqueMaxOpt.(EEselection), Leg.metaParameters.jointPowerMaxOpt.(EEselection), Leg.(EEselection).mechEnergyOpt, Leg.metaParameters.mechEnergyPerCycleOpt.(EEselection), Leg.metaParameters.mechEnergyPerCycleTotalOpt.(EEselection), Leg.(EEselection).elecEnergyOpt, Leg.metaParameters.elecEnergyPerCycleOpt.(EEselection), Leg.metaParameters.elecEnergyPerCycleTotalOpt.(EEselection)] = evolveAndVisualizeOptimalLeg(actuatorProperties, imposeJointLimits, heuristic, actuateJointsDirectly, Leg.(EEselection).hipAttachmentOffset, linkCount, optimizationProperties, EEselection, meanCyclicMotionHipEE, robotProperties, configSelection, dt, dataSelection, hipParalleltoBody, Leg, actuatorEfficiency, actuatorSelection, dataExtraction);
              % compute CoT
              power = Leg.(EEselection).jointPowerOpt;
-             Leg.metaParameters.CoTOpt.(EEselection) = getCostOfTransport(Leg, power, quadruped);
+             Leg.metaParameters.CoTOpt.(EEselection) = getCostOfTransport(Leg, power, robotProperties);
              Leg.metaParameters.powerQualityOpt.(EEselection) = computePowerQuality(power);
         end
     end

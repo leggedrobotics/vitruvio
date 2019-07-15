@@ -1,157 +1,187 @@
 %% Plot trajectory data
 function [] = plotMotionData(data, task)
 
-t                    = data.(task).time;
-base                 = data.(task).base; % base motion for each leg during its cycle
-base.fullTrajectory  = data.(task).fullTrajectory.base;
-force.fullTrajectory = data.(task).fullTrajectory.force;
-legCount             = data.(task).basicProperties.legCount;
-EEnames              = data.(task).basicProperties.EEnames;
-removalRatioStart    = data.(task).basicProperties.trajectory.removalRatioStart;
-removalRatioEnd      = data.(task).basicProperties.trajectory.removalRatioEnd;
+    t                    = data.(task).time;
+    base                 = data.(task).base; % base motion for each leg during its cycle
+    base.fullTrajectory  = data.(task).fullTrajectory.base;
+    force.fullTrajectory = data.(task).fullTrajectory.force;
+    legCount             = data.(task).basicProperties.legCount;
+    linkCount             = data.(task).basicProperties.linkCount;
+    EEnames              = data.(task).basicProperties.EEnames;
+    removalRatioStart    = data.(task).basicProperties.trajectory.removalRatioStart;
+    removalRatioEnd      = data.(task).basicProperties.trajectory.removalRatioEnd;
 
-%% Base position and velocity in inertial frame.
-figure(2)
-set(gcf,'color','w')
-subplot(3,2,1);
-plot(t, base.fullTrajectory.position(:,1));
-ylabel('x position [m]');
-grid on
-title('Center of mass position')
+    startIndexFullTrajectory = round(length(data.(task).fullTrajectory.r.EEdes.LF)*removalRatioStart);
+    startIndexFullTrajectory(startIndexFullTrajectory<1) = 1;
+    endIndexFullTrajectory = round(length(data.(task).fullTrajectory.r.EEdes.LF)*(1-removalRatioEnd));
 
-subplot(3,2,3);
-plot(t, base.fullTrajectory.position(:,2));
-ylabel('y position [m]');
-grid on
-
-subplot(3,2,5);
-plot(t, base.fullTrajectory.position(:,3));
-xlabel('time [s]');
-ylabel('z position [m]');
-grid on
-
-subplot(3,2,2);
-plot(t(1:length(base.fullTrajectory.velocity)), base.fullTrajectory.velocity(:,1));
-ylabel('x velocity [m/s]');
-grid on
-title('Center of mass velocity')
-
-subplot(3,2,4);
-plot(t(1:length(base.fullTrajectory.velocity)), base.fullTrajectory.velocity(:,2));
-ylabel('y velocity [m/s]');
-grid on
-
-subplot(3,2,6);
-plot(t(1:length(base.fullTrajectory.velocity)), base.fullTrajectory.velocity(:,3));
-xlabel('time [s]');
-ylabel('z velocity [m/s]');
-grid on
-
-export_fig results.pdf -nocrop -append
-
-%% End effector forces.
-figure(3)
-set(gcf,'color','w')
-lineColor = {'b', 'g', 'r', 'c'};
-for i = 1:legCount
-    subplot(3,1,1)
-    hold on
-    EEselection = EEnames(i,:);
-    p(i) = plot(t, force.fullTrajectory.(EEselection)(1:length(t),1), lineColor{i}, 'DisplayName', EEselection);
-    title('End effector forces')
-    xlabel('time [s]')    
-    ylabel('force in x-direction [N]')
+    %% Base position and velocity in inertial frame with sampled rectange.
+    figure('units','normalized','outerposition',[0 0 1 1])
+    set(gcf,'color','w')
+    subplot(3,2,1);
+    plot(t, base.fullTrajectory.position(:,1));
+    ylabel('x position [m]');
     grid on
-    
-    subplot(3,1,2)
+    title('Center of mass position')
+    %Plot rectangle for sampled region
+    yBounds = ylim;
+    rectanglePos.bottomLeft = [t(startIndexFullTrajectory), yBounds(1)];
+    rectanglePos.width      =  t(endIndexFullTrajectory - startIndexFullTrajectory);
+    rectanglePos.height     = yBounds(2) - yBounds(1);
+    rectangle('Position', [rectanglePos.bottomLeft(1), rectanglePos.bottomLeft(2), rectanglePos.width, rectanglePos.height], 'LineWidth', 0.5);            
+        
+        
+    subplot(3,2,3);
     hold on
-    plot(t, force.fullTrajectory.(EEselection)(1:length(t),2), lineColor{i}, 'DisplayName', EEselection);
-    xlabel('time [s]')
-    ylabel('force in y-direction [N]')
-    grid on    
-
-    subplot(3,1,3)
-    hold on
-    plot(t, force.fullTrajectory.(EEselection)(1:length(t),3), lineColor{i}, 'DisplayName', EEselection);
-    xlabel('time [s]')
-    ylabel('force in z-direction [N]')
-    grid on    
-end
-if legCount > 1 % only display legend if there are multiple legs
-    lgd = legend(p);
-    lgd.FontSize = 14;
-end
-hold off
-export_fig results.pdf -nocrop -append
-
-%% Plot x vs z position of EE for the final trajectory (after trimming and averaging).
-figure(4)
-set(gcf,'color','w')
-subplotRows = floor(legCount/2);
-subplotRows(subplotRows<1) = 1;
-subplotColumns = ceil(legCount/2);
-startIndexFullTrajectory = round(length(data.(task).fullTrajectory.r.EEdes.LF)*removalRatioStart);
-startIndexFullTrajectory(startIndexFullTrajectory<1) = 1;
-endIndexFullTrajectory = round(length(data.(task).fullTrajectory.r.EEdes.LF)*(1-removalRatioEnd));
-
-for i = 1:legCount
-    EEselection = EEnames(i,:);
-    subplot(subplotRows, subplotColumns,i)
-    hold on
-    plot(data.(task).fullTrajectory.r.EEdes.(EEselection)(startIndexFullTrajectory:endIndexFullTrajectory,1), data.(task).fullTrajectory.r.EEdes.(EEselection)(startIndexFullTrajectory:endIndexFullTrajectory,3), 'o', 'MarkerEdgeColor', '[0.5843 0.8157 0.9882]', 'MarkerFaceColor', '[ 0.5843 0.8157 0.9882]')
-    plot(data.(task).(EEselection).r.EEdes(:,1), data.(task).(EEselection).r.EEdes(:,3), 'k', 'LineWidth', 2)
-    axis equal
-    xlabel('x position [m]')
-    ylabel('z position [m]')
-    title(['Resulting ', EEselection, ' end effector trajectory'])
+    plot(t, base.fullTrajectory.position(:,2));
+    ylabel('y position [m]');
     grid on
+    %Plot rectangle for sampled region
+    yBounds = ylim;
+    rectanglePos.bottomLeft = [t(startIndexFullTrajectory), yBounds(1)];
+    rectanglePos.width      =  t(endIndexFullTrajectory - startIndexFullTrajectory);
+    rectanglePos.height     = yBounds(2) - yBounds(1);
+    rectangle('Position', [rectanglePos.bottomLeft(1), rectanglePos.bottomLeft(2), rectanglePos.width, rectanglePos.height], 'LineWidth', 0.5);            
     hold off
-end
-export_fig results.pdf -nocrop -append
+    
+    subplot(3,2,5);
+    plot(t, base.fullTrajectory.position(:,3));
+    xlabel('time [s]');
+    ylabel('z position [m]');
+    grid on
+    %Plot rectangle for sampled region
+    yBounds = ylim;
+    rectanglePos.bottomLeft = [t(startIndexFullTrajectory), yBounds(1)];
+    rectanglePos.width      =  t(endIndexFullTrajectory - startIndexFullTrajectory);
+    rectanglePos.height     = yBounds(2) - yBounds(1);
+    rectangle('Position', [rectanglePos.bottomLeft(1), rectanglePos.bottomLeft(2), rectanglePos.width, rectanglePos.height], 'LineWidth', 0.5);            
+    
+    subplot(3,2,2);
+    plot(t(1:length(base.fullTrajectory.velocity)), base.fullTrajectory.velocity(:,1));
+    ylabel('x velocity [m/s]');
+    grid on
+    title('Center of mass velocity')
+    %Plot rectangle for sampled region
+    yBounds = ylim;
+    rectanglePos.bottomLeft = [t(startIndexFullTrajectory), yBounds(1)];
+    rectanglePos.width      =  t(endIndexFullTrajectory - startIndexFullTrajectory);
+    rectanglePos.height     = yBounds(2) - yBounds(1);
+    rectangle('Position', [rectanglePos.bottomLeft(1), rectanglePos.bottomLeft(2), rectanglePos.width, rectanglePos.height], 'LineWidth', 0.5);            
 
-%% End effector z motion with rectangle showing sampled range of data.
-figure(5)
-set(gcf,'color','w')
-% EE Position 
-subplot(2,2,[1 2])
-    title('End effector z position and force over sampled data range')
-    hold on
+    subplot(3,2,4);
+    plot(t(1:length(base.fullTrajectory.velocity)), base.fullTrajectory.velocity(:,2));
+    ylabel('y velocity [m/s]');
+    grid on
+    %Plot rectangle for sampled region
+    yBounds = ylim;
+    rectanglePos.bottomLeft = [t(startIndexFullTrajectory), yBounds(1)];
+    rectanglePos.width      =  t(endIndexFullTrajectory - startIndexFullTrajectory);
+    rectanglePos.height     = yBounds(2) - yBounds(1);
+    rectangle('Position', [rectanglePos.bottomLeft(1), rectanglePos.bottomLeft(2), rectanglePos.width, rectanglePos.height], 'LineWidth', 0.5);            
+
+    subplot(3,2,6);
+    plot(t(1:length(base.fullTrajectory.velocity)), base.fullTrajectory.velocity(:,3));
+    xlabel('time [s]');
+    ylabel('z velocity [m/s]');
+    grid on
+    %Plot rectangle for sampled region
+    yBounds = ylim;
+    rectanglePos.bottomLeft = [t(startIndexFullTrajectory), yBounds(1)];
+    rectanglePos.width      =  t(endIndexFullTrajectory - startIndexFullTrajectory);
+    rectanglePos.height     = yBounds(2) - yBounds(1);
+    rectangle('Position', [rectanglePos.bottomLeft(1), rectanglePos.bottomLeft(2), rectanglePos.width, rectanglePos.height], 'LineWidth', 0.5);            
+
+    export_fig results.pdf -nocrop -append
+
+    %% End effector forces.
+    figure('units','normalized','outerposition',[0 0 1 1]) 
+    set(gcf,'color','w')
+    lineColor = {'b', 'g', 'r', 'c'};
+    minValue1 = []; maxValue1 = [];
+    minValue2 = []; maxValue2 = [];
+    minValue3 = []; maxValue3 = [];
     for i = 1:legCount
+        subplot(3,1,1)
+        hold on
         EEselection = EEnames(i,:);
-        p(i) = plot(t, data.(task).fullTrajectory.r.EEdes.(EEselection)(1:length(t),3), lineColor{i}, 'DisplayName', EEselection);
+        p(i) = plot(t, force.fullTrajectory.(EEselection)(1:length(t),1), lineColor{i}, 'DisplayName', EEselection);
+        title('End effector forces')
+        xlabel('time [s]')    
+        ylabel('force in x-direction [N]')
+        grid on
+        %Plot rectangle for sampled region on last run through for loop
+        if i == legCount
+            yBounds = ylim;
+            rectanglePos.bottomLeft = [t(startIndexFullTrajectory), yBounds(1)];
+            rectanglePos.width      =  t(endIndexFullTrajectory - startIndexFullTrajectory);
+            rectanglePos.height     = yBounds(2) - yBounds(1);
+            rectangle('Position', [rectanglePos.bottomLeft(1), rectanglePos.bottomLeft(2), rectanglePos.width, rectanglePos.height], 'LineWidth', 0.5);            
+        end
+        
+        subplot(3,1,2)
+        hold on
+        plot(t, force.fullTrajectory.(EEselection)(1:length(t),2), lineColor{i}, 'DisplayName', EEselection);
+        xlabel('time [s]')
+        ylabel('force in y-direction [N]')
+        grid on   
+        %Plot rectangle for sampled region
+        if i == legCount
+            yBounds = ylim;
+            rectanglePos.bottomLeft = [t(startIndexFullTrajectory), yBounds(1)];
+            rectanglePos.width      =  t(endIndexFullTrajectory - startIndexFullTrajectory);
+            rectanglePos.height     = yBounds(2) - yBounds(1);
+            rectangle('Position', [rectanglePos.bottomLeft(1), rectanglePos.bottomLeft(2), rectanglePos.width, rectanglePos.height], 'LineWidth', 0.5);            
+        end
+        
+        subplot(3,1,3)
+        hold on
+        plot(t, force.fullTrajectory.(EEselection)(1:length(t),3), lineColor{i}, 'DisplayName', EEselection);
+        xlabel('time [s]')
+        ylabel('force in z-direction [N]')
+        grid on    
+        %Plot rectangle for sampled region  
+        if i == legCount
+            yBounds = ylim;
+            rectanglePos.bottomLeft = [t(startIndexFullTrajectory), yBounds(1)];
+            rectanglePos.width      =  t(endIndexFullTrajectory - startIndexFullTrajectory);
+            rectanglePos.height     = yBounds(2) - yBounds(1);
+            rectangle('Position', [rectanglePos.bottomLeft(1), rectanglePos.bottomLeft(2), rectanglePos.width, rectanglePos.height], 'LineWidth', 0.5);                
+        end
     end
-
     if legCount > 1 % only display legend if there are multiple legs
         lgd = legend(p);
         lgd.FontSize = 14;
     end
-
-    ylabel('End effector z position [m]')
-    % draw rectangle of sampled data range
-    rectanglePos.bottomLeft = [t(startIndexFullTrajectory), 1.1*min(data.(task).fullTrajectory.r.EEdes.LF(:,3))];
-    rectanglePos.width =  t(endIndexFullTrajectory - startIndexFullTrajectory);
-    rectanglePos.height = 1.3*(max(data.(task).fullTrajectory.r.EEdes.LF(:,3)) - min(data.(task).fullTrajectory.r.EEdes.LF(:,3)));
-    rectangle('Position', [rectanglePos.bottomLeft(1), rectanglePos.bottomLeft(2), rectanglePos.width, rectanglePos.height], 'LineWidth', 2);            
-    clear rectanglePos
-    xlabel('time [s]') 
-    grid on
     hold off
-    
-% EE force 
-subplot(2,2,[3 4])
-    hold on
+    export_fig results.pdf -nocrop -append
+
+    %% Plot x vs z position of EE for the final trajectory (after trimming and averaging).
+    figure('units','normalized','outerposition',[0 0 1 1]) 
+    set(gcf,'color','w')
+    % Number of rows [1 2], number of columns [1 2]
+    subplotRows = ceil(legCount/2);
+    if legCount < 2
+        subplotColumns = 1;
+    else
+        subplotColumns = 2;
+    end
+
     for i = 1:legCount
         EEselection = EEnames(i,:);
-        plot(t, data.(task).fullTrajectory.force.(EEselection)(1:length(t),3), lineColor{i}, 'DisplayName', EEselection);
+        subplot(subplotRows, subplotColumns,i)
+        hold on
+        % If we average the steps for cyclic motion also show the raw data
+        % result
+        if data.(task).basicProperties.trajectory.averageStepsForCyclicalMotion
+            plot(data.(task).fullTrajectory.r.EEdes.(EEselection)(startIndexFullTrajectory:endIndexFullTrajectory,1), data.(task).fullTrajectory.r.EEdes.(EEselection)(startIndexFullTrajectory:endIndexFullTrajectory,3), 'o', 'MarkerEdgeColor', '[0.5843 0.8157 0.9882]', 'MarkerFaceColor', '[ 0.5843 0.8157 0.9882]')
+        end
+        plot(data.(task).(EEselection).r.EEdes(:,1), data.(task).(EEselection).r.EEdes(:,3), 'k', 'LineWidth', 1)
+        axis equal
+        xlabel('x position [m]')
+        ylabel('z position [m]')
+        title(['Resulting ', EEselection, ' end effector trajectory'])
+        grid on
+        hold off
     end
-     xlabel('time [s]')
-     ylabel('End effector z forces [N]')
-    % draw rectangle of sampled data range
-    rectanglePos.bottomLeft = [t(startIndexFullTrajectory), 1.1*min(data.(task).fullTrajectory.force.LF(:,3))];
-    rectanglePos.width =  t(endIndexFullTrajectory - startIndexFullTrajectory);
-    rectanglePos.height = 1.3*(max(data.(task).fullTrajectory.force.LF(:,3)) - min(data.(task).fullTrajectory.force.LF(:,3)));
-    rectangle('Position', [rectanglePos.bottomLeft(1), rectanglePos.bottomLeft(2), rectanglePos.width, rectanglePos.height], 'LineWidth', 2);            
-    grid on
-    hold off
-    export_fig results.pdf -nocrop -append 
+    export_fig results.pdf -nocrop -append    
 end
