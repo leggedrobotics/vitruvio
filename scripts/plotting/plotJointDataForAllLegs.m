@@ -17,7 +17,7 @@ function [] = plotJointDataForAllLegs(data, task, data2, task2, optimizeLeg)
          plotDataSet2 = false;
     else
          plotDataSet2 = true;
-         dt2 = data2.(task).time(2) - data2.(task).time(1);
+         dt2 = data2.(task2).time(2) - data2.(task2).time(1);
     end
 
     %% Load in data and plot options
@@ -135,11 +135,11 @@ function [] = plotJointDataForAllLegs(data, task, data2, task2, optimizeLeg)
                     mechEnergyOpt.(EEselection)(:,j)  = repmat(data.(task).(EEselection).mechEnergyOpt(:,j), numberOfCycles, 1);                
                 end
                 if plotDataSet2
-                    q2.(EEselection)(:,j)           = repmat(data2.(task).(EEselection).q(:,j), numberOfCycles, 1);
-                    qdot2.(EEselection)(:,j)        = repmat(data2.(task).(EEselection).qdot(:,j), numberOfCycles, 1);
-                    jointTorque2.(EEselection)(:,j) = repmat(data2.(task).(EEselection).jointTorque(:,j), numberOfCycles, 1);
-                    jointPower2.(EEselection)(:,j)  = repmat(data2.(task).(EEselection).jointPower(:,j), numberOfCycles, 1);
-                    mechEnergy2.(EEselection)(:,j)  = repmat(data2.(task).(EEselection).mechEnergy(:,j), numberOfCycles, 1);
+                    q2.(EEselection)(:,j)           = repmat(data2.(task2).(EEselection).q(:,j), numberOfCycles, 1);
+                    qdot2.(EEselection)(:,j)        = repmat(data2.(task2).(EEselection).qdot(:,j), numberOfCycles, 1);
+                    jointTorque2.(EEselection)(:,j) = repmat(data2.(task2).(EEselection).jointTorque(:,j), numberOfCycles, 1);
+                    jointPower2.(EEselection)(:,j)  = repmat(data2.(task2).(EEselection).jointPower(:,j), numberOfCycles, 1);
+                    mechEnergy2.(EEselection)(:,j)  = repmat(data2.(task2).(EEselection).mechEnergy(:,j), numberOfCycles, 1);
                 end
             end  
 
@@ -150,7 +150,7 @@ function [] = plotJointDataForAllLegs(data, task, data2, task2, optimizeLeg)
                     mechEnergyOpt.(EEselection) = data.(task).(EEselection).mechEnergyOpt;
                 end
                 if plotDataSet2
-                    mechEnergy2.(EEselection) = data2.(task).(EEselection).mechEnergy;
+                    mechEnergy2.(EEselection) = data2.(task2).(EEselection).mechEnergy;
                 end
                 for k = 2:numberOfCycles
                     mechEnergy.(EEselection) = [mechEnergy.(EEselection);  mechEnergy.(EEselection)(end,:) + data.(task).(EEselection).mechEnergy]; 
@@ -237,15 +237,25 @@ function [] = plotJointDataForAllLegs(data, task, data2, task2, optimizeLeg)
         for j = 1:linkCount+1
             subplot(linkCount+1, legCount, i + (j-1)*legCount);
             hold on
-            plot(data.(task).time(startTimeIndex:startTimeIndex+length(qdot.(EEselection))-1),  qdot.(EEselection)(:,j), lineColour, 'LineWidth', LineWidth);
+            p(1) = plot(data.(task).time(startTimeIndex:startTimeIndex+length(qdot.(EEselection))-1),  qdot.(EEselection)(:,j), lineColour, 'LineWidth', LineWidth);
             if plotDataSet2    
-                plot(data2.(task).time(startTimeIndex:startTimeIndex+length(qdot2.(EEselection))-1),  qdot2.(EEselection)(:,j), lineColourOpt, 'LineWidth', LineWidth,'MarkerFaceColor', faceColourOpt);
-                legend('with interpolated points', 'original points')  
+                p(2) = plot(data2.(task).time(startTimeIndex:startTimeIndex+length(qdot2.(EEselection))-1),  qdot2.(EEselection)(:,j), lineColourOpt, 'LineWidth', LineWidth,'MarkerFaceColor', faceColourOpt);
             end
             if optimizeLeg.(EEselection)
-                plot(data.(task).time(startTimeIndex:startTimeIndex+length(qdotOpt.(EEselection))-1),  qdotOpt.(EEselection)(:,j), lineColourOpt, 'LineWidth', LineWidth);
-                legend('nominal', 'optimized')
+                p(3) = plot(data.(task).time(startTimeIndex:startTimeIndex+length(qdotOpt.(EEselection))-1),  qdotOpt.(EEselection)(:,j), lineColourOpt, 'LineWidth', LineWidth);
             end
+            % plot actuator limits on the same plot
+            p(4) = line([min(xlim),max(xlim)],[data.(task).actuatorProperties.maxqdotLimit.(jointNames(j,:)), data.(task).actuatorProperties.maxqdotLimit.(jointNames(j,:))], 'Color', 'k', 'LineStyle', '--');
+            p(5) = line([min(xlim),max(xlim)],[-data.(task).actuatorProperties.maxqdotLimit.(jointNames(j,:)), -data.(task).actuatorProperties.maxqdotLimit.(jointNames(j,:))], 'Color', 'k', 'LineStyle', '--');            
+            
+            if plotDataSet2 
+                legend([p(1) p(2) p(4)],'nominal data','data set 2', 'actuator limits')
+            elseif optimizeLeg.(EEselection)
+                legend([p(1) p(3) p(4)],'nominal','optimized', 'actuator limits')
+            else 
+                legend([p(4)], 'actuator limits')
+            end
+                
             grid on
             xlabel('Time [s]')
             ylabel('Velocity [rad/s]')
@@ -269,13 +279,16 @@ function [] = plotJointDataForAllLegs(data, task, data2, task2, optimizeLeg)
             hold on
             plot(data.(task).time(startTimeIndex:startTimeIndex+length(jointTorque.(EEselection))-1),  jointTorque.(EEselection)(:,j), lineColour, 'LineWidth', LineWidth);
             if plotDataSet2    
-                plot(data2.(task).time(startTimeIndex:startTimeIndex+length(jointTorque2.(EEselection))-1),  jointTorque2.(EEselection)(:,j), lineColourOpt, 'LineWidth', LineWidth,'MarkerFaceColor', faceColourOpt);
+                plot(data2.(task2).time(startTimeIndex:startTimeIndex+length(jointTorque2.(EEselection))-1),  jointTorque2.(EEselection)(:,j), lineColourOpt, 'LineWidth', LineWidth,'MarkerFaceColor', faceColourOpt);
                 legend('with interpolated points', 'original points')  
             end
             if optimizeLeg.(EEselection)
                 plot(data.(task).time(startTimeIndex:startTimeIndex+length(jointTorqueOpt.(EEselection))-1),  jointTorqueOpt.(EEselection)(:,j), lineColourOpt, 'LineWidth', LineWidth);
                 legend('nominal', 'optimized')
             end
+            % plot actuator limits on the same plot
+            line([min(xlim),max(xlim)],[data.(task).actuatorProperties.maxTorqueLimit.(jointNames(j,:)), data.(task).actuatorProperties.maxTorqueLimit.(jointNames(j,:))], 'Color', 'k', 'LineStyle', '--')
+            line([min(xlim),max(xlim)],[-data.(task).actuatorProperties.maxTorqueLimit.(jointNames(j,:)), -data.(task).actuatorProperties.maxTorqueLimit.(jointNames(j,:))], 'Color', 'k', 'LineStyle', '--')                     
             grid on
             xlabel('Time [s]')
             ylabel('Torque [Nm]')
@@ -299,13 +312,15 @@ function [] = plotJointDataForAllLegs(data, task, data2, task2, optimizeLeg)
             hold on
             plot(data.(task).time(startTimeIndex:startTimeIndex+length(jointPower.(EEselection))-1),  jointPower.(EEselection)(:,j), lineColour, 'LineWidth', LineWidth);
             if plotDataSet2    
-                plot(data2.(task).time(startTimeIndex:startTimeIndex+length(jointTorque2.(EEselection))-1),  jointPower2.(EEselection)(:,j), 'LineWidth', LineWidth,'MarkerFaceColor', faceColourOpt);
+                plot(data2.(task2).time(startTimeIndex:startTimeIndex+length(jointTorque2.(EEselection))-1),  jointPower2.(EEselection)(:,j), 'LineWidth', LineWidth,'MarkerFaceColor', faceColourOpt);
                 legend('with interpolated points', 'original points')  
             end
             if optimizeLeg.(EEselection)
                 plot(data.(task).time(startTimeIndex:startTimeIndex+length(jointTorqueOpt.(EEselection))-1),  jointPowerOpt.(EEselection)(:,j), lineColourOpt, 'LineWidth', LineWidth);
                 legend('nominal', 'optimized')
             end
+            % plot actuator limits on the same plot
+            line([min(xlim),max(xlim)],[data.(task).actuatorProperties.maxPowerLimit.(jointNames(j,:)), data.(task).actuatorProperties.maxPowerLimit.(jointNames(j,:))], 'Color', 'k', 'LineStyle', '--')
             grid on
             xlabel('Time [s]')
             ylabel('P_{mech} [W]')
@@ -329,7 +344,7 @@ function [] = plotJointDataForAllLegs(data, task, data2, task2, optimizeLeg)
             hold on
             plot(data.(task).time(startTimeIndex:startTimeIndex+length(mechEnergy.(EEselection))-1),  mechEnergy.(EEselection)(:,j), lineColour, 'LineWidth', LineWidth);
             if plotDataSet2    
-                plot(data2.(task).time(startTimeIndex:startTimeIndex+length(mechEnergy2.(EEselection))-1),  mechEnergy2.(EEselection)(:,j), lineColourOpt, 'LineWidth', LineWidth,'MarkerFaceColor', faceColourOpt);
+                plot(data2.(task2).time(startTimeIndex:startTimeIndex+length(mechEnergy2.(EEselection))-1),  mechEnergy2.(EEselection)(:,j), lineColourOpt, 'LineWidth', LineWidth,'MarkerFaceColor', faceColourOpt);
                 legend('with interpolated points', 'original points')  
             end
             if optimizeLeg.(EEselection)

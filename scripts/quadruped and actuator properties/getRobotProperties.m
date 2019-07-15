@@ -206,16 +206,16 @@ function robotProperties = getRobotProperties(robotSelection)
 
     % joint angle limits
     % q1 HAA, q2 HFE, q3 KFE, q4 AFE
-    robot.universal.q1.minAngle = -2*pi;
-    robot.universal.q1.maxAngle =  2*pi;
-    robot.universal.q2.minAngle =  pi;
-    robot.universal.q2.maxAngle =  2*pi;
-    robot.universal.q3.minAngle =   pi;
-    robot.universal.q3.maxAngle =  2*pi;
-    robot.universal.q4.minAngle = -2*pi;
-    robot.universal.q4.maxAngle =  2*pi;
-    robot.universal.q5.minAngle = -2*pi;
-    robot.universal.q5.maxAngle =  2*pi;
+    robot.universal.q1.minAngle = -pi;
+    robot.universal.q1.maxAngle = pi;
+    robot.universal.q2.minAngle = -pi/2;
+    robot.universal.q2.maxAngle = pi/2;
+    robot.universal.q3.minAngle = -pi;
+    robot.universal.q3.maxAngle = pi;
+    robot.universal.q4.minAngle = -pi;
+    robot.universal.q4.maxAngle = pi;
+    robot.universal.q5.minAngle = -pi;
+    robot.universal.q5.maxAngle = pi;
     
     % Hip offset. This shifts HAA along the body x direction. It is
     % an optimization parameter and is initially set to the hip length such

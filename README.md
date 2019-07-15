@@ -5,9 +5,7 @@
 _vitruvio_ is a framework for rapid leg design optimization for legged robots. The purpose of the simulation framework is to guide the early stages of legged robot design. The end effectors track an input trajectory and the necessary joint speed, torque, power and energy for the tracking is computed. These values are subject to a set of customizable user design selections in the form of toggle switches. 
 Optionally, a set of low level design parameters are then optimized using a genetic algorithm optimizer to reduce a user-specified cost funtion.
 
-The framework relies on first importing trajectory data consisting of a center of mass position and orientation as well as end effector positions and forces over time. The input trajectories have generally been generated using the Towr trajectory optimizer: 
-
-https://github.com/ethz-adrl/towr 
+The framework relies on first importing trajectory data consisting of a center of mass position and orientation as well as end effector positions and forces over time. The input trajectories have generally been generated using the Towr trajectory optimizer: https://github.com/ethz-adrl/towr 
 
 Towr allows for quick computation of trajectories for different tasks using a small set of robot design parameters and as such is well suited to aiding in simulation in the early design stages. 
 
@@ -72,7 +70,9 @@ The intended work flow is as follows:
    4. The simulated data is imported into _vitruvio_.
    5. The user makes high level design decisions in vitruvio and obtains the required joint speed, torque, power, energy and meta parameters such as cost of transport. If applicable, the optimized leg design parameters are also returned along with comparison of the results for the nominal and optimized leg. These are all recorded in a structure named __results__.
    6. The high level design decisions and cost terms are adapted as desired.
-   7. A file titled 'results.pdf' is automatically generated containing all the figures created during the simulation. This should be renamed and saved along with the output of the command window to fully record all of the results and selections.
+   7. A file titled 'results.pdf' is automatically generated containing all the figures created during the simulation. This should be renamed and saved along with the output of the command window to fully record all of the results and selections. 
+
+The figures are exported to a pdf file using: https://github.com/altmany/export_fig.
 
 ## Example
 

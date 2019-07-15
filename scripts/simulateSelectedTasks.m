@@ -23,6 +23,7 @@ for i = 1:numberOfRepetitions+1
     if universalTrot
         dataSelection = 'universalTrot'; 
         classSelection = 'universal';
+        task = 'trot';
         results.(classSelection).(task)(i) = runDataExtractionAndOptScripts(actuatorSelection, dataExtraction, imposeJointLimits, heuristic, actuateJointsDirectly, viewVisualization, numberOfStepsVisualized, linkCount, runOptimization, optimizeLeg, optimizationProperties, dataSelection, classSelection, configSelection, hipParalleltoBody, legCount, task);        
         results.(classSelection).(task)(i).metaParameters = orderfields(results.(classSelection).(task)(i).metaParameters);        
         for j = 1:legCount

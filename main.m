@@ -10,7 +10,7 @@ dataExtraction.averageStepsForCyclicalMotion = true;
 dataExtraction.allowableDeviation = 0.05; % [m] Deviation between neighbouring points. If the deviation is larger, additional points are interpolated.
 
 %% Toggle leg properties: leg count, link count, configuration, direct/remote joint actuation, spider/serial leg
-legCount = 4;                   % Accepts values from 1 to 4.
+legCount  = 1;                  % Accepts values from 1 to 4.
 linkCount = 2;                  % Accepts values from 2 to 4. [thigh, shank, foot, phalanges]. Hip link connects HAA and HFE but is not included in link count.
 configSelection = 'X';          % X or M
 actuateJointsDirectly = true;   % If true, actuators are positioned in each joint which contributes to leg mass and inertia. If false, there is no actuator mass at joints.
@@ -32,10 +32,10 @@ heuristic.torqueAngle.kTorsionalSpring = 20; % Spring constant for torsional spr
 viewVisualization            = false; % initial leg design tracking trajectory plan
 numberOfStepsVisualized      = 1;     % number of steps visualized for leg motion
 viewPlots.motionData         = true;  % CoM position, speed. EE position and forces.
-viewPlots.rangeOfMotionPlots = false; % range of motion of leg for given link lengths and angle limits
-viewPlots.efficiencyMap      = false; % actuator operating efficiency map
+viewPlots.rangeOfMotionPlots = true; % range of motion of leg for given link lengths and angle limits
+viewPlots.efficiencyMap      = true; % actuator operating efficiency map
 viewPlots.jointDataPlot      = true; % angle, speed, torque, power, energy data
-viewPlots.metaParameterPlot  = false; % design parameters and key results plotted as pie charts
+viewPlots.metaParameterPlot  = true; % design parameters and key results plotted as pie charts
 
 %% Select a .mat trajectory data file to be simulated and optimized
 % Select from the below options or import a new data .mat set using the
@@ -45,8 +45,8 @@ viewPlots.metaParameterPlot  = false; % design parameters and key results plotte
 yourTrajectoryData = false;
 %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
 
-universalTrot   = false;
-universalStairs = true;
+universalTrot   = true;
+universalStairs = false;
 speedyStairs    = false;
 speedyGallop    = false;
 massivoWalk     = false;
@@ -80,19 +80,19 @@ optimizeLeg.RH = false;
 
 %% Set optimization properties
 % toggle visualization 
-optimizationProperties.viz.viewVisualization = false;
+optimizationProperties.viz.viewVisualization = true;
 optimizationProperties.viz.numberOfCyclesVisualized = 1;
 optimizationProperties.viz.displayBestCurrentLinkLengths = true; % display chart of current best leg design parameters while running ga
 
 % Set number of generations and population size
-optimizationProperties.options.maxGenerations = 10;
-optimizationProperties.options.populationSize = 10;
+optimizationProperties.options.maxGenerations = 20;
+optimizationProperties.options.populationSize = 20;
 
 % Impose limits on maximum joint torque, speed and power
 % the values are defined in getActuatorProperties. A penalty term is incurred
 % for violations of these limits.
 imposeJointLimits.maxTorque = true;
-imposeJointLimits.maxqdot   = true;
+imposeJointLimits.maxqdot   = false;
 imposeJointLimits.maxPower  = true;
 
 % Set weights for fitness function terms. Total means summed over all

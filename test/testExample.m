@@ -5,12 +5,12 @@ close all;
 % if averageStepsForCyclicalMotion is true, the motion is segmented into individual steps which are averaged
 % to create an average cycle. This works well when the motion is very cyclical.
 % If false the individual steps are not averaged. This should be selected
-% when the generated motion is irregular.
+% when the generated motion is irregular and highly cyclical.
 dataExtraction.averageStepsForCyclicalMotion = true; 
-dataExtraction.allowableDeviation = 0.03; % [m] Deviation between neighbouring points. If the deviation is larger, additional points are interpolated.
+dataExtraction.allowableDeviation = 0.05; % [m] Deviation between neighbouring points. If the deviation is larger, additional points are interpolated.
 
 %% Toggle leg properties: leg count, link count, configuration, direct/remote joint actuation, spider/serial leg
-legCount = 4;                   % Accepts values from 1 to 4.
+legCount  = 4;                  % Accepts values from 1 to 4.
 linkCount = 2;                  % Accepts values from 2 to 4. [thigh, shank, foot, phalanges]. Hip link connects HAA and HFE but is not included in link count.
 configSelection = 'X';          % X or M
 actuateJointsDirectly = true;   % If true, actuators are positioned in each joint which contributes to leg mass and inertia. If false, there is no actuator mass at joints.
@@ -31,13 +31,20 @@ heuristic.torqueAngle.kTorsionalSpring = 20; % Spring constant for torsional spr
 %% Toggle trajectory plots and initial design viz
 viewVisualization            = true; % initial leg design tracking trajectory plan
 numberOfStepsVisualized      = 1;     % number of steps visualized for leg motion
-viewPlots.motionData         = true;
-viewPlots.rangeOfMotionPlots = true;
-viewPlots.efficiencyMap      = false;
+viewPlots.motionData         = true;  % CoM position, speed. EE position and forces.
+viewPlots.rangeOfMotionPlots = false; % range of motion of leg for given link lengths and angle limits
+viewPlots.efficiencyMap      = false; % actuator operating efficiency map
+viewPlots.jointDataPlot      = true; % angle, speed, torque, power, energy data
+viewPlots.metaParameterPlot  = false; % design parameters and key results plotted as pie charts
 
-%% Select a .mat trajectory data file to be simulated
+%% Select a .mat trajectory data file to be simulated and optimized
 % Select from the below options or import a new data .mat set using the
 % importMotionData script
+
+%%% Add your trajectory data file here %%%
+yourTrajectoryData = false;
+%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+
 universalTrot   = true;
 universalStairs = false;
 speedyStairs    = false;
@@ -50,6 +57,7 @@ miniPronk       = false;
 ANYmalTrot      = false;
 ANYmalSlowTrotAccurateMotion = false;
 defaultHopperHop = false;
+ANYmalSlowTrot2  = false;
 
 numberOfRepetitions = 0; % Number of times that leg is reoptimized. This allows for an easy check if the same optimal solution is found each time the optimization is run.
 
@@ -85,9 +93,10 @@ optimizationProperties.options.populationSize = 10;
 % for violations of these limits.
 imposeJointLimits.maxTorque = true;
 imposeJointLimits.maxqdot   = true;
-imposeJointLimits.maxPower  = false;
+imposeJointLimits.maxPower  = true;
 
-% Set weights for fitness function terms
+% Set weights for fitness function terms. Total means summed over all
+% joints in the leg.
 optimizationProperties.penaltyWeight.totalSwingTorque  = 0;
 optimizationProperties.penaltyWeight.totalStanceTorque = 0;
 optimizationProperties.penaltyWeight.totalTorque       = 0;
@@ -97,7 +106,7 @@ optimizationProperties.penaltyWeight.totalqdot         = 0;
 optimizationProperties.penaltyWeight.totalPower        = 0;     % only considers power terms > 0
 optimizationProperties.penaltyWeight.totalMechEnergy   = 1;
 optimizationProperties.penaltyWeight.totalElecEnergy   = 0;
-optimizationProperties.penaltyWeight.averageEfficiency = 0;
+optimizationProperties.penaltyWeight.averageEfficiency = 0;     % Maximizes average efficiency (even though this could increase overall energy use)
 optimizationProperties.penaltyWeight.maxTorque         = 0;
 optimizationProperties.penaltyWeight.maxqdot           = 0;
 optimizationProperties.penaltyWeight.maxPower          = 0;     % only considers power terms > 0
@@ -107,23 +116,17 @@ optimizationProperties.allowableExtension              = 0.9;   % [0 1] penalize
 
 % Set bounds for link lengths as multipliers of initial values
 if linkCount == 2
-    optimizationProperties.bounds.upperBoundMultiplier = [1.5,   3,   3,  -1.5]; % [hip thigh shank hipAttachmentOffset]
-    optimizationProperties.bounds.lowerBoundMultiplier = [0.5, 0.5, 0.5, 1.5]; % [hip thigh shank hipAttachmentOffset]
+    optimizationProperties.bounds.upperBoundMultiplier = [2,   0.5,   0.5,  2]; % [hip thigh shank hipAttachmentOffset]
+    optimizationProperties.bounds.lowerBoundMultiplier = [0.5,  2,  2,  0.5]; % [hip thigh shank hipAttachmentOffset]
 end
 if linkCount == 3
-    optimizationProperties.bounds.upperBoundMultiplier = [1, 1.2, 1.2, 1.2, -2]; % [hip thigh shank foot hipAttachmentOffset]
-    optimizationProperties.bounds.lowerBoundMultiplier = [1, 0.1, 0.1, 0.1, 2]; % [hip thigh shank foot hipAttachmentOffset ]
+    optimizationProperties.bounds.upperBoundMultiplier = [2, 2, 2, 1.2, -2]; % [hip thigh shank foot hipAttachmentOffset]
+    optimizationProperties.bounds.lowerBoundMultiplier = [0.5, 0.5, 0.1, 0.1, 2]; % [hip thigh shank foot hipAttachmentOffset ]
 end
 if linkCount == 4
     optimizationProperties.bounds.upperBoundMultiplier = [1, 1.2, 1.2, 1, 1, -1]; % [hip thigh shank foot phalanges hipAttachmentOffset]
     optimizationProperties.bounds.lowerBoundMultiplier = [1, 0.8, 0.8, 1, 1, 1]; % [hip thigh shank foot phalanges hipAttachmentOffset]
 end
-
-% Select the plots which are to be created
-viewPlots.optimization.optimizedLegPlot  = true; % master level switch to disable all the optimization plots
-viewPlots.optimization.jointDataPlot     = true;
-viewPlots.optimization.metaParameterPlot = true;
-viewPlots.optimization.efficiencyMap     = false;
 
 %% run the simulation
 if ~runOptimization % if optimization turned off, set values to zero.
