@@ -1,19 +1,14 @@
-function CoT = getCostOfTransport(Leg, power, quadruped, EEselection)
+function CoT = getCostOfTransport(Leg, power, robotProperties)
 % CoT = power / m*g*v
+    m = robotProperties.mass.total;
+    g = 9.81;
+    % mean velocity in x direction
+    v = mean(Leg.CoM.velocity(:,1));
 
-m = quadruped.mass.total;
-g = 9.81;
-% mean velocity in x direction
-v = mean(Leg.CoM.velocity(:,1));
+    % set negative power to zero, no regeneration
+    power(power<0) = 0;
 
-% set negative power to zero, no regeneration
-for j = 1:length(power)
-    for k = 1:length(power(1,:))
-        if power(j,k) < 0
-              power(j,k) = 0;
-        end
-    end
+    % sum over all actuators of the mean joint power at that actuator over the entire motion 
+    meanJointPowerForMotion = sum(mean(power));
+    CoT = meanJointPowerForMotion/(m*g*v);
 end
-
-totalJointPower = sum(mean(power));
-CoT = totalJointPower/(m*g*v);

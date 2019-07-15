@@ -1,5 +1,5 @@
-function [legDesignParameters, penaltyMin, output] = evolveOptimalLeg(actuatorProperties, imposeJointLimits, heuristic, upperBnd, lowerBnd, actuateJointsDirectly, hipAttachmentOffset, linkCount, optimizationProperties, initialLinkLengths, taskSelection, quadruped, configSelection, EEselection, dt, meanCyclicMotionHipEE, hipParalleltoBody, Leg, meanTouchdownIndex)
-if (EEselection == 'LF') | (EEselection == 'RF')
+function [legDesignParameters, penaltyMin, output] = evolveOptimalLeg(actuatorProperties, imposeJointLimits, heuristic, upperBnd, lowerBnd, actuateJointsDirectly, hipAttachmentOffset, linkCount, optimizationProperties, initialLinkLengths, taskSelection, robotProperties, configSelection, EEselection, dt, meanCyclicMotionHipEE, hipParalleltoBody, Leg, actuatorEfficiency , actuatorSelection, dataExtraction)
+if strcmp(EEselection, 'LF') || strcmp(EEselection, 'RF')
     selectFrontHind = 1;
 else 
     selectFrontHind = 2;
@@ -18,7 +18,7 @@ if optimizationProperties.viz.displayBestCurrentLinkLengths
 end
 
 %% Run optimization
-costFcn = @(legDesignParameters)computePenalty(actuatorProperties, imposeJointLimits, heuristic, legDesignParameters, actuateJointsDirectly, linkCount, optimizationProperties, quadruped, selectFrontHind, taskSelection, dt, configSelection, EEselection, meanCyclicMotionHipEE, hipParalleltoBody, Leg, meanTouchdownIndex);
+costFcn = @(legDesignParameters)computePenalty(actuatorProperties, imposeJointLimits, heuristic, legDesignParameters, actuateJointsDirectly, linkCount, optimizationProperties, robotProperties, selectFrontHind, taskSelection, dt, configSelection, EEselection, meanCyclicMotionHipEE, hipParalleltoBody, Leg, actuatorEfficiency, actuatorSelection, dataExtraction);
 disp(['Running optimization. Population: ' num2str(opts.PopulationSize) ...
       ', Max Generations: ' num2str(opts.MaxGenerations)])
 for i = 1:length(legDesignParameters)
@@ -26,6 +26,6 @@ for i = 1:length(legDesignParameters)
 end
  %[x, feval] = ga(fun,nvars,A,b,[],[],lb,ub,nonlcon,IntCon, options)
  [legDesignParameters, penaltyMin, ~, output] = ga(costFcn,length(nvars),[],[],[],[], ... 
-                                                 round(lowerBnd*100),round(upperBnd*100),[],nvars,opts);
+                                                 lowerBnd, upperBnd,[],nvars,opts);
 disp(['Final penalty function value: ' num2str(penaltyMin)])
 end

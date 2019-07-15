@@ -1,147 +1,191 @@
 % This script runs the simulation as per the toggles in main and returns
 % the data for each robot and task in a struct robot.task
-EEnames = ['LF'; 'RF'; 'LH'; 'RH'];
+EEnames = ['LF'; 'RF'; 'LH'; 'RH']; % For robots with fewer than 4 legs, a subset of these end effectors are used.
 
 for i = 1:numberOfRepetitions+1
     fprintf('Optimization count: %3.0f \n', i)
     
-    if universalTrot
-        taskSelection = 'universalTrot'; 
-        classSelection = 'universal';
-        universal.trot(i) = runDataExtractionAndOptScripts(actuatorSelection, dataExtraction, imposeJointLimits, heuristic, actuateJointsDirectly, viewVisualization, numberOfLoopRepetitions, viewTrajectoryPlots, linkCount, runOptimization, viewOptimizedLegPlot, optimizeLF, optimizeLH, optimizeRF, optimizeRH, optimizationProperties, taskSelection, classSelection, configSelection, hipParalleltoBody);
-        universal.trot(i).metaParameters = orderfields(universal.trot(i).metaParameters);
-        for j = 1:4
+    %%% Add your data file here %%%
+    if yourTrajectoryData % toggle on or off in main
+        dataSelection = 'yourTrajectoryData'; 
+        classSelection = 'yourRobotClass';
+        task = 'yourRobotTask';
+        results.(classSelection).(task)(i) = runDataExtractionAndOptScripts(actuatorSelection, dataExtraction, imposeJointLimits, heuristic, actuateJointsDirectly, viewVisualization, numberOfStepsVisualized, linkCount, runOptimization, optimizeLeg, optimizationProperties, dataSelection, classSelection, configSelection, hipParalleltoBody, legCount, task);        
+        results.(classSelection).(task)(i).metaParameters = orderfields(results.(classSelection).(task)(i).metaParameters);        
+        for j = 1:legCount
             EEselection = EEnames(j,:);
-            universal.trot(i).(EEselection) = orderfields(universal.trot(i).(EEselection));
+            results.(classSelection).(task)(i).(EEselection) = orderfields(results.(classSelection).(task)(i).(EEselection));
         end
+        generatePlots(viewPlots, results.(classSelection), task, optimizeLeg);        
+    end
+    %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+    
+    if universalTrot
+        dataSelection = 'universalTrot'; 
+        classSelection = 'universal';
+        task = 'trot';
+        results.(classSelection).(task)(i) = runDataExtractionAndOptScripts(actuatorSelection, dataExtraction, imposeJointLimits, heuristic, actuateJointsDirectly, viewVisualization, numberOfStepsVisualized, linkCount, runOptimization, optimizeLeg, optimizationProperties, dataSelection, classSelection, configSelection, hipParalleltoBody, legCount, task);        
+        results.(classSelection).(task)(i).metaParameters = orderfields(results.(classSelection).(task)(i).metaParameters);        
+        for j = 1:legCount
+            EEselection = EEnames(j,:);
+            results.(classSelection).(task)(i).(EEselection) = orderfields(results.(classSelection).(task)(i).(EEselection));
+        end
+        generatePlots(viewPlots, results.(classSelection), task, optimizeLeg);        
     end
     
     if universalStairs
-        taskSelection = 'universalStairs'; 
+        dataSelection = 'universalStairs'; 
         classSelection = 'universal';
-        universal.stairs(i) = runDataExtractionAndOptScripts(actuatorSelection, dataExtraction, imposeJointLimits, heuristic, actuateJointsDirectly, viewVisualization, numberOfLoopRepetitions, viewTrajectoryPlots, linkCount, runOptimization, viewOptimizedLegPlot, optimizeLF, optimizeLH, optimizeRF, optimizeRH, optimizationProperties, taskSelection, classSelection, configSelection, hipParalleltoBody);
-        universal.stairs(i).metaParameters = orderfields(universal.stairs(i).metaParameters);        
-        for j = 1:4
+        task = 'stairs';
+        results.(classSelection).(task)(i) = runDataExtractionAndOptScripts(actuatorSelection, dataExtraction, imposeJointLimits, heuristic, actuateJointsDirectly, viewVisualization, numberOfStepsVisualized, linkCount, runOptimization, optimizeLeg, optimizationProperties, dataSelection, classSelection, configSelection, hipParalleltoBody, legCount, task);        
+        results.(classSelection).(task)(i).metaParameters = orderfields(results.(classSelection).(task)(i).metaParameters);        
+        for j = 1:legCount
             EEselection = EEnames(j,:);
-            universal.stairs(i).(EEselection) = orderfields(universal.stairs(i).(EEselection));
+            results.(classSelection).(task)(i).(EEselection) = orderfields(results.(classSelection).(task)(i).(EEselection));
         end
+        generatePlots(viewPlots, results.(classSelection), task, optimizeLeg);        
     end
     
     if speedyGallop
-        taskSelection = 'speedyGallop'; 
+        dataSelection = 'speedyGallop'; 
         classSelection = 'speedy';
-        speedy.gallop(i) = runDataExtractionAndOptScripts(actuatorSelection, dataExtraction, imposeJointLimits, heuristic, actuateJointsDirectly, viewVisualization, numberOfLoopRepetitions, viewTrajectoryPlots, linkCount, runOptimization, viewOptimizedLegPlot, optimizeLF, optimizeLH, optimizeRF, optimizeRH, optimizationProperties, taskSelection, classSelection, configSelection, hipParalleltoBody);
-        speedy.gallop(i).metaParameters = orderfields(speedy.gallop(i).metaParameters);
-        for j = 1:4
+        task = 'gallop';        
+        results.(classSelection).(task)(i) = runDataExtractionAndOptScripts(actuatorSelection, dataExtraction, imposeJointLimits, heuristic, actuateJointsDirectly, viewVisualization, numberOfStepsVisualized, linkCount, runOptimization, optimizeLeg, optimizationProperties, dataSelection, classSelection, configSelection, hipParalleltoBody, legCount, task);        
+        results.(classSelection).(task)(i).metaParameters = orderfields(results.(classSelection).(task)(i).metaParameters);        
+        for j = 1:legCount
             EEselection = EEnames(j,:);
-            speedy.gallop(i).(EEselection) = orderfields(speedy.gallop(i).(EEselection));
+            results.(classSelection).(task)(i).(EEselection) = orderfields(results.(classSelection).(task)(i).(EEselection));
         end
+        generatePlots(viewPlots, results.(classSelection), task, optimizeLeg);        
     end
         
     if speedyStairs
-        taskSelection = 'speedyStairs'; 
+        dataSelection = 'speedyStairs'; 
         classSelection = 'speedy';
-        speedy.stairs(i) = runDataExtractionAndOptScripts(actuatorSelection, dataExtraction, imposeJointLimits, heuristic, actuateJointsDirectly, viewVisualization, numberOfLoopRepetitions, viewTrajectoryPlots, linkCount, runOptimization, viewOptimizedLegPlot, optimizeLF, optimizeLH, optimizeRF, optimizeRH, optimizationProperties, taskSelection, classSelection, configSelection, hipParalleltoBody);
-        speedy.stairs(i).metaParameters = orderfields(speedy.stairs(i).metaParameters);         
-        for j = 1:4
+        task = 'stairs';      
+        results.(classSelection).(task)(i) = runDataExtractionAndOptScripts(actuatorSelection, dataExtraction, imposeJointLimits, heuristic, actuateJointsDirectly, viewVisualization, numberOfStepsVisualized, linkCount, runOptimization, optimizeLeg, optimizationProperties, dataSelection, classSelection, configSelection, hipParalleltoBody, legCount, task);        
+        results.(classSelection).(task)(i).metaParameters = orderfields(results.(classSelection).(task)(i).metaParameters);        
+        for j = 1:legCount
             EEselection = EEnames(j,:);
-            speedy.stairs(i).(EEselection) = orderfields(speedy.stairs(i).(EEselection));
-          end
+            results.(classSelection).(task)(i).(EEselection) = orderfields(results.(classSelection).(task)(i).(EEselection));
+        end
+        generatePlots(viewPlots, results.(classSelection), task, optimizeLeg);        
     end
         
     if massivoWalk
-        taskSelection = 'massivoWalk'; 
+        dataSelection = 'massivoWalk'; 
         classSelection = 'massivo';
-        massivo.walk(i) = runDataExtractionAndOptScripts(actuatorSelection, dataExtraction, imposeJointLimits, heuristic, actuateJointsDirectly, viewVisualization, numberOfLoopRepetitions, viewTrajectoryPlots, linkCount, runOptimization, viewOptimizedLegPlot, optimizeLF, optimizeLH, optimizeRF, optimizeRH, optimizationProperties, taskSelection, classSelection, configSelection, hipParalleltoBody);
-        massivo.walk(i).metaParameters = orderfields(massivo.walk(i).metaParameters);                 
-        for j = 1:4
+        task = 'walk';        
+        results.(classSelection).(task)(i) = runDataExtractionAndOptScripts(actuatorSelection, dataExtraction, imposeJointLimits, heuristic, actuateJointsDirectly, viewVisualization, numberOfStepsVisualized, linkCount, runOptimization, optimizeLeg, optimizationProperties, dataSelection, classSelection, configSelection, hipParalleltoBody, legCount, task);        
+        results.(classSelection).(task)(i).metaParameters = orderfields(results.(classSelection).(task)(i).metaParameters);        
+        for j = 1:legCount
             EEselection = EEnames(j,:);
-            massivo.walk(i).(EEselection) = orderfields(massivo.walk(i).(EEselection));
+            results.(classSelection).(task)(i).(EEselection) = orderfields(results.(classSelection).(task)(i).(EEselection));
         end
+        generatePlots(viewPlots, results.(classSelection), task, optimizeLeg);        
     end
         
     if massivoStairs
-        taskSelection = 'massivoStairs'; 
+        dataSelection = 'massivoStairs'; 
         classSelection = 'massivo';
-        massivo.stairs(i) = runDataExtractionAndOptScripts(actuatorSelection, dataExtraction, imposeJointLimits, heuristic, actuateJointsDirectly, viewVisualization, numberOfLoopRepetitions, viewTrajectoryPlots, linkCount, runOptimization, viewOptimizedLegPlot, optimizeLF, optimizeLH, optimizeRF, optimizeRH, optimizationProperties, taskSelection, classSelection, configSelection, hipParalleltoBody);
-        massivo.stairs(i).metaParameters = orderfields(massivo.stairs(i).metaParameters);                         
-        for j = 1:4
+        task = 'stairs';        
+        results.(classSelection).(task)(i) = runDataExtractionAndOptScripts(actuatorSelection, dataExtraction, imposeJointLimits, heuristic, actuateJointsDirectly, viewVisualization, numberOfStepsVisualized, linkCount, runOptimization, optimizeLeg, optimizationProperties, dataSelection, classSelection, configSelection, hipParalleltoBody, legCount, task);        
+        results.(classSelection).(task)(i).metaParameters = orderfields(results.(classSelection).(task)(i).metaParameters);        
+        for j = 1:legCount
             EEselection = EEnames(j,:);
-            massivo.stairs(i).(EEselection) = orderfields(massivo.stairs(i).(EEselection));
+            results.(classSelection).(task)(i).(EEselection) = orderfields(results.(classSelection).(task)(i).(EEselection));
         end
+        generatePlots(viewPlots, results.(classSelection), task, optimizeLeg);        
     end
         
     if centaurWalk
-        taskSelection = 'centaurWalk'; 
+        dataSelection = 'centaurWalk'; 
         classSelection = 'centaur';
-        centaur.walk(i) = runDataExtractionAndOptScripts(actuatorSelection, dataExtraction, imposeJointLimits, heuristic, actuateJointsDirectly, viewVisualization, numberOfLoopRepetitions, viewTrajectoryPlots, linkCount, runOptimization, viewOptimizedLegPlot, optimizeLF, optimizeLH, optimizeRF, optimizeRH, optimizationProperties, taskSelection, classSelection, configSelection, hipParalleltoBody);
-        centaur.walk(i).metaParameters = orderfields(centaur.walk(i).metaParameters);                                 
-        for j = 1:4
+        task = 'walk';        
+        results.(classSelection).(task)(i) = runDataExtractionAndOptScripts(actuatorSelection, dataExtraction, imposeJointLimits, heuristic, actuateJointsDirectly, viewVisualization, numberOfStepsVisualized, linkCount, runOptimization, optimizeLeg, optimizationProperties, dataSelection, classSelection, configSelection, hipParalleltoBody, legCount, task);        
+        results.(classSelection).(task)(i).metaParameters = orderfields(results.(classSelection).(task)(i).metaParameters);        
+        for j = 1:legCount
             EEselection = EEnames(j,:);
-            centaur.walk(i).(EEselection) = orderfields(centaur.walk(i).(EEselection));
+            results.(classSelection).(task)(i).(EEselection) = orderfields(results.(classSelection).(task)(i).(EEselection));
         end
+        generatePlots(viewPlots, results.(classSelection), task, optimizeLeg);        
     end
         
     if centaurStairs
-        taskSelection = 'centaurStairs'; 
+        dataSelection = 'centaurStairs'; 
         classSelection = 'centaur';
-        centaur.stairs(i) = runDataExtractionAndOptScripts(actuatorSelection, dataExtraction, imposeJointLimits, heuristic, actuateJointsDirectly, viewVisualization, numberOfLoopRepetitions, viewTrajectoryPlots, linkCount, runOptimization, viewOptimizedLegPlot, optimizeLF, optimizeLH, optimizeRF, optimizeRH, optimizationProperties, taskSelection, classSelection, configSelection, hipParalleltoBody);
-        centaur.stairs(i).metaParameters = orderfields(centaur.stairs(i).metaParameters);                                       
-        for j = 1:4
+        task = 'stairs';        
+        results.(classSelection).(task)(i) = runDataExtractionAndOptScripts(actuatorSelection, dataExtraction, imposeJointLimits, heuristic, actuateJointsDirectly, viewVisualization, numberOfStepsVisualized, linkCount, runOptimization, optimizeLeg, optimizationProperties, dataSelection, classSelection, configSelection, hipParalleltoBody, legCount, task);        
+        results.(classSelection).(task)(i).metaParameters = orderfields(results.(classSelection).(task)(i).metaParameters);        
+        for j = 1:legCount
             EEselection = EEnames(j,:);
-            centaur.stairs(i).(EEselection) = orderfields(centaur.stairs(i).(EEselection));
+            results.(classSelection).(task)(i).(EEselection) = orderfields(results.(classSelection).(task)(i).(EEselection));
         end
+        generatePlots(viewPlots, results.(classSelection), task, optimizeLeg);        
     end
         
     if miniPronk
-        taskSelection = 'miniPronk'; 
+        dataSelection = 'miniPronk'; 
         classSelection = 'mini';
-        mini.pronk(i) = runDataExtractionAndOptScripts(actuatorSelection, dataExtraction, imposeJointLimits, heuristic, actuateJointsDirectly, viewVisualization, numberOfLoopRepetitions, viewTrajectoryPlots, linkCount, runOptimization, viewOptimizedLegPlot, optimizeLF, optimizeLH, optimizeRF, optimizeRH, optimizationProperties, taskSelection, classSelection, configSelection, hipParalleltoBody);
-        mini.pronk(i).metaParameters = orderfields(mini.pronk(i).metaParameters);                                               
-        for j = 1:4
+        task = 'pronk';        
+        results.(classSelection).(task)(i) = runDataExtractionAndOptScripts(actuatorSelection, dataExtraction, imposeJointLimits, heuristic, actuateJointsDirectly, viewVisualization, numberOfStepsVisualized, linkCount, runOptimization, optimizeLeg, optimizationProperties, dataSelection, classSelection, configSelection, hipParalleltoBody, legCount, task);        
+        results.(classSelection).(task)(i).metaParameters = orderfields(results.(classSelection).(task)(i).metaParameters);        
+        for j = 1:legCount
             EEselection = EEnames(j,:);
-            mini.pronk(i).(EEselection) = orderfields(mini.pronk(i).(EEselection));
+            results.(classSelection).(task)(i).(EEselection) = orderfields(results.(classSelection).(task)(i).(EEselection));
         end
+        generatePlots(viewPlots, results.(classSelection), task, optimizeLeg);        
     end
 
     if ANYmalTrot
-        taskSelection = 'ANYmalTrot'; 
+        dataSelection = 'ANYmalTrot'; 
         classSelection = 'ANYmal';
-        ANYmal.trot(i) = runDataExtractionAndOptScripts(actuatorSelection, dataExtraction, imposeJointLimits, heuristic, actuateJointsDirectly, viewVisualization, numberOfLoopRepetitions, viewTrajectoryPlots, linkCount, runOptimization, viewOptimizedLegPlot, optimizeLF, optimizeLH, optimizeRF, optimizeRH, optimizationProperties, taskSelection, classSelection, configSelection, hipParalleltoBody);
-        ANYmal.trot(i).metaParameters = orderfields(ANYmal.trot(i).metaParameters);                                                       
-        for j = 1:4
+        task = 'trot';        
+        results.(classSelection).(task)(i) = runDataExtractionAndOptScripts(actuatorSelection, dataExtraction, imposeJointLimits, heuristic, actuateJointsDirectly, viewVisualization, numberOfStepsVisualized, linkCount, runOptimization, optimizeLeg, optimizationProperties, dataSelection, classSelection, configSelection, hipParalleltoBody, legCount, task);        
+        results.(classSelection).(task)(i).metaParameters = orderfields(results.(classSelection).(task)(i).metaParameters);        
+        for j = 1:legCount
             EEselection = EEnames(j,:);
-            ANYmal.trot(i).(EEselection) = orderfields(ANYmal.trot(i).(EEselection));
+            results.(classSelection).(task)(i).(EEselection) = orderfields(results.(classSelection).(task)(i).(EEselection));
         end
+        generatePlots(viewPlots, results.(classSelection), task, optimizeLeg);        
     end
-    if ANYmalSlowTrot
-        taskSelection = 'ANYmalSlowTrot'; 
+    
+    if ANYmalSlowTrotAccurateMotion
+        dataSelection = 'ANYmalSlowTrotAccurateMotion'; 
         classSelection = 'ANYmal';
-        ANYmal.slowTrot(i) = runDataExtractionAndOptScripts(actuatorSelection, dataExtraction, imposeJointLimits, heuristic, actuateJointsDirectly, viewVisualization, numberOfLoopRepetitions, viewTrajectoryPlots, linkCount, runOptimization, viewOptimizedLegPlot, optimizeLF, optimizeLH, optimizeRF, optimizeRH, optimizationProperties, taskSelection, classSelection, configSelection, hipParalleltoBody);
-        ANYmal.slowTrot(i).metaParameters = orderfields(ANYmal.slowTrot(i).metaParameters);                                                              
-        for j = 1:4
+        task = 'slowTrotAccurateMotion';        
+        results.(classSelection).(task)(i) = runDataExtractionAndOptScripts(actuatorSelection, dataExtraction, imposeJointLimits, heuristic, actuateJointsDirectly, viewVisualization, numberOfStepsVisualized, linkCount, runOptimization, optimizeLeg, optimizationProperties, dataSelection, classSelection, configSelection, hipParalleltoBody, legCount, task);        
+        results.(classSelection).(task)(i).metaParameters = orderfields(results.(classSelection).(task)(i).metaParameters);        
+        for j = 1:legCount
             EEselection = EEnames(j,:);
-            ANYmal.slowTrot(i).(EEselection) = orderfields(ANYmal.slowTrot(i).(EEselection));
+            results.(classSelection).(task)(i).(EEselection) = orderfields(results.(classSelection).(task)(i).(EEselection));
         end
+        generatePlots(viewPlots, results.(classSelection), task, optimizeLeg);        
     end
-    if ANYmalSlowTrotGoodMotionBadForce
-        taskSelection = 'ANYmalSlowTrotGoodMotionBadForce'; 
+    
+    if ANYmalSlowTrot2
+        dataSelection = 'ANYmalSlowTrot2'; 
         classSelection = 'ANYmal';
-        ANYmal.slowTrotGoodMotionBadForce(i) = runDataExtractionAndOptScripts(actuatorSelection, dataExtraction, imposeJointLimits, heuristic, actuateJointsDirectly, viewVisualization, numberOfLoopRepetitions, viewTrajectoryPlots, linkCount, runOptimization, viewOptimizedLegPlot, optimizeLF, optimizeLH, optimizeRF, optimizeRH, optimizationProperties, taskSelection, classSelection, configSelection, hipParalleltoBody);
-        ANYmal.slowTrotGoodMotionBadForce(i).metaParameters = orderfields(ANYmal.slowTrotGoodMotionBadForce(i).metaParameters);                                                              
-        for j = 1:4
+        task = 'slowTrot2';        
+        results.(classSelection).(task)(i) = runDataExtractionAndOptScripts(actuatorSelection, dataExtraction, imposeJointLimits, heuristic, actuateJointsDirectly, viewVisualization, numberOfStepsVisualized, linkCount, runOptimization, optimizeLeg, optimizationProperties, dataSelection, classSelection, configSelection, hipParalleltoBody, legCount, task);        
+        results.(classSelection).(task)(i).metaParameters = orderfields(results.(classSelection).(task)(i).metaParameters);        
+        for j = 1:legCount
             EEselection = EEnames(j,:);
-            ANYmal.slowTrotGoodMotionBadForce(i).(EEselection) = orderfields(ANYmal.slowTrotGoodMotionBadForce(i).(EEselection));
+            results.(classSelection).(task)(i).(EEselection) = orderfields(results.(classSelection).(task)(i).(EEselection));
         end
+        generatePlots(viewPlots, results.(classSelection), task, optimizeLeg);        
     end
-    if ANYmalSlowTrotOriginal
-        taskSelection = 'ANYmalSlowTrotOriginal'; 
-        classSelection = 'ANYmal';
-        ANYmal.slowTrotOriginal(i) = runDataExtractionAndOptScripts(actuatorSelection, dataExtraction, imposeJointLimits, heuristic, actuateJointsDirectly, viewVisualization, numberOfLoopRepetitions, viewTrajectoryPlots, linkCount, runOptimization, viewOptimizedLegPlot, optimizeLF, optimizeLH, optimizeRF, optimizeRH, optimizationProperties, taskSelection, classSelection, configSelection, hipParalleltoBody);
-        ANYmal.slowTrotOriginal(i).metaParameters = orderfields(ANYmal.slowTrotOriginal(i).metaParameters);                                                              
-        for j = 1:4
+    
+    if defaultHopperHop
+        dataSelection = 'defaultHopperHop'; 
+        classSelection = 'defaultHopper';
+        task = 'hop';        
+        results.(classSelection).(task)(i) = runDataExtractionAndOptScripts(actuatorSelection, dataExtraction, imposeJointLimits, heuristic, actuateJointsDirectly, viewVisualization, numberOfStepsVisualized, linkCount, runOptimization, optimizeLeg, optimizationProperties, dataSelection, classSelection, configSelection, hipParalleltoBody, legCount, task);        
+        results.(classSelection).(task)(i).metaParameters = orderfields(results.(classSelection).(task)(i).metaParameters);        
+        for j = 1:legCount
             EEselection = EEnames(j,:);
-            ANYmal.slowTrotOriginal(i).(EEselection) = orderfields(ANYmal.slowTrotOriginal(i).(EEselection));
+            results.(classSelection).(task)(i).(EEselection) = orderfields(results.(classSelection).(task)(i).(EEselection));
         end
+        generatePlots(viewPlots, results.(classSelection), task, optimizeLeg);        
     end
 end
