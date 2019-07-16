@@ -1,9 +1,11 @@
 function [efficiency, efficiencyMapPlot] = getActuatorEfficiencySimplified(actuatorName)
-    
+    % Model electric motor losses to compute efficiency in 1st quadrant and
+    % values for plotting an efficiency map with torque speed envelope
+    % dependent on the selected actuator properties.
+
     % get the properties of the selected actuator
-    [torqueMax, qdotMax, mechPowerMax, ~, gearRatio] = getActuatorProperties(actuatorName{1});
-    efficiencyMaxMotor = 0.95; % efficiency map scaled such that this is the peak value
-    efficiencyMin      = 0.1; % efficiency values below efficiencyMin are set equal to efficiencyMin
+    [torqueMax, qdotMax, mechPowerMax, ~, gearRatio, efficiencyMinMotor, efficiencyMaxMotor] = getActuatorProperties(actuatorName{1});
+
     % base speed and torque for normalization of power loss terms
     qdotBase   = 0.8*qdotMax;
     torqueBase = 0.8*torqueMax;
@@ -40,7 +42,7 @@ function [efficiency, efficiencyMapPlot] = getActuatorEfficiencySimplified(actua
         meshDimension = length(qdotEnvelope);
     end
 
-    %% approximate the efficiency map with loss function
+    %% Approximate the efficiency map with loss function
     qdot = (linspace(0, qdotMax, meshDimension)); % [kr/min]
     torque = (linspace(0, torqueMax, meshDimension))'; % [Nm]
 
@@ -105,13 +107,17 @@ function [efficiency, efficiencyMapPlot] = getActuatorEfficiencySimplified(actua
     % Normalized power terms efficiency = P/(P+P_loss);     
     efficiency = (qdot/qdotBase).*(torque/torqueBase) ./ ((qdot/qdotBase).*(torque/torqueBase) + P_loss);
 
-    % Scale efficiency to the desired maximum efficiency value
+    % Scale efficiency to the actuator's maximum efficiency value
     efficiency = efficiencyMax*efficiency/max(max(efficiency));
-    [torqueOptIndex, qdotOptIndex] = find(efficiency == 0.95);
+    [torqueOptIndex, qdotOptIndex] = find(efficiency == efficiencyMax);
     optimalOperatingPoint = [qdot(qdotOptIndex), torque(torqueOptIndex)];
-
+    
+    % Apply minimum efficiency from actuator properties
+    efficiency(efficiency<efficiencyMinMotor) = efficiencyMinMotor;
+    
+    %% Save values for efficiency plot
     % Remove efficiency values beyond the max power limit to make plot
-    % clearer. NaN region is white on contour plot.
+    % clearer. NaN region is white on contourf plot.
     efficiencyMap = efficiency;
     for i = 1:length(qdot)
         for j = 1:length(torque)
@@ -122,7 +128,7 @@ function [efficiency, efficiencyMapPlot] = getActuatorEfficiencySimplified(actua
     end
     
     % set minimum efficiency
-    efficiencyMap(efficiencyMap<efficiencyMin) = efficiencyMin;
+    efficiencyMap(efficiencyMap<efficiencyMinMotor) = efficiencyMinMotor;
 
     % return information for plotting against operating points 
     efficiencyMapPlot.qdot = qdot;

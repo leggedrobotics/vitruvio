@@ -185,12 +185,7 @@ if W_totalElecEnergy
     totalElecEnergyInitial    = sum(Leg.(EEselection).elecEnergy(end,:)); % sum of elec energy consumed over all joints during the motion
     totalElecEnergy    = sum(tempLeg.(EEselection).elecEnergy(end,:));
 end
-if W_averageEfficiency
-    % Efficiency is NaN in quadrants I and III. Set this to 0.0001 to penalize it avoid
-    % having NaN values 
-    Leg.(EEselection).operatingPointEfficiency(isnan(Leg.(EEselection).operatingPointEfficiency)) = 0.0001;
-    tempLeg.(EEselection).operatingPointEfficiency(isnan(tempLeg.(EEselection).operatingPointEfficiency)) = 0.0001;    
-    
+if W_averageEfficiency    
     averageEfficiencyInitial    = mean(mean(Leg.(EEselection).operatingPointEfficiency));
     averageEfficiency    = mean(mean(tempLeg.(EEselection).operatingPointEfficiency));
 end

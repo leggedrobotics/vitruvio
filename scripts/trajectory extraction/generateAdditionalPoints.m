@@ -26,7 +26,7 @@ function [interpolatedPositionData, interpolatedVelocityData, interpolatedForceD
         tempBasePosition(2*i-1,:) = trajectoryData.base.position(i,:);
     end
 
-    interpolatedPositionData     = fillmissing(tempPosition, 'linear');
+    interpolatedPositionData     = fillmissing(tempPosition, 'spline');
     interpolatedVelocityData     = fillmissing(tempVelocity, 'linear');
     interpolatedForceData        = fillmissing(tempForce, 'linear');
     interpolatedBodyRotationData = fillmissing(tempBodyRotation, 'linear', 3);

@@ -6,14 +6,14 @@ close all;
 % to create an average cycle. This works well when the motion is very cyclical.
 % If false the individual steps are not averaged. This should be selected
 % when the generated motion is irregular and highly cyclical.
-dataExtraction.averageStepsForCyclicalMotion = true; 
-dataExtraction.allowableDeviation = 0.05; % [m] Deviation between neighbouring points. If the deviation is larger, additional points are interpolated.
+dataExtraction.averageStepsForCyclicalMotion = false; 
+dataExtraction.allowableDeviation = 0.5; % [m] Deviation between neighbouring points. If the deviation is larger, additional points are interpolated.
 
 %% Toggle leg properties: leg count, link count, configuration, direct/remote joint actuation, spider/serial leg
 legCount  = 1;                  % Accepts values from 1 to 4.
 linkCount = 2;                  % Accepts values from 2 to 4. [thigh, shank, foot, phalanges]. Hip link connects HAA and HFE but is not included in link count.
 configSelection = 'X';          % X or M
-actuateJointsDirectly = true;   % If true, actuators are positioned in each joint which contributes to leg mass and inertia. If false, there is no actuator mass at joints.
+actuateJointsDirectly = false;   % If true, actuators are positioned in each joint which contributes to leg mass and inertia. If false, there is no actuator mass at joints.
 
 % Specify hip orientation
 % if true: Serial configuration. Offset from HAA to HFE parallel to the body as with ANYmal 
@@ -31,9 +31,9 @@ heuristic.torqueAngle.kTorsionalSpring = 20; % Spring constant for torsional spr
 %% Toggle trajectory plots and initial design viz
 viewVisualization            = false; % initial leg design tracking trajectory plan
 numberOfStepsVisualized      = 1;     % number of steps visualized for leg motion
-viewPlots.motionData         = false;  % CoM position, speed. EE position and forces.
+viewPlots.motionData         = true;  % CoM position, speed. EE position and forces. Trajectory to be tracked.
 viewPlots.rangeOfMotionPlots = false; % range of motion of leg for given link lengths and angle limits
-viewPlots.efficiencyMap      = false; % actuator operating efficiency map
+viewPlots.efficiencyMap      = true; % actuator operating efficiency map
 viewPlots.jointDataPlot      = true; % angle, speed, torque, power, energy data
 viewPlots.metaParameterPlot  = false; % design parameters and key results plotted as pie charts
 
@@ -67,8 +67,8 @@ numberOfRepetitions = 0; % Number of times that leg is reoptimized. This allows 
 actuatorSelection.HAA = 'ANYdrive'; 
 actuatorSelection.HFE = 'ANYdrive'; 
 actuatorSelection.KFE = 'ANYdrive';
-actuatorSelection.AFE = 'ANYdrive'; 
-actuatorSelection.DFE = 'ANYdrive'; 
+actuatorSelection.AFE = 'Neo'; 
+actuatorSelection.DFE = 'Neo'; 
 
 %% Toggle optimization for each leg
 runOptimization = true; 
@@ -91,9 +91,9 @@ optimizationProperties.options.populationSize = 4;
 % Impose limits on maximum joint torque, speed and power
 % the values are defined in getActuatorProperties. A penalty term is incurred
 % for violations of these limits.
-imposeJointLimits.maxTorque = true;
+imposeJointLimits.maxTorque = false;
 imposeJointLimits.maxqdot   = false;
-imposeJointLimits.maxPower  = true;
+imposeJointLimits.maxPower  = false;
 
 % Set weights for fitness function terms. Total means summed over all
 % joints in the leg.
@@ -106,8 +106,8 @@ optimizationProperties.penaltyWeight.totalqdot         = 0;
 optimizationProperties.penaltyWeight.totalPower        = 0;     % only considers power terms > 0
 optimizationProperties.penaltyWeight.totalMechEnergy   = 0;
 optimizationProperties.penaltyWeight.totalElecEnergy   = 0;
-optimizationProperties.penaltyWeight.averageEfficiency = 0;     % Maximizes average efficiency (even though this could increase overall energy use)
-optimizationProperties.penaltyWeight.maxTorque         = 1;
+optimizationProperties.penaltyWeight.averageEfficiency = 1;     % Maximizes average efficiency (even though this could increase overall energy use)
+optimizationProperties.penaltyWeight.maxTorque         = 0;
 optimizationProperties.penaltyWeight.maxqdot           = 0;
 optimizationProperties.penaltyWeight.maxPower          = 0;     % only considers power terms > 0
 optimizationProperties.penaltyWeight.antagonisticPower = 0;     % seeks to minimize antagonistic power which improves power quality
@@ -116,8 +116,8 @@ optimizationProperties.allowableExtension              = 0.9;   % [0 1] penalize
 
 % Set bounds for link lengths as multipliers of initial values
 if linkCount == 2
-    optimizationProperties.bounds.upperBoundMultiplier = [2,   0.5,   0.5,  2]; % [hip thigh shank hipAttachmentOffset]
-    optimizationProperties.bounds.lowerBoundMultiplier = [0.5,  2,  2,  0.5]; % [hip thigh shank hipAttachmentOffset]
+    optimizationProperties.bounds.upperBoundMultiplier = [2,   2,   2,  2]; % [hip thigh shank hipAttachmentOffset]
+    optimizationProperties.bounds.lowerBoundMultiplier = [0.5,  0.5,  0.5,  0.5]; % [hip thigh shank hipAttachmentOffset]
 end
 if linkCount == 3
     optimizationProperties.bounds.upperBoundMultiplier = [2, 2, 2, 1.2, -2]; % [hip thigh shank foot hipAttachmentOffset]
