@@ -175,7 +175,7 @@ function [] = plotMotionData(data, task)
         if data.(task).basicProperties.trajectory.averageStepsForCyclicalMotion
             plot(data.(task).fullTrajectory.r.EEdes.(EEselection)(startIndexFullTrajectory:endIndexFullTrajectory,1), data.(task).fullTrajectory.r.EEdes.(EEselection)(startIndexFullTrajectory:endIndexFullTrajectory,3), 'o', 'MarkerEdgeColor', '[0.5843 0.8157 0.9882]', 'MarkerFaceColor', '[ 0.5843 0.8157 0.9882]')
         end
-        plot(data.(task).(EEselection).r.EEdes(:,1), data.(task).(EEselection).r.EEdes(:,3), 'k', 'LineWidth', 1)
+        plot(data.(task).(EEselection).r.EEdes(:,1), data.(task).(EEselection).r.EEdes(:,3), 'b', 'LineWidth', 1)
         axis equal
         xlabel('x position [m]')
         ylabel('z position [m]')

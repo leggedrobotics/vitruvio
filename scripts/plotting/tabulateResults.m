@@ -8,17 +8,22 @@ function [] = tabulateResults(data, task)
     linkCount              = data.(task).basicProperties.linkCount;
     linkNames              = data.(task).basicProperties.linkNames';
     jointActuationMethod   = data.(task).basicProperties.jointActuationType;
+    transmissionMethod     = data.(task).basicProperties.transmissionMethod;
     optimizationProperties = data.(task).optimizationProperties;
     allowableExtension     = data.(task).optimizationProperties.allowableExtension;
     
     linkNames = strjoin(linkNames);
     jointNames = data.(task).basicProperties.jointNames(1,:);
     actuatorSelection = data.(task).actuatorProperties.actuatorSelection.(data.(task).basicProperties.jointNames(1,:));
-    
+    actuationMethod = jointActuationMethod.HAA;
+    transmission = transmissionMethod.HAA;
+     
     %% Basic properties table
-    for i = 2:linkCount+1
+    for i = 2:linkCount+1 % Fill out the rest of the list programatically
         jointNames = [jointNames, ' ', data.(task).basicProperties.jointNames(i,:)];
         actuatorSelection = [actuatorSelection, ' ', data.(task).actuatorProperties.actuatorSelection.(data.(task).basicProperties.jointNames(i,:))];  
+        actuationMethod = [actuationMethod, ' ', jointActuationMethod.(data.(task).basicProperties.jointNames(i,:))];
+        transmission = [transmission, ' ', transmissionMethod.(data.(task).basicProperties.jointNames(i,:))];
     end
     
     rowNames = {'Robot class',...
@@ -26,8 +31,9 @@ function [] = tabulateResults(data, task)
                 'Leg quantity', ...
                 'Link names', ...
                 'Joint names', ...
+                'Actuator selection', ...
                 'Joint actuation method', ...
-                'Actuator selection'};
+                'Transmission method'};
 
             
     Basic_Properties = [string(robotClass); ...
@@ -35,8 +41,9 @@ function [] = tabulateResults(data, task)
                         legCount; ...
                         string(linkNames); ...
                         string(jointNames); ...
-                        string(jointActuationMethod); ... 
-                        string(actuatorSelection)];
+                        string(actuatorSelection); ...
+                        string(actuationMethod); ...                        
+                        string(transmission)];
                     
    T = table(Basic_Properties, 'RowNames', rowNames)
    

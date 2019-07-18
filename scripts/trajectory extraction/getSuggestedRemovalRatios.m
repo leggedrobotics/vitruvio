@@ -49,6 +49,9 @@ suggestedRemovalRatioEnd.ANYmalSlowTrotAccurateMotion   = 0.1;
 suggestedRemovalRatioStart.ANYmalSlowTrot2 = 0.3;
 suggestedRemovalRatioEnd.ANYmalSlowTrot2   = 0.3;
 
+suggestedRemovalRatioStart.ANYmalTrotVersatilityStep = 0.6;
+suggestedRemovalRatioEnd.ANYmalTrotVersatilityStep   = 0.1;
+
 suggestedRemovalRatioStart.defaultHopperHop = 0;
 suggestedRemovalRatioEnd.defaultHopperHop   = 0;
 

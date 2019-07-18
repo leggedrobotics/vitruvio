@@ -7,7 +7,7 @@ clear all;
 close all;
 
 %% Enter path to bag containing trajectory data
-pathToTrajectoryData =  '/Users/michaelchadwick/Documents/git/vitruvio/data/trajectory_data/ANYmal/matlab_ANYmalSlowTrot2_0,9_6,4.bag';
+pathToTrajectoryData =  '/Users/michaelchadwick/Documents/git/vitruvio/data/extractedBags/matlab_ANYmal_versatility_trot_5,2_14.bag';
 legCount = 4; % Specify number of legs from 1 to 4.
 
 %% Extract the desired 3D vectors from the bag
@@ -107,7 +107,7 @@ end
 
 motion.trajectoryData.base.position     = [ts_base_pos.Data(:,1) ts_base_pos.Data(:,2) ts_base_pos.Data(:,3)];
 
-save('ANYmalSlowTrot2.mat', '-struct','motion') 
+save('ANYmalTrotVersatilityStep.mat', '-struct','motion') 
 
 %% Error 
 m = 29.52;   % mass of the robot

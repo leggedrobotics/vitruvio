@@ -15,7 +15,7 @@ else
     subplotColumns = 2;
 end
 
-figure('units','normalized','outerposition',[0 0 1 1])
+figure('name', 'Range of Motion', 'units','normalized','outerposition',[0 0 1 1])
 set(gcf,'color','w')
 for i = 1:legCount
     EEselection = EEnames(i,:);

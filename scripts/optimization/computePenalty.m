@@ -2,11 +2,18 @@
 % lengths back to m to run the simulation and obtain results with base
 % units.
 
-function penalty = computePenalty(actuatorProperties, imposeJointLimits, heuristic, legDesignParameters, actuateJointsDirectly, linkCount, optimizationProperties, robotProperties, selectFrontHind, taskSelection, dt, configSelection, EEselection, meanCyclicMotionHipEE, hipParalleltoBody, Leg, actuatorEfficiency, actuatorSelection, dataExtraction)
+function penalty = computePenalty(actuatorProperties, imposeJointLimits, heuristic, legDesignParameters, actuateJointDirectly, linkCount, optimizationProperties, robotProperties, selectFrontHind, taskSelection, dt, configSelection, EEselection, meanCyclicMotionHipEE, hipParalleltoBody, Leg, actuatorEfficiency, actuatorSelection, dataExtraction)
 jointNames = ['HAA'; 'HFE'; 'KFE'; 'DFE'; 'AFE'];
 
-kTorsionalSpring = heuristic.torqueAngle.kTorsionalSpring;
-thetaLiftoff_des = heuristic.torqueAngle.thetaLiftoff_des;
+% Design parameters always start with [links(3-5), hip offset]
+if linkCount>2 && heuristic.torqueAngle.apply
+    kTorsionalSpring = legDesignParameters(linkCount+3);
+    thetaLiftoff_des = legDesignParameters(linkCount+4);
+else 
+    kTorsionalSpring = heuristic.torqueAngle.kTorsionalSpring;
+    thetaLiftoff_des = heuristic.torqueAngle.thetaLiftoff_des;
+end
+
 linkLengths = legDesignParameters(1:linkCount+1)/100;
 hipAttachmentOffset = legDesignParameters(linkCount+2)/100;
 tempLeg.base = Leg.base;
@@ -22,35 +29,39 @@ if linkCount == 4
 end
 
 % Update link mass with assumption of constant density cylinder
-robotProperties.hip(selectFrontHind).mass = robotProperties.legDensity * pi*(robotProperties.hip(selectFrontHind).radius)^2   * linkLengths(1);
-robotProperties.thigh(selectFrontHind).mass = robotProperties.legDensity * pi*(robotProperties.thigh(selectFrontHind).radius)^2 * linkLengths(2);
-robotProperties.shank(selectFrontHind).mass = robotProperties.legDensity * pi*(robotProperties.shank(selectFrontHind).radius)^2 * linkLengths(3);
+robotProperties.hip(selectFrontHind).mass = robotProperties.legDensity.hip(selectFrontHind) * pi*(robotProperties.hip(selectFrontHind).radius)^2   * linkLengths(1);
+robotProperties.thigh(selectFrontHind).mass = robotProperties.legDensity.thigh(selectFrontHind) * pi*(robotProperties.thigh(selectFrontHind).radius)^2 * linkLengths(2);
+robotProperties.shank(selectFrontHind).mass = robotProperties.legDensity.shank(selectFrontHind) * pi*(robotProperties.shank(selectFrontHind).radius)^2 * linkLengths(3);
 if (linkCount == 3) || (linkCount == 4)
-    robotProperties.foot(selectFrontHind).mass = robotProperties.legDensity * pi*(robotProperties.foot(selectFrontHind).radius)^2 * linkLengths(4);
+    robotProperties.foot(selectFrontHind).mass = robotProperties.legDensity.foot(selectFrontHind) * pi*(robotProperties.foot(selectFrontHind).radius)^2 * linkLengths(4);
 end
 if linkCount == 4
-    robotProperties.phalanges(selectFrontHind).mass = robotProperties.legDensity * pi*(robotProperties.phalanges(selectFrontHind).radius)^2 * linkLengths(5);
+    robotProperties.phalanges(selectFrontHind).mass = robotProperties.legDensity(selectFrontHind).phalanges * pi*(robotProperties.phalanges(selectFrontHind).radius)^2 * linkLengths(5);
 end
 
 %% qAFE, qDFE torque based heuristic computation
 if (heuristic.torqueAngle.apply == true) && (linkCount > 2)
+    % Save the updated spring parameters back into the heuristic struct to
+    % be used in the next iteration of the simulation
+    heuristic.torqueAngle.kTorsionalSpring = kTorsionalSpring;
+    heuristic.torqueAngle.thetaLiftoff_des = thetaLiftoff_des;
     [qLiftoff.(EEselection)] = computeqLiftoffFinalJoint(heuristic, hipAttachmentOffset, linkCount, meanCyclicMotionHipEE, robotProperties, EEselection, configSelection, hipParalleltoBody);
     EE_force = Leg.(EEselection).force(1,1:3);
     rotBodyY = -meanCyclicMotionHipEE.body.eulerAngles.(EEselection)(1,2); % rotation of body about inertial y
     qPrevious = qLiftoff.(EEselection);
-    [springTorque.(EEselection), springDeformation.(EEselection)] = computeFinalJointDeformation(heuristic, qPrevious, EE_force, hipAttachmentOffset, linkCount, rotBodyY, robotProperties, EEselection, hipParalleltoBody);      
+%     [springTorque.(EEselection), springDeformation.(EEselection)] = computeFinalJointDeformation(heuristic, qPrevious, EE_force, hipAttachmentOffset, linkCount, rotBodyY, robotProperties, EEselection, hipParalleltoBody);      
 else
     qLiftoff.(EEselection) = 0; % if the heuristic does not apply
 end
 
-%% inverse kinematics
+%% Inverse kinematics
 [tempLeg.(EEselection).q, tempLeg.(EEselection).r.HAA, tempLeg.(EEselection).r.HFE, tempLeg.(EEselection).r.KFE, tempLeg.(EEselection).r.AFE, tempLeg.(EEselection).r.DFE, tempLeg.(EEselection).r.EE] = inverseKinematics(heuristic, qLiftoff, hipAttachmentOffset, linkCount, meanCyclicMotionHipEE, robotProperties, EEselection, taskSelection, configSelection, hipParalleltoBody);
 
 %% Build robot model with joint angles from inverse kinematics tempLeg
 numberOfLoopRepetitions = 1;
 viewVisualization = 0;
 optimized = true;
-tempLeg.(EEselection).rigidBodyModel = buildRobotRigidBodyModel(actuatorProperties, actuateJointsDirectly, hipAttachmentOffset, linkCount, robotProperties, tempLeg, meanCyclicMotionHipEE, EEselection, numberOfLoopRepetitions, viewVisualization, hipParalleltoBody, dataExtraction, optimized);
+tempLeg.(EEselection).rigidBodyModel = buildRobotRigidBodyModel(actuatorProperties, actuateJointDirectly, hipAttachmentOffset, linkCount, robotProperties, tempLeg, meanCyclicMotionHipEE, EEselection, numberOfLoopRepetitions, viewVisualization, hipParalleltoBody, dataExtraction, optimized);
 
 %% Get joint velocities and accelerations with finite differences
 [tempLeg.(EEselection).qdot, tempLeg.(EEselection).qdotdot] = getJointVelocitiesUsingFiniteDifference(EEselection, tempLeg, dt);
@@ -146,61 +157,116 @@ maximumExtensionPenalty = 0;
 
 %% Compute penalty terms          
 if W_totalSwingTorque
-    torqueInitial.swing  = Leg.(EEselection).jointTorque(1:meanTouchdownIndex.(EEselection), :);
-    torque.swing  = tempLeg.(EEselection).jointTorque(1:meanTouchdownIndex.(EEselection), :);
+    if linkCount>2 && heuristic.torqueAngle.apply % Exclude torque at final joint because the torque there is passive torque
+        torqueInitial.swing  = Leg.(EEselection).jointTorque(1:meanTouchdownIndex.(EEselection), 1:end-1);
+        torque.swing  = tempLeg.(EEselection).jointTorque(1:meanTouchdownIndex.(EEselection), 1:end-1);
+    else
+        torqueInitial.swing  = Leg.(EEselection).jointTorque(1:meanTouchdownIndex.(EEselection), :);
+        torque.swing  = tempLeg.(EEselection).jointTorque(1:meanTouchdownIndex.(EEselection), :);
+    end
     totalSwingTorqueInitial = sum(sum((torqueInitial.swing).^2));
     totalSwingTorque = sum(sum((torque.swing).^2)); 
 end
+
 if W_totalStanceTorque
-    torqueInitial.stance = Leg.(EEselection).jointTorque(meanTouchdownIndex.(EEselection)+1:end, :);
-    torque.stance = tempLeg.(EEselection).jointTorque(meanTouchdownIndex.(EEselection)+1:end, :);
+    if linkCount>2 && heuristic.torqueAngle.apply % Exclude torque at final joint because the torque there is passive torque    
+        torqueInitial.stance = Leg.(EEselection).jointTorque(meanTouchdownIndex.(EEselection)+1:end, 1:end-1);
+        torque.stance = tempLeg.(EEselection).jointTorque(meanTouchdownIndex.(EEselection)+1:end, 1:end-1);
+
+    else
+        torqueInitial.stance = Leg.(EEselection).jointTorque(meanTouchdownIndex.(EEselection)+1:end, :);
+        torque.stance = tempLeg.(EEselection).jointTorque(meanTouchdownIndex.(EEselection)+1:end, :);
+    end
     totalStanceTorqueInitial = sum(sum((torqueInitial.stance).^2));
     totalStanceTorque = sum(sum((torque.stance).^2));
 end
+
 if W_totalTorque
-    totalTorqueInitial    = sum(sum((Leg.(EEselection).jointTorque).^2)); 
-    totalTorque    = sum(sum((tempLeg.(EEselection).jointTorque).^2)); 
+    if linkCount>2 && heuristic.torqueAngle.apply % Exclude torque at final joint because the torque there is passive torque
+        totalTorqueInitial = sum(sum((Leg.(EEselection).jointTorque(:,1:end-1)).^2)); 
+        totalTorque = sum(sum((tempLeg.(EEselection).jointTorque(:,1:end-1)).^2));
+    else
+        totalTorqueInitial = sum(sum((Leg.(EEselection).jointTorque).^2)); 
+        totalTorque = sum(sum((tempLeg.(EEselection).jointTorque).^2)); 
+    end
 end
+
 if W_totalTorqueHFE
     totalTorqueHFEInitial = sum((Leg.(EEselection).jointTorque(:,2)).^2); 
     totalTorqueHFE = sum((tempLeg.(EEselection).jointTorque(:,2)).^2); 
 end
+
 if W_swingTorqueHFE
     swingTorqueHFEInitial = sum((torqueInitial.swing(:,2)).^2);
     swingTorqueHFE = sum((torque.swing(:,2)).^2);
 end
+
 if W_totalqdot
     totalqdotInitial     = sum(sum((Leg.(EEselection).qdot).^2));
     totalqdot      = sum(sum((tempLeg.(EEselection).qdot).^2));
 end
+
 if W_totalPower
     totalPowerInitial    = sum(sum(jointPowerInitial));
     totalPower     = sum(sum(jointPower));
 end
+
 if W_totalMechEnergy
-    totalMechEnergyInitial    = sum(Leg.(EEselection).mechEnergy(end,:)); % sum of mech energy consumed over all joints during the motion
-    totalMechEnergy    = sum(tempLeg.(EEselection).mechEnergy(end,:));
+    if linkCount>2 && heuristic.torqueAngle.apply   
+        totalMechEnergyInitial = sum(Leg.(EEselection).mechEnergy(end,1:end-1)); % sum of mech energy consumed over all active joints during the motion
+        totalMechEnergy    = sum(tempLeg.(EEselection).mechEnergy(end,1:end-1));
+    else
+        totalMechEnergyInitial = sum(Leg.(EEselection).mechEnergy(end,:));
+        totalMechEnergy    = sum(tempLeg.(EEselection).mechEnergy(end,:));
+    end
 end
+
 if W_totalElecEnergy
-    totalElecEnergyInitial    = sum(Leg.(EEselection).elecEnergy(end,:)); % sum of elec energy consumed over all joints during the motion
-    totalElecEnergy    = sum(tempLeg.(EEselection).elecEnergy(end,:));
+    if linkCount>2 && heuristic.torqueAngle.apply     
+        totalElecEnergyInitial    = sum(Leg.(EEselection).elecEnergy(end,1:end-1)); % sum of elec energy consumed over all active joints during the motion
+        totalElecEnergy    = sum(tempLeg.(EEselection).elecEnergy(end,1:end-1));
+    else
+        totalElecEnergyInitial    = sum(Leg.(EEselection).elecEnergy(end,:)); % sum of elec energy consumed over all joints during the motion
+        totalElecEnergy    = sum(tempLeg.(EEselection).elecEnergy(end,:));        
+    end
+    
 end
+
 if W_averageEfficiency    
-    averageEfficiencyInitial    = mean(mean(Leg.(EEselection).operatingPointEfficiency));
-    averageEfficiency    = mean(mean(tempLeg.(EEselection).operatingPointEfficiency));
+    averageEfficiencyInitial = mean(mean(Leg.(EEselection).operatingPointEfficiency));
+    averageEfficiency = mean(mean(tempLeg.(EEselection).operatingPointEfficiency));
 end
+
 if W_maxTorque
-    maxTorqueInitial      = max(max(abs(Leg.(EEselection).jointTorque)));
-    maxTorque      = max(max(abs(tempLeg.(EEselection).jointTorque)));
+    if linkCount>2 && heuristic.torqueAngle.apply         
+        maxTorqueInitial = max(max(abs(Leg.(EEselection).jointTorque(:,1:end-1))));
+        maxTorque = max(max(abs(tempLeg.(EEselection).jointTorque(:,1:end-1))));
+    else
+        maxTorqueInitial = max(max(abs(Leg.(EEselection).jointTorque)));
+        maxTorque = max(max(abs(tempLeg.(EEselection).jointTorque)));        
+    end
 end
+
 if W_maxqdot
-    maxqdotInitial       = max(max(abs(Leg.(EEselection).qdot)));
-    maxqdot        = max(max(abs(tempLeg.(EEselection).qdot)));
+    if linkCount>2 && heuristic.torqueAngle.apply             
+        maxqdotInitial = max(max(abs(Leg.(EEselection).qdot(:,1:end-1))));
+        maxqdot = max(max(abs(tempLeg.(EEselection).qdot(:,1:end-1))));
+    else
+    	maxqdotInitial = max(max(abs(Leg.(EEselection).qdot)));
+        maxqdot = max(max(abs(tempLeg.(EEselection).qdot)));
+    end
 end
+
 if W_maxPower
-    maxPowerInitial      = max(max(jointPowerInitial));
-    maxPower       = max(max(jointPower));
+    if linkCount>2 && heuristic.torqueAngle.apply                 
+        maxPowerInitial = max(max(jointPowerInitial(:,1:end-1)));
+        maxPower = max(max(jointPower(:,1:end-1)));
+    else
+        maxPowerInitial = max(max(jointPowerInitial));
+        maxPower = max(max(jointPower));        
+    end
 end
+
 if W_antagonisticPower
     antagonisticPowerInitial      = 0.5*(sum(sum(jointPowerInitial)) - sum(sum(abs(jointPowerInitial))));
     antagonisticPower             = 0.5*(sum(sum(jointPower)) - sum(sum(abs(jointPower))));
@@ -274,7 +340,7 @@ else
     trackingErrorPenalty = 0;
 end
 
-%% JOINT BELOW GROUND PENALTY
+%% JOINT TOO CLOSE TO GROUND
 % Requires us to bring in hipNomZ
 % For flat ground, ground height is the distance CoM z position.
     groundHeight = -Leg.base.position.(EEselection)(:,3);
@@ -288,7 +354,7 @@ end
         lowestJoint(i,1) =  min(jointHeight);
     end              
     % Apply penalty if the lowest joint is ever too close to the ground                 
-    if any(lowestJoint - groundHeight(1:length(lowestJoint)) < 0.05)
+    if any(lowestJoint - groundHeight(1:length(lowestJoint)) < 0.1)
         jointBelowGroundPenalty = 10;
     else
         jointBelowGroundPenalty = 0;
@@ -307,6 +373,27 @@ end
     else
         KFEAboveHFEPenalty = 0;
     end
+    
+%% Last joint in front of end effector (Control spring deform. direction)
+% Applies only if using spring heuristic
+if linkCount>2 && heuristic.torqueAngle.apply                 
+    for i = 1:length(tempLeg.(EEselection).r.HAA(:,3))
+        if linkCount == 3
+            jointPositionxLastJoint(i,1)       = tempLeg.(EEselection).r.AFE(i,1);
+        else
+            jointPositionxLastJoint(i,1)       = tempLeg.(EEselection).r.DFE(i,1);
+        end            
+    end   
+
+    % Apply penalty if KFE joint is ever above HFE joint
+    if any(jointPositionxLastJoint > tempLeg.(EEselection).r.EE(i,1))
+        lastJointInFrontOfEEPenalty = 10;
+    else
+        lastJointInFrontOfEEPenalty = 0;
+    end 
+else
+    lastJointInFrontOfEEPenalty = 0;
+end
 
 % OVEREXTENSION PENALTY
     if optimizationProperties.penaltyWeight.maximumExtension % if true, calculate and penalize for overzealous extension
@@ -337,6 +424,7 @@ penalty = W_totalTorque * (totalTorque/totalTorqueInitial) + ...
           trackingErrorPenalty + ...
           jointBelowGroundPenalty + ...
           KFEAboveHFEPenalty + ...
+          lastJointInFrontOfEEPenalty + ... % only applies for spring at final joint to control the spring deformation direction
           optimizationProperties.penaltyWeight.maximumExtension * maximumExtensionPenalty + ...
           torqueLimitPenalty + ...
           speedLimitPenalty + ...

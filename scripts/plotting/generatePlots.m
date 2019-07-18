@@ -2,7 +2,7 @@ function [] = generatePlots(viewPlots, data, task, optimizeLeg)
 
 %% Create title page for the pdf
 classSelection = data.(task).basicProperties.classSelection;
-figure('units','normalized','outerposition',[0 0 1 1])
+figure('name', 'Title Slide', 'DefaultAxesFontSize', 10, 'units','normalized','outerposition',[0 0 1 1])
 set(gcf,'color','w')
 text(0.5,0.5,['Results of vitruvio simulation for ', classSelection, ' ', task], 'FontSize', 22,'HorizontalAlignment', 'center');
 set(gca, 'visible', 'off', 'xtick', []);

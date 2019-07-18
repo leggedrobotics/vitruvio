@@ -1,15 +1,23 @@
 %% Nominal robot classes
-% the link lengths need to be updated during the optimization so this data
-% cannot be saved into a .mat file like the motion data
+% This file contains the robot properties for each of the defined robot
+% classes. The function returns the properties for the selected robot.
 
-function robotProperties = getRobotProperties(robotSelection)
+function robotProperties = getRobotProperties(robotSelection, transmissionMethod, actuateJointDirectly, jointNames, linkNames, linkCount)
 
 %% Your robot
 %%% Add your robot properties %%%
     robot.yourRobot.mass.total = 29.5; 
-    robot.yourRobot.legDensity = 249.4; %kg/m^3. Assuming legs are constant density cylinders.
-    robot.yourRobot.EE(1).mass = 0.19;
-    robot.yourRobot.EE(2).mass = 0.19;
+    robot.yourRobot.legCount   = 4;
+
+    % Density of each link
+    robot.yourRobot.legDensity.hip(1)       = 249.4;   robot.yourRobot.legDensity.hip(2)       = 249.4;
+    robot.yourRobot.legDensity.thigh(1)     = 249.4;   robot.yourRobot.legDensity.thigh(2)     = 249.4;
+    robot.yourRobot.legDensity.shank(1)     = 200;     robot.yourRobot.legDensity.shank(2)     = 200;
+    robot.yourRobot.legDensity.foot(1)      = 150;     robot.yourRobot.legDensity.foot(2)      = 200;
+    robot.yourRobot.legDensity.phalanges(1) = 100;     robot.yourRobot.legDensity.phalanges(2) = 100;
+    
+    robot.yourRobot.EE(1).mass = 0.1923;
+    robot.yourRobot.EE(2).mass = 0.1923;
 
     % offset from CoM to HAA for each leg.
     robot.yourRobot.xNom(1) = 0.34;
@@ -49,15 +57,6 @@ function robotProperties = getRobotProperties(robotSelection)
     robot.yourRobot.phalanges(1).radius = 0.05;
     robot.yourRobot.phalanges(2).radius = 0.05;
 
-    % Link mass [kg] and inertia [kg.m^2] based on cylindrical link with constant density
-    link = {'hip','thigh' 'shank' 'foot' 'phalanges'};
-    for i = 1:length(link)
-        for j = 1:2
-            robot.yourRobot.(link{i})(j).mass = pi()*robot.yourRobot.(link{i})(j).radius^2*robot.yourRobot.(link{i})(j).length*robot.yourRobot.legDensity;
-            robot.yourRobot.(link{i})(j).inertia = (1/3)*robot.yourRobot.(link{i})(j).mass*robot.yourRobot.(link{i})(j).length^2;
-        end
-    end
-
     % joint angle limits
     % q1 HAA, q2 HFE, q3 KFE, q4 AFE
     robot.yourRobot.q1.minAngle = -pi;
@@ -80,16 +79,25 @@ function robotProperties = getRobotProperties(robotSelection)
 
     %% ANYmal
     robot.ANYmal.mass.total = 29.5; 
-    robot.ANYmal.legDensity = 249.4; %kg/m^3. Assuming legs are constant density cylinders.
-    robot.ANYmal.EE(1).mass = 0.19;
-    robot.ANYmal.EE(2).mass = 0.19;
+    robot.ANYmal.legCount   = 4;
+    
+    % Density of each link
+    robot.ANYmal.legDensity.hip(1)       = 387.4678;  robot.ANYmal.legDensity.hip(2)       = 387.4678;
+    robot.ANYmal.legDensity.thigh(1)     = 343.7730;  robot.ANYmal.legDensity.thigh(2)     = 343.7730;
+    robot.ANYmal.legDensity.shank(1)     = 81.0208;   robot.ANYmal.legDensity.shank(2)     = 81.0208;
+    robot.ANYmal.legDensity.foot(1)      = 80;        robot.ANYmal.legDensity.foot(2)      = 80;
+    robot.ANYmal.legDensity.phalanges(1) = 80;        robot.ANYmal.legDensity.phalanges(2) = 80;    
+    
+    % End effector mass
+    robot.ANYmal.EE(1).mass = 0.1923;
+    robot.ANYmal.EE(2).mass = 0.1923;
 
     % offset from CoM to HAA for each leg.
     robot.ANYmal.xNom(1) = 0.34;
     robot.ANYmal.xNom(2) = 0.34;
     robot.ANYmal.yNom(1) = 0.19;
     robot.ANYmal.yNom(2) = 0.19;
-    robot.ANYmal.zNom = 0.05; % offset from CoM to HAA in z direction. Positive value means HAA above CoM.
+    robot.ANYmal.zNom = 0; % offset from CoM to HAA in z direction. Positive value means HAA above CoM.
     
     robot.ANYmal.nomHipPos.LF = [ robot.ANYmal.xNom(1),  robot.ANYmal.yNom(1), robot.ANYmal.zNom];
     robot.ANYmal.nomHipPos.LH = [-robot.ANYmal.xNom(2),  robot.ANYmal.yNom(2), robot.ANYmal.zNom];
@@ -122,15 +130,6 @@ function robotProperties = getRobotProperties(robotSelection)
     robot.ANYmal.phalanges(1).radius = 0.05;
     robot.ANYmal.phalanges(2).radius = 0.05;
 
-    % Link mass [kg] and inertia [kg.m^2] based on cylindrical link with constant density
-    link = {'hip','thigh' 'shank' 'foot' 'phalanges'};
-    for i = 1:length(link)
-        for j = 1:2
-            robot.ANYmal.(link{i})(j).mass = pi()*robot.ANYmal.(link{i})(j).radius^2*robot.ANYmal.(link{i})(j).length*robot.ANYmal.legDensity;
-            robot.ANYmal.(link{i})(j).inertia = (1/3)*robot.ANYmal.(link{i})(j).mass*robot.ANYmal.(link{i})(j).length^2;
-        end
-    end
-
     % joint angle limits
     % q1 HAA, q2 HFE, q3 KFE, q4 AFE
     robot.ANYmal.q1.minAngle = -pi;
@@ -151,10 +150,19 @@ function robotProperties = getRobotProperties(robotSelection)
      robot.ANYmal.hipOffset(2) = robot.ANYmal.hip(2).length;
      
     %% Universal
-    robot.universal.mass.total = 39.53; % with payload
-    robot.universal.legDensity = 249.4;
-    robot.universal.EE(1).mass = 0.19;
-    robot.universal.EE(2).mass = 0.19;    
+    robot.universal.mass.total = 39.53; % (with payload). This value is only used in computing CoT.
+    robot.universal.legCount = 4;
+    
+    % Density of each link
+    robot.universal.legDensity.hip(1)       = 249.4;   robot.universal.legDensity.hip(2)       = 249.4;
+    robot.universal.legDensity.thigh(1)     = 249.4;   robot.universal.legDensity.thigh(2)     = 249.4;
+    robot.universal.legDensity.shank(1)     = 200;     robot.universal.legDensity.shank(2)     = 200;
+    robot.universal.legDensity.foot(1)      = 150;     robot.universal.legDensity.foot(2)      = 200;
+    robot.universal.legDensity.phalanges(1) = 100;     robot.universal.legDensity.phalanges(2) = 100;
+    
+    % End effector mass
+    robot.universal.EE(1).mass = 0.1923;
+    robot.universal.EE(2).mass = 0.1923;    
 
     % offset from CoM to each hip
     robot.universal.xNom(1) = 0.34;
@@ -196,14 +204,6 @@ function robotProperties = getRobotProperties(robotSelection)
     robot.universal.phalanges(1).radius = 0.05;
     robot.universal.phalanges(2).radius = 0.05;
 
-    %link mass [kg] based on cylindrical link with constant density
-    for i = 1:length(link)
-        for j = 1:2
-            robot.universal.(link{i})(j).mass = pi()*robot.universal.(link{i})(j).radius^2*robot.universal.(link{i})(j).length*robot.universal.legDensity;
-            robot.universal.(link{i})(j).inertia = (1/3)*robot.universal.(link{i})(j).mass*robot.universal.(link{i})(j).length^2;
-        end
-    end
-
     % joint angle limits
     % q1 HAA, q2 HFE, q3 KFE, q4 AFE
     robot.universal.q1.minAngle = -pi;
@@ -225,11 +225,20 @@ function robotProperties = getRobotProperties(robotSelection)
      
     %% Speedy 
     robot.speedy.mass.total = 22.52;
-    robot.speedy.legDensity = 249.4;
-    robot.speedy.EE(1).mass = 0.19;
-    robot.speedy.EE(2).mass = 0.19;    
+    robot.speedy.legCount   = 4;
+    
+    % Density of each link
+    robot.speedy.legDensity.hip(1)       = 249.4;   robot.speedy.legDensity.hip(2)       = 249.4;
+    robot.speedy.legDensity.thigh(1)     = 249.4;   robot.speedy.legDensity.thigh(2)     = 249.4;
+    robot.speedy.legDensity.shank(1)     = 200;     robot.speedy.legDensity.shank(2)     = 200;
+    robot.speedy.legDensity.foot(1)      = 150;     robot.speedy.legDensity.foot(2)      = 200;
+    robot.speedy.legDensity.phalanges(1) = 100;     robot.speedy.legDensity.phalanges(2) = 100;
+    
+    % End effector mass
+    robot.speedy.EE(1).mass = 0.1923;
+    robot.speedy.EE(2).mass = 0.1923;    
 
-    % offset from CoM to each hip
+    % Offset from CoM to each hip
     robot.speedy.xNom(1) = 0.31;
     robot.speedy.xNom(2) = 0.31;
     robot.speedy.yNom(1) = 0.1; % front
@@ -268,14 +277,6 @@ function robotProperties = getRobotProperties(robotSelection)
     robot.speedy.phalanges(1).radius = 0.03;
     robot.speedy.phalanges(2).radius = 0.03;
 
-    %link mass [kg] based on cylindrical link with constant density
-    for i = 1:length(link)
-        for j = 1:2
-            robot.speedy.(link{i})(j).mass = pi()*robot.speedy.(link{i})(j).radius^2*robot.speedy.(link{i})(j).length*robot.speedy.legDensity;
-            robot.speedy.(link{i})(j).inertia = (1/3)*robot.speedy.(link{i})(j).mass*robot.speedy.(link{i})(j).length^2;
-        end
-    end
-
     % joint angle limits
     % q1 HAA, q2 HFE, q3 KFE, q4 AFE
     robot.speedy.q1.minAngle = -pi;
@@ -297,9 +298,18 @@ function robotProperties = getRobotProperties(robotSelection)
 
     %% Massivo 
     robot.massivo.mass.total = 80;
-    robot.massivo.legDensity = 249.4;
-    robot.massivo.EE(1).mass = 0.19;
-    robot.massivo.EE(2).mass = 0.19;
+    robot.massivo.legCount   = 4;
+    
+    % Density of each link
+    robot.massivo.legDensity.hip(1)       = 249.4;   robot.massivo.legDensity.hip(2)       = 249.4;
+    robot.massivo.legDensity.thigh(1)     = 249.4;   robot.massivo.legDensity.thigh(2)     = 249.4;
+    robot.massivo.legDensity.shank(1)     = 200;     robot.massivo.legDensity.shank(2)     = 200;
+    robot.massivo.legDensity.foot(1)      = 150;     robot.massivo.legDensity.foot(2)      = 200;
+    robot.massivo.legDensity.phalanges(1) = 100;     robot.massivo.legDensity.phalanges(2) = 100;
+    
+    % End effector mass
+    robot.massivo.EE(1).mass = 0.1923;
+    robot.massivo.EE(2).mass = 0.1923;
 
     % offset from CoM to each hip
     robot.massivo.xNom(1) = 0.276;
@@ -340,14 +350,6 @@ function robotProperties = getRobotProperties(robotSelection)
     robot.massivo.phalanges(1).radius = 0.03;
     robot.massivo.phalanges(2).radius = 0.03;
 
-    %link mass [kg] based on cylindrical link with constant density
-    for i = 1:length(link)
-        for j = 1:2
-            robot.massivo.(link{i})(j).mass = pi()*robot.massivo.(link{i})(j).radius^2*robot.massivo.(link{i})(j).length*robot.massivo.legDensity;
-            robot.massivo.(link{i})(j).inertia = (1/3)*robot.massivo.(link{i})(j).mass*robot.massivo.(link{i})(j).length^2;
-        end
-    end
-
     % joint angle limits
     % q1 HAA, q2 HFE, q3 KFE, q4 AFE
     robot.massivo.q1.minAngle = -pi;
@@ -369,9 +371,18 @@ function robotProperties = getRobotProperties(robotSelection)
      
     %% Centaur 
     robot.centaur.mass.total = 80;
-    robot.centaur.legDensity = 249.4;
-    robot.centaur.EE(1).mass = 0.19;
-    robot.centaur.EE(2).mass = 0.19;
+    robot.centaur.legCount   = 4;
+
+    % Density of each link
+    robot.centaur.legDensity.hip(1)       = 249.4;   robot.centaur.legDensity.hip(2)       = 249.4;
+    robot.centaur.legDensity.thigh(1)     = 249.4;   robot.centaur.legDensity.thigh(2)     = 249.4;
+    robot.centaur.legDensity.shank(1)     = 200;     robot.centaur.legDensity.shank(2)     = 200;
+    robot.centaur.legDensity.foot(1)      = 150;     robot.centaur.legDensity.foot(2)      = 200;
+    robot.centaur.legDensity.phalanges(1) = 100;     robot.centaur.legDensity.phalanges(2) = 100;
+    
+    % End effector mass
+    robot.centaur.EE(1).mass = 0.1923;
+    robot.centaur.EE(2).mass = 0.1923;
 
     % offset from CoM to each hip
     robot.centaur.xNom(1) = 0.1451;
@@ -412,14 +423,6 @@ function robotProperties = getRobotProperties(robotSelection)
     robot.centaur.phalanges(1).radius = 0.03;
     robot.centaur.phalanges(2).radius = 0.03;
 
-    %link mass [kg] based on cylindrical link with constant density
-    for i = 1:length(link)
-        for j = 1:2
-            robot.centaur.(link{i})(j).mass = pi()*robot.centaur.(link{i})(j).radius^2*robot.centaur.(link{i})(j).length*robot.centaur.legDensity;
-            robot.centaur.(link{i})(j).inertia = (1/3)*robot.centaur.(link{i})(j).mass*robot.centaur.(link{i})(j).length^2;
-        end
-    end
-
     % joint angle limits
     % q1 HAA, q2 HFE, q3 KFE, q4 AFE
     robot.centaur.q1.minAngle = -pi;
@@ -441,9 +444,18 @@ function robotProperties = getRobotProperties(robotSelection)
     
     %% Mini 
     robot.mini.mass.total = 10;
-    robot.mini.legDensity = 249.4;
-    robot.mini.EE(1).mass = 0.19;
-    robot.mini.EE(2).mass = 0.19;
+    robot.mini.legCount   = 4;
+
+    % Density of each link
+    robot.mini.legDensity.hip(1)       = 249.4;   robot.mini.legDensity.hip(2)       = 249.4;
+    robot.mini.legDensity.thigh(1)     = 249.4;   robot.mini.legDensity.thigh(2)     = 249.4;
+    robot.mini.legDensity.shank(1)     = 200;     robot.mini.legDensity.shank(2)     = 200;
+    robot.mini.legDensity.foot(1)      = 150;     robot.mini.legDensity.foot(2)      = 200;
+    robot.mini.legDensity.phalanges(1) = 100;     robot.mini.legDensity.phalanges(2) = 100;
+    
+    % End effector mass
+    robot.mini.EE(1).mass = 0.1923;
+    robot.mini.EE(2).mass = 0.1923;
     
     robot.mini.xNom(1) = 0.18;
     robot.mini.xNom(2) = 0.18;
@@ -483,14 +495,6 @@ function robotProperties = getRobotProperties(robotSelection)
     robot.mini.phalanges(1).radius = 0.03;
     robot.mini.phalanges(2).radius = 0.03;
 
-    %link mass [kg] based on cylindrical link with constant density
-    for i = 1:length(link)
-        for j = 1:2
-            robot.mini.(link{i})(j).mass = pi()*robot.mini.(link{i})(j).radius^2*robot.mini.(link{i})(j).length*robot.mini.legDensity;
-            robot.mini.(link{i})(j).inertia = (1/3)*robot.mini.(link{i})(j).mass*robot.mini.(link{i})(j).length^2;
-        end
-    end
-
     % joint angle limits
     % q1 HAA, q2 HFE, q3 KFE, q4 AFE
     robot.mini.q1.minAngle = -pi;
@@ -512,8 +516,17 @@ function robotProperties = getRobotProperties(robotSelection)
     
     %% defaultHopper 
     robot.defaultHopper.mass.total = 10;
-    robot.defaultHopper.legDensity = 249.4;
-    robot.defaultHopper.EE(1).mass = 0.19;
+    robot.defaultHopper.legCount   = 1;
+    
+    % Density of each link
+    robot.defaultHopper.legDensity.hip(1)       = 249.4;   robot.defaultHopper.legDensity.hip(2)       = 249.4;
+    robot.defaultHopper.legDensity.thigh(1)     = 249.4;   robot.defaultHopper.legDensity.thigh(2)     = 249.4;
+    robot.defaultHopper.legDensity.shank(1)     = 200;     robot.defaultHopper.legDensity.shank(2)     = 200;
+    robot.defaultHopper.legDensity.foot(1)      = 150;     robot.defaultHopper.legDensity.foot(2)      = 200;
+    robot.defaultHopper.legDensity.phalanges(1) = 100;     robot.defaultHopper.legDensity.phalanges(2) = 100;
+    
+    % End effector mass
+    robot.defaultHopper.EE(1).mass = 0.1923;
 
     robot.defaultHopper.xNom(1) = 0;
     robot.defaultHopper.yNom(1) = 0;
@@ -537,14 +550,6 @@ function robotProperties = getRobotProperties(robotSelection)
     robot.defaultHopper.foot(1).radius = 0.03;
     robot.defaultHopper.phalanges(1).radius = 0.03;
 
-    %link mass [kg] based on cylindrical link with constant density
-    for i = 1:length(link)
-        for j = 1:1 % only 1 leg for hopper
-            robot.defaultHopper.(link{i})(j).mass = pi()*robot.defaultHopper.(link{i})(j).radius^2*robot.defaultHopper.(link{i})(j).length*robot.defaultHopper.legDensity;
-            robot.defaultHopper.(link{i})(j).inertia = (1/3)*robot.defaultHopper.(link{i})(j).mass*robot.defaultHopper.(link{i})(j).length^2;
-        end
-    end
-
     % joint angle limits
     % q1 HAA, q2 HFE, q3 KFE, q4 AFE
     robot.defaultHopper.q1.minAngle = -pi;
@@ -563,6 +568,42 @@ function robotProperties = getRobotProperties(robotSelection)
     % that HAA is at the location specified above by nomHipPos.
      robot.defaultHopper.hipOffset(1) = robot.defaultHopper.hip(1).length;
      
-    %% load in the parameters of the selected robot into the struct quadruped which is then used by the rest of the program
+     
+    %% Compute link mass and inertia for selected robot
+    
+    % Additional mass due to transmission
+    [transmissionMass, transmissionGearRatio] = getTransmissionProperties(transmissionMethod, actuateJointDirectly, robot, robotSelection, jointNames, linkNames, linkCount);
+    
+        % Link mass [kg] and inertia [kg.m^2] based on cylindrical link
+        % with constant density. Density is dependent on link density and
+        % transmission mass.
+        
+    for i = 1:linkCount+1
+        if robot.(robotSelection).legCount > 2
+            frontHindIndex = 2; % Robot has front and hind legs.
+        else
+            frontHindIndex = 1; % Robot only has 'front' legs.
+        end
+        for j = 1:frontHindIndex % (1 = front, 2 = hind)
+            % M = pi*R^2*L_link*density_link + m_transmission
+            robot.(robotSelection).(linkNames{i})(j).mass = pi()*robot.(robotSelection).(linkNames{i})(j).radius^2*robot.(robotSelection).(linkNames{i})(j).length*robot.(robotSelection).legDensity.(linkNames{i})(j) ...
+                                                            + transmissionMass.(linkNames{i})(j);
+            % Inertia = (1/3)*M*L_link^2                                            
+            robot.(robotSelection).(linkNames{i})(j).inertia = (1/3)*robot.(robotSelection).(linkNames{i})(j).mass*robot.(robotSelection).(linkNames{i})(j).length^2;
+        end
+    end
+    
+    for i = 1:length(jointNames)
+        if robot.(robotSelection).legCount > 2
+            frontHindIndex = 2; % Robot has front and hind legs.
+        else
+            frontHindIndex = 1; % Robot only has 'front' legs.
+        end
+        for j = 1:frontHindIndex % (1 = front, 2 = hind)
+            robot.(robotSelection).transmissionGearRatio.(jointNames(i,:))(j) = transmissionGearRatio.(jointNames(i,:))(j);
+        end
+    end
+    
+    %% Load in the parameters of the selected robot into the struct robotProperties which is then used by the rest of the program  
     robotProperties = robot.(robotSelection);
 end
