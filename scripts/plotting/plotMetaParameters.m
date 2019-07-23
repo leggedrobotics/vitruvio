@@ -1,4 +1,4 @@
-function [] = plotMetaParameters(data, task)
+function [] = plotMetaParameters(data, task, saveFiguresToPDF)
 
 t                    = data.(task).time;
 base                 = data.(task).base; % base motion for each leg during its cycle
@@ -41,7 +41,9 @@ for i = 1:legCount
         title(ax2, ({'Link lengths [m]',['Optimized ', EEselection]}), 'FontSize', fontSize);
         legend(legendLabels,'Location','southoutside','Orientation','horizontal')
         view([90 90])   % this is to rotate the chart
-        export_fig results.pdf -nocrop -append
+        if saveFiguresToPDF
+            export_fig results.pdf -nocrop -append
+        end
 
         %% Peak joint torque comparison of actuators
         if linkCount == 2
@@ -69,7 +71,9 @@ for i = 1:legCount
         title(ax2, ({'Peak joint torques [Nm]',['Optimized ', EEselection]}), 'FontSize', fontSize);        
         legend(legendLabels,'Location','southoutside','Orientation','horizontal')
         view([90 90])   % this is to rotate the chart
-        export_fig results.pdf -nocrop -append
+        if saveFiguresToPDF
+            export_fig results.pdf -nocrop -append
+        end
 
         %% Energy consumption comparison of actuators
        
@@ -94,7 +98,9 @@ for i = 1:legCount
         title(ax2, ({'Mechanical energy [J/cycle]',['Optimized ', EEselection]}), 'FontSize', fontSize);                
         legend(legendLabels,'Location','southoutside','Orientation','horizontal')
         view([90 90])   % this is to rotate the chart
-        export_fig results.pdf -nocrop -append
+        if saveFiguresToPDF
+            export_fig results.pdf -nocrop -append
+        end
  
         % Electrical energy demand
         figureName = 'Electrical demand' + " " + EEselection;
@@ -111,7 +117,9 @@ for i = 1:legCount
         pie(ax2, data.(task).metaParameters.elecEnergyPerCycleOpt.(EEselection), valueLabelsElecEnergyOpt)
         title(ax2, ({'Electrical energy [J/cycle]',['Optimized ', EEselection]}), 'FontSize', fontSize);                
         legend(legendLabels,'Location','southoutside','Orientation','horizontal')
-        view([90 90])   % this is to rotate the chart        
-        export_fig results.pdf -nocrop -append        
+        view([90 90])   % this is to rotate the chart 
+        if saveFiguresToPDF
+            export_fig results.pdf -nocrop -append        
+        end
     end
 end

@@ -1,4 +1,4 @@
-function [] = plotEfficiencyMapWithOperatingPoints(classSelection, task)
+function [] = plotEfficiencyMapWithOperatingPoints(classSelection, task, saveFiguresToPDF)
 
     legCount          = classSelection.(task).basicProperties.legCount;
     linkCount         = classSelection.(task).basicProperties.linkCount;
@@ -15,14 +15,14 @@ function [] = plotEfficiencyMapWithOperatingPoints(classSelection, task)
     if classSelection.(task).basicProperties.optimizedLegs.(EEselection)      
         % Convert qdot and torque values from joint level to motor level.
         for j = 1:linkCount+1
-            qdotMotorOpt.(EEselection)(:,j)   =  classSelection.(task).(EEselection).qdotOpt(:,j) *gearRatio.(jointNames(j,:));        
-            torqueMotorOpt.(EEselection)(:,j) =  classSelection.(task).(EEselection).jointTorqueOpt(:,j)/gearRatio.(jointNames(j,:));
+            qdotMotorOpt.(EEselection)(:,j)   =  classSelection.(task).(EEselection).actuatorqdotOpt(:,j) *gearRatio.(jointNames(j,:));        
+            torqueMotorOpt.(EEselection)(:,j) =  classSelection.(task).(EEselection).actuatorTorqueOpt(:,j)/gearRatio.(jointNames(j,:));
         end
     end
     % Nominal qdot and torque values
     for j = 1:linkCount+1 % joint count = linkCount+1
-        qdotMotor.(EEselection)(:,j)   = classSelection.(task).(EEselection).qdot(:,j)*gearRatio.(jointNames(j,:));        
-        torqueMotor.(EEselection)(:,j) = classSelection.(task).(EEselection).jointTorque(:,j)/gearRatio.(jointNames(j,:));
+        qdotMotor.(EEselection)(:,j)   = classSelection.(task).(EEselection).actuatorqdot(:,j)*gearRatio.(jointNames(j,:));        
+        torqueMotor.(EEselection)(:,j) = classSelection.(task).(EEselection).actuatorTorque(:,j)/gearRatio.(jointNames(j,:));
     end
     % Liftoff and touchdown timings for differentiation between swing and
     % stance phase in plot
@@ -72,19 +72,20 @@ function [] = plotEfficiencyMapWithOperatingPoints(classSelection, task)
                 figure('name', figureName, 'DefaultAxesFontSize', 10, 'units','normalized','outerposition',[0 0 1 1])
                 set(gcf,'color','w')
                 hold on
-                contourf(qdotMap.(jointNames(j,:)), torqueMap.(jointNames(j,:)), efficiencyMapCropped.(jointNames(j,:)), numberOfContours, 'ShowText', 'on', 'LabelSpacing', 800)
+                contourf(qdotMap.(jointNames(j,:)), torqueMap.(jointNames(j,:)), efficiencyMapCropped.(jointNames(j,:)), numberOfContours)
                 plot(qdotEnvelope.(jointNames(j,:)), torqueEnvelope.(jointNames(j,:)), 'k', 'lineWidth', lineWidth)
                 
                 % Mirror plots to quadrant III where power is also positive
                 plot(-qdotEnvelope.(jointNames(j,:)), -torqueEnvelope.(jointNames(j,:)), 'k', 'lineWidth', lineWidth)
-                contourf(-qdotMap.(jointNames(j,:)), -torqueMap.(jointNames(j,:)), efficiencyMapCropped.(jointNames(j,:)), numberOfContours, 'ShowText', 'on', 'LabelSpacing', 800)
+                contourf(-qdotMap.(jointNames(j,:)), -torqueMap.(jointNames(j,:)), efficiencyMapCropped.(jointNames(j,:)), numberOfContours)
+                colorbar('eastoutside')
                 
                 %% Plot the operating point with differentiation between swing and stance phase           
                 if averageStepsForCyclicalMotion
                 pNomSwing  = plot(qdotMotor.(EEselection)(1:touchdownIndex.(EEselection),j), torqueMotor.(EEselection)(1:touchdownIndex.(EEselection),j),  lineTypeSwing, 'lineWidth', lineWidth, 'DisplayName', 'nominal leg, swing');
                 pNomStance = plot(qdotMotor.(EEselection)(touchdownIndex.(EEselection):end,j), torqueMotor.(EEselection)(touchdownIndex.(EEselection):end,j),  lineTypeStance, 'lineWidth', lineWidth, 'DisplayName', 'nominal leg, stance');
                     if classSelection.(task).basicProperties.optimizedLegs.(EEselection)  
-                        pOptSwing  = plot(qdotMotorOpt.(EEselection)(liftoffIndex.(EEselection):end,j), torqueMotorOpt.(EEselection)(liftoffIndex.(EEselection)(1):end,j),  lineTypeSwingOpt, 'lineWidth', lineWidth, 'DisplayName', 'optimized leg, swing');
+                        pOptSwing  = plot(qdotMotorOpt.(EEselection)(1:touchdownIndex.(EEselection),j), torqueMotorOpt.(EEselection)(1:touchdownIndex.(EEselection),j),  lineTypeSwingOpt, 'lineWidth', lineWidth, 'DisplayName', 'optimized leg, swing');
                         pOptStance = plot(qdotMotorOpt.(EEselection)(touchdownIndex.(EEselection)(1):end,j), torqueMotorOpt.(EEselection)(touchdownIndex.(EEselection)(1):end,j),  lineTypeStanceOpt, 'lineWidth', lineWidth, 'DisplayName', 'optimized leg, stance');
                     end
                 
@@ -145,7 +146,9 @@ function [] = plotEfficiencyMapWithOperatingPoints(classSelection, task)
                 xlim([-1.1*qdotMap.(jointNames(j,:))(end), 1.1*qdotMap.(jointNames(j,:))(end)])
                 ylim([-1.5*torqueMap.(jointNames(j,:))(end), 1.5*torqueMap.(jointNames(j,:))(end)])
                 hold off
-                export_fig results.pdf -nocrop -append % Append the figure to the results pdf document
-            end
+                if saveFiguresToPDF
+                    export_fig results.pdf -nocrop -append % Append the figure to the results pdf document
+                end
+             end
           end
 end

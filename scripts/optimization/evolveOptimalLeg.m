@@ -1,17 +1,22 @@
-function [legDesignParameters, penaltyMin, output] = evolveOptimalLeg(actuatorProperties, imposeJointLimits, heuristic, upperBound, lowerBound, actuateJointDirectly, hipAttachmentOffset, linkCount, optimizationProperties, initialLinkLengths, taskSelection, robotProperties, configSelection, EEselection, dt, meanCyclicMotionHipEE, hipParalleltoBody, Leg, actuatorEfficiency , actuatorSelection, dataExtraction)
+function [legDesignParameters, penaltyMin, output] = evolveOptimalLeg(actuatorProperties, imposeJointLimits, heuristic, upperBound, lowerBound, actuateJointDirectly, hipAttachmentOffset, linkCount, optimizationProperties, initialLinkLengths, taskSelection, robotProperties, configSelection, EEselection, dt, meanCyclicMotionHipEE, hipParalleltoBody, Leg, actuatorEfficiency , actuatorSelection, dataExtraction, jointNames)
 if strcmp(EEselection, 'LF') || strcmp(EEselection, 'RF')
     selectFrontHind = 1;
 else 
     selectFrontHind = 2;
 end
+transmissionGearRatio = robotProperties.transmissionGearRatio.HAA(selectFrontHind);
+for i = 2:linkCount+1
+    transmissionGearRatio = [transmissionGearRatio, robotProperties.transmissionGearRatio.(jointNames(i,:))(selectFrontHind)];
+end
+
 % Set initial values for link lengths
 linkLengths = initialLinkLengths;
-legDesignParameters = [linkLengths, hipAttachmentOffset];
+legDesignParameters = [linkLengths, hipAttachmentOffset, transmissionGearRatio];
 % If also optimizing spring parameters
 if linkCount>2 && heuristic.torqueAngle.apply
     kTorsionalSpring = heuristic.torqueAngle.kTorsionalSpring;
     thetaLiftoff_des = heuristic.torqueAngle.thetaLiftoff_des;
-    legDesignParameters = [linkLengths, hipAttachmentOffset, kTorsionalSpring, thetaLiftoff_des];
+    legDesignParameters = [linkLengths, hipAttachmentOffset, transmissionGearRatio, kTorsionalSpring, thetaLiftoff_des];
 end
 
 % Set optimization options

@@ -1,5 +1,5 @@
 %% Read in data for quadruped geometry
-function robot = buildRobotRigidBodyModel(actuatorProperties, actuateJointDirectly, hipAttachmentOffset, linkCount, robotProperties, Leg, meanCyclicMotionHipEE, EEselection, numberOfStepsVisualized, viewVisualization, hipParalleltoBody, dataExtraction, optimized) 
+function robot = buildRobotRigidBodyModel(actuatorProperties, actuateJointDirectly, hipAttachmentOffset, linkCount, robotProperties, Leg, meanCyclicMotionHipEE, EEselection, numberOfStepsVisualized, viewVisualization, hipParalleltoBody, dataExtraction, optimized, saveFiguresToPDF) 
     
     jointNames = ['HAA'; 'HFE'; 'KFE'; 'AFE'; 'DFE'];
 
@@ -54,40 +54,40 @@ function robot = buildRobotRigidBodyModel(actuatorProperties, actuateJointDirect
                            0,  1, 0,  0;
                            1,  0, 0, hipOffsetDirection*l_hip;
                            0,  0, 0,  1];
-        else
+    else
         T_HFEattachment = [0,  0, -1, 0;
                            0,  1, 0, -l_hip;
                            1,  0, 0,  0;
                            0,  0, 0,  1];
     end
 
-    % HFE to KFE translation
-    T_HFE =           [1, 0, 0, l_thigh;
-                       0  1, 0, 0;
-                       0, 0, 1, 0;
-                       0, 0, 0, 1];
+        % HFE to KFE translation
+        T_HFE = [1, 0, 0, l_thigh;
+                 0  1, 0, 0;
+                 0, 0, 1, 0;
+                 0, 0, 0, 1];
 
-    % KFE to EE (or KFE to AFE for higher link counts) translation
-    T_KFE =           [1, 0, 0, l_shank;
-                       0, 1, 0, 0;
-                       0, 0, 1, 0;
-                       0, 0, 0, 1];
+        % KFE to EE (or KFE to AFE for higher link counts) translation
+        T_KFE = [1, 0, 0, l_shank;
+                 0, 1, 0, 0;
+                 0, 0, 1, 0;
+                 0, 0, 0, 1];
 
-    if linkCount == 3 || linkCount == 4
-        % AFE to EE (or AFE to DFE for higher link counts) translation
-        T_AFE =           [1, 0, 0, l_foot;
-                           0, 1, 0, 0;
-                           0, 0, 1, 0;
-                           0, 0, 0, 1];
-    end
-    
-    if linkCount ==4
-        % DFE to EE translation
-        T_DFE =           [1, 0, 0, l_phalanges;
-                           0, 1, 0, 0;
-                           0, 0, 1, 0;
-                           0, 0, 0, 1];
-    end
+        if linkCount == 3 || linkCount == 4
+            % AFE to EE (or AFE to DFE for higher link counts) translation
+        T_AFE = [1, 0, 0, l_foot;
+                 0, 1, 0, 0;
+                 0, 0, 1, 0;
+                 0, 0, 0, 1];
+        end
+
+        if linkCount ==4
+            % DFE to EE translation
+        T_DFE = [1, 0, 0, l_phalanges;
+                 0, 1, 0, 0;
+                 0, 0, 1, 0;
+                 0, 0, 0, 1];
+        end
     %% Create and assemble rigid bodies
     % Create a rigid body tree object to build the robot.
     robot = robotics.RigidBodyTree('DataFormat', 'row');
@@ -125,12 +125,12 @@ function robot = buildRobotRigidBodyModel(actuatorProperties, actuateJointDirect
     body3.Mass = robotProperties.shank(selectFrontHind).mass;  % shank
     body4.Mass = robotProperties.EE(selectFrontHind).mass;     % EE
     if (linkCount == 3)
-        body4.Mass = robotProperties.foot(selectFrontHind).mass(selectFrontHind); % overwrite EE with foot
-        body5.Mass = robotProperties.EE(selectFrontHind).mass(selectFrontHind);   % EE
+        body4.Mass = robotProperties.foot(selectFrontHind).mass; % overwrite EE with foot
+        body5.Mass = robotProperties.EE(selectFrontHind).mass;   % EE
     elseif (linkCount == 4)
-        body4.Mass = robotProperties.foot(selectFrontHind).mass(selectFrontHind);      % overwrite EE with foot
-        body5.Mass = robotProperties.phalanges(selectFrontHind).mass(selectFrontHind); % overwrite EE with phalanges
-        body6.Mass = robotProperties.EE(selectFrontHind).mass(selectFrontHind);        % EE
+        body4.Mass = robotProperties.foot(selectFrontHind).mass;      % overwrite EE with foot
+        body5.Mass = robotProperties.phalanges(selectFrontHind).mass; % overwrite EE with phalanges
+        body6.Mass = robotProperties.EE(selectFrontHind).mass;        % EE
     end 
     
     %% Compute inertia for each link and end effector
@@ -209,40 +209,50 @@ function robot = buildRobotRigidBodyModel(actuatorProperties, actuateJointDirect
     %         % inertia = [Ixx Iyy Izz Iyz Ixz Ixy] relative to body frame in kg/m^2
     
                 % EE inertia about it's own axis + parallel axis thm for
-                % offset from knee joint
+%                 % offset from knee joint
 %             I_EE = [0.00008308641, 0.00008286021, 0.000081948124, 0.000000417, 0.000000399, -0.0000003457] + 0.1923*0.33^2;
 %        
 %             body0.Inertia = [0 0 0 0 0 0]; % base    
-%             body1.Inertia = [0.002318  0.002060 0.002439 -0.000001 0.000009  0.000333];  % Hip   
-%             body2.Inertia = [0.013479 0.013250 0.002229 -0.000003 0.000038 -0.001623]; % Thigh
-%             body3.Inertia = [0.003769371790899 0.004004464676349 0.000418471691904 -0.000077334500762 -0.000152069372983 -0.000321835608300] + I_EE; % Shank + end effector
+%             body1.Inertia = [0.003405632878267  0.003314085487041 0.002846183568995 -0.000041002516348 0.000038637450575  0.000095056519150]; % Hip   
+%             body2.Inertia = [0.013643508342442  0.013867202422874 0.004050514971409  0.000221282089445 0.000231195468648 -0.001585398106631]; % Thigh
+%             body3.Inertia = [0.000210488024800  0.000676270210023 0.000545032674924 -0.000056750980345 0.000010127699391 -0.000000822869024]; % Shank
+%             
 %             if linkCount == 2
-%                 body4.Inertia = [0 0 0 0 0 0]; % We bundle the end effector with shank so body 4 has zero inertia
+%                 body4.Inertia = I_EE; % We bundle the end effector with shank so body 4 has zero inertia
 %             end
+% 
 %             % Actuator inertias are bundled in with link inertias so we set
 %             % the following inertia terms to zero.
 %             body7.Inertia  = [0 0 0 0 0 0];
 %             body8.Inertia  = [0 0 0 0 0 0];
 %             body9.Inertia  = [0 0 0 0 0 0];
+% 
 %             if linkCount == 3
 %                 body10.Inertia = [0 0 0 0 0 0];
 %             elseif linkCount == 4
 %                 body10.Inertia = [0 0 0 0 0 0];
 %                 body11.Inertia = [0 0 0 0 0 0];
 %             end
+% 
+%             body0.Mass = 0;      
+%             body1.Mass = 1.860175228 - 1.09;    % hip  
+%             body2.Mass = 2.119626278 - 1.09;  % thigh
+%             body3.Mass = 0.207204302;  % shank
+%             body4.Mass = 0.140170767;     % EE
     
     %% Compute link center of mass
     % Center of mass and mass terms do not affect inertia but are used 
     % to compute torque due to gravitational force. Default is [0 0 0] when not
     % specified. As such it is left default for actuators and end effectors
-    body1.CenterOfMass = [0.5*l_hip   0 0];
-    body2.CenterOfMass = [0.5*l_thigh 0 0];
-    body3.CenterOfMass = [0.5*l_shank 0 0]; 
+    body1.CenterOfMass = [0.5*l_hip   0 0]; % Hip
+    body2.CenterOfMass = [0.5*l_thigh 0 0]; % Shank
+    body3.CenterOfMass = [0.5*l_shank 0 0]; % Thigh
+    
     if linkCount == 3
-        body4.CenterOfMass = [0.5*l_foot 0 0];
+        body4.CenterOfMass = [0.5*l_foot 0 0]; % Foot
     elseif linkCount == 4
-        body4.CenterOfMass = [0.5*l_foot 0 0];
-        body5.CenterOfMass = [0.5*l_phalanges 0 0];
+        body4.CenterOfMass = [0.5*l_foot 0 0]; % Foot
+        body5.CenterOfMass = [0.5*l_phalanges 0 0]; % Phalanges
     end
 
     %% Set joint transforms
@@ -412,7 +422,10 @@ function robot = buildRobotRigidBodyModel(actuatorProperties, actuateJointDirect
                 hold off          
             end
         end
+        % Save the figure to a pdf
         warning off % warning for transparency in figure
-%         export_fig results.pdf -nocrop -append
+        if saveFiguresToPDF
+            export_fig results.pdf -nocrop -append
+        end
     end
 end

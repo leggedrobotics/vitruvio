@@ -1,5 +1,5 @@
 %% Plot trajectory data
-function [] = plotMotionData(data, task)
+function [] = plotMotionData(data, task, saveFiguresToPDF)
 
     t                    = data.(task).time;
     base                 = data.(task).base; % base motion for each leg during its cycle
@@ -90,8 +90,9 @@ function [] = plotMotionData(data, task)
     rectanglePos.width      =  t(endIndexFullTrajectory - startIndexFullTrajectory);
     rectanglePos.height     = yBounds(2) - yBounds(1);
     rectangle('Position', [rectanglePos.bottomLeft(1), rectanglePos.bottomLeft(2), rectanglePos.width, rectanglePos.height], 'LineWidth', 0.5);            
-
-    export_fig results.pdf -nocrop -append
+    if saveFiguresToPDF
+        export_fig results.pdf -nocrop -append
+    end
 
     %% End effector forces.
     figure('units','normalized','outerposition',[0 0 1 1]) 
@@ -153,8 +154,9 @@ function [] = plotMotionData(data, task)
         lgd.FontSize = 14;
     end
     hold off
-    export_fig results.pdf -nocrop -append
-
+    if saveFiguresToPDF
+        export_fig results.pdf -nocrop -append
+    end
     %% Plot x vs z position of EE for the final trajectory (after trimming and averaging).
     figure('units','normalized','outerposition',[0 0 1 1]) 
     set(gcf,'color','w')
@@ -183,5 +185,7 @@ function [] = plotMotionData(data, task)
         grid on
         hold off
     end
-    export_fig results.pdf -nocrop -append    
+    if saveFiguresToPDF
+        export_fig results.pdf -nocrop -append
+    end
 end

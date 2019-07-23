@@ -164,7 +164,7 @@ function robotProperties = getRobotProperties(robotSelection, transmissionMethod
     robot.universal.EE(1).mass = 0.1923;
     robot.universal.EE(2).mass = 0.1923;    
 
-    % offset from CoM to each hip
+    % Offset from CoM to each hip
     robot.universal.xNom(1) = 0.34;
     robot.universal.xNom(2) = 0.34;
     robot.universal.yNom(1) = 0.19;

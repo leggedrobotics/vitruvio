@@ -1,12 +1,13 @@
 clear;
 close all;
+diary results
 
 %% Data extraction
 % if averageStepsForCyclicalMotion is true, the motion is segmented into individual steps which are averaged
 % to create an average cycle. This works well when the motion is very cyclical.
 % If false the individual steps are not averaged. This should be selected
 % when the generated motion is irregular and highly cyclical.
-dataExtraction.averageStepsForCyclicalMotion = true; 
+dataExtraction.averageStepsForCyclicalMotion = false; 
 dataExtraction.allowableDeviation = 0.05; % [m] Deviation between neighbouring points. If the deviation is larger, additional points are interpolated.
 
 %% Toggle leg properties: leg count, link count, configuration, direct/remote joint actuation, spider/serial leg
@@ -17,9 +18,9 @@ configSelection = 'X';          % X or M
 % If true, actuators are positioned in the joint which contributes to leg
 % mass and inertia. If false, there is no actuator mass at joints, the 
 % actuator is assumed to be in the body.
-actuateJointDirectly.HAA = false; 
-actuateJointDirectly.HFE = false; 
-actuateJointDirectly.KFE = false;
+actuateJointDirectly.HAA = true; 
+actuateJointDirectly.HFE = true; 
+actuateJointDirectly.KFE = true;
 actuateJointDirectly.AFE = true;
 actuateJointDirectly.DFE = true;
 
@@ -29,7 +30,7 @@ actuateJointDirectly.DFE = true;
 actuatorSelection.HAA = 'ANYdrive'; 
 actuatorSelection.HFE = 'ANYdrive'; 
 actuatorSelection.KFE = 'ANYdrive';
-actuatorSelection.AFE = 'ANYdrive'; 
+actuatorSelection.AFE = 'Other'; 
 actuatorSelection.DFE = 'ANYdrive'; 
 
 % If joints are remotely actuated, specify the transmission method to
@@ -58,15 +59,16 @@ heuristic.torqueAngle.thetaLiftoff_des = pi/3; % Specify desired angle between f
 heuristic.torqueAngle.kTorsionalSpring = 20; % Spring constant for torsional spring at final joint [Nm/rad]
 
 %% Toggle trajectory plots and initial design viz
+saveFiguresToPDF             = false; % Figures are saved to results.pdf in current folder. This adds significant computation time.
 viewVisualization            = false; % initial leg design tracking trajectory plan
-numberOfStepsVisualized      = 1;     % number of steps visualized for leg motion
-viewPlots.motionData         = false;  % CoM position, speed. EE position and forces. Trajectory to be tracked.
+numberOfStepsVisualized      = 1;    % number of steps visualized for leg motion
+viewPlots.motionData         = false; % CoM position, speed. EE position and forces. Trajectory to be tracked.
 viewPlots.rangeOfMotionPlots = false; % range of motion of leg for given link lengths and angle limits
 viewPlots.efficiencyMap      = false; % actuator operating efficiency map
 viewPlots.jointDataPlot      = true; % angle, speed, torque, power, energy data
 viewPlots.metaParameterPlot  = false; % design parameters and key results plotted as pie charts
 % Optimization visualization
-optimizationProperties.viz.viewVisualization = false;
+optimizationProperties.viz.viewVisualization = true;
 optimizationProperties.viz.numberOfCyclesVisualized = 1;
 optimizationProperties.viz.displayBestCurrentDesign = true; % display chart of current best leg design parameters while running ga
 
@@ -79,19 +81,19 @@ yourTrajectoryData = false;
 %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
 
 universalTrot    = false;
-universalStairs  = false;
+universalStairs  = true;
 speedyStairs     = false;
-speedyGallop     = true;
+speedyGallop     = false;
 massivoWalk      = false;
-massivoStairs    = false;
+massivoStairs    = true;
 centaurWalk      = false;
 centaurStairs    = false;
 miniPronk        = false;
-ANYmalTrot       = false;
+ANYmalTrot       = true;
 defaultHopperHop = false;
 ANYmalSlowTrot2  = false;
-ANYmalFlyingTrot = true;
-ANYmalTrotVersatilityStep = true;
+ANYmalFlyingTrot = false;
+ANYmalTrotVersatilityStep = false;
 ANYmalSlowTrotAccurateMotion = false;
 
 numberOfRepetitions = 0; % Number of times that leg is reoptimized. This allows for an easy check if the same optimal solution is found each time the optimization is run.
@@ -107,26 +109,26 @@ optimizeLeg.RH = false;
 %% Set optimization properties
 
 % Set number of generations and population size
-optimizationProperties.options.maxGenerations = 1;
-optimizationProperties.options.populationSize = 5;
+optimizationProperties.options.maxGenerations = 50;
+optimizationProperties.options.populationSize = 100;
 
 % Impose limits on maximum joint torque, speed and power
 % the values are defined in getActuatorProperties. A penalty term is incurred
 % for violations of these limits.
-imposeJointLimits.maxTorque = false;
-imposeJointLimits.maxqdot   = false;
-imposeJointLimits.maxPower  = false;
+imposeJointLimits.maxTorque = true;
+imposeJointLimits.maxqdot   = true;
+imposeJointLimits.maxPower  = true;
 
 % Set weights for fitness function terms. Total means summed over all
 % joints in the leg.
 optimizationProperties.penaltyWeight.totalSwingTorque  = 0;
 optimizationProperties.penaltyWeight.totalStanceTorque = 0;
-optimizationProperties.penaltyWeight.totalTorque       = 1;
+optimizationProperties.penaltyWeight.totalTorque       = 0;
 optimizationProperties.penaltyWeight.totalTorqueHFE    = 0;
 optimizationProperties.penaltyWeight.swingTorqueHFE    = 0;
 optimizationProperties.penaltyWeight.totalqdot         = 0;
 optimizationProperties.penaltyWeight.totalPower        = 0;     % only considers power terms > 0
-optimizationProperties.penaltyWeight.totalMechEnergy   = 0;
+optimizationProperties.penaltyWeight.totalMechEnergy   = 1;
 optimizationProperties.penaltyWeight.totalElecEnergy   = 0;
 optimizationProperties.penaltyWeight.averageEfficiency = 0;     % Maximizes average efficiency (even though this could increase overall energy use)
 optimizationProperties.penaltyWeight.maxTorque         = 0;
@@ -146,14 +148,14 @@ optimizationProperties.bounds.lowerBoundMultiplier.thighLength = 0.5;
 optimizationProperties.bounds.upperBoundMultiplier.shankLength = 2;
 optimizationProperties.bounds.lowerBoundMultiplier.shankLength = 0.5;
 
-optimizationProperties.bounds.upperBoundMultiplier.footLength = 2;
-optimizationProperties.bounds.lowerBoundMultiplier.footLength = 0.5;
+optimizationProperties.bounds.upperBoundMultiplier.footLength = 1;
+optimizationProperties.bounds.lowerBoundMultiplier.footLength = 1;
 
-optimizationProperties.bounds.upperBoundMultiplier.phalangesLength = 2;
-optimizationProperties.bounds.lowerBoundMultiplier.phalangesLength = 0.5;
+optimizationProperties.bounds.upperBoundMultiplier.phalangesLength = 1;
+optimizationProperties.bounds.lowerBoundMultiplier.phalangesLength = 1;
 
-optimizationProperties.bounds.upperBoundMultiplier.hipOffset = 2;
-optimizationProperties.bounds.lowerBoundMultiplier.hipOffset = 0.5;
+optimizationProperties.bounds.upperBoundMultiplier.hipOffset = 1;
+optimizationProperties.bounds.lowerBoundMultiplier.hipOffset = 1;
 
 optimizationProperties.bounds.upperBoundMultiplier.kTorsionalSpring = 10;
 optimizationProperties.bounds.lowerBoundMultiplier.kTorsionalSpring = 0.5;
@@ -161,9 +163,27 @@ optimizationProperties.bounds.lowerBoundMultiplier.kTorsionalSpring = 0.5;
 optimizationProperties.bounds.upperBoundMultiplier.thetaLiftoff_des = 1; % with initial value pi/4 this keeps the liftoff angle on [0,pi/2]
 optimizationProperties.bounds.lowerBoundMultiplier.thetaLiftoff_des = 1;
 
+% Transmission gear ratio from actuator output to joint
+optimizationProperties.bounds.upperBoundMultiplier.transmissionGearRatio.HAA = 1;
+optimizationProperties.bounds.lowerBoundMultiplier.transmissionGearRatio.HAA = 1;
+
+optimizationProperties.bounds.upperBoundMultiplier.transmissionGearRatio.HFE = 5;
+optimizationProperties.bounds.lowerBoundMultiplier.transmissionGearRatio.HFE = 0.2;
+
+optimizationProperties.bounds.upperBoundMultiplier.transmissionGearRatio.KFE = 5;
+optimizationProperties.bounds.lowerBoundMultiplier.transmissionGearRatio.KFE = 0.2;
+
+optimizationProperties.bounds.upperBoundMultiplier.transmissionGearRatio.AFE = 5;
+optimizationProperties.bounds.lowerBoundMultiplier.transmissionGearRatio.AFE = 0.2;
+
+optimizationProperties.bounds.upperBoundMultiplier.transmissionGearRatio.DFE = 5;
+optimizationProperties.bounds.lowerBoundMultiplier.transmissionGearRatio.DFE = 0.2;
+
 %% run the simulation
 if ~runOptimization % if optimization turned off, set values to zero.
     optimizeLeg.LF = 0; optimizeLeg.RF = 0; optimizeLeg.LH = 0; optimizeLeg.RH = 0;
 end
 simulateSelectedTasks;
 fprintf('Done.\n');
+
+diary off

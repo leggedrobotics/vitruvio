@@ -44,7 +44,7 @@ function [maxTorqueLimit, maxqdotLimit, maxPowerLimit, actuatorMass, gearRatio, 
         efficiencyMaxMotor = 0.9; % motor efficiency before gearing losses        
     end
     
-    if isequal(actuatorName,'other')
+    if isequal(actuatorName,'Other')
         maxTorqueLimit = 40;  % [Nm]     
         maxqdotLimit   = 12; % [rad/s] 
         maxPowerLimit  = 240; % [W] 

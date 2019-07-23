@@ -48,7 +48,7 @@ function  [transmissionMass, transmissionGearRatio] = getTransmissionProperties(
     
     %% Get transmission gearing ratio
     % For remote and directly actuated joints
-    % GearRatio = actuatorSpeed/transmissionSpeed
+    % GearRatio = input speed/ output speed
     % Front legs                       Hind legs
     transmissionGearRatio.HAA(1) = 1;  transmissionGearRatio.HAA(2) = 1;
     transmissionGearRatio.HFE(1) = 1;  transmissionGearRatio.HFE(2) = 1;
