@@ -7,7 +7,7 @@ clear all;
 close all;
 
 %% Enter path to bag containing trajectory data
-pathToTrajectoryData =  '/Users/michaelchadwick/Documents/git/vitruvio/data/extractedBags/matlab_ANYmal_versatility_trot_5,2_14.bag';
+pathToTrajectoryData =  '/Users/michaelchadwick/Documents/git/vitruvio/data/extractedBags/matlab_ANYmalBear_elongatedTrot.bag';
 legCount = 4; % Specify number of legs from 1 to 4.
 
 %% Extract the desired 3D vectors from the bag
@@ -37,28 +37,39 @@ motion.quat = [ts_base_pos.Data(:,7) -ts_base_pos.Data(:,4) -ts_base_pos.Data(:,
 bag_foot_0 = select(bag, 'Topic', 'foot_pos_0');
 ts_foot_LF = timeseries(bag_foot_0, 'X', 'Y', 'Z');
 
-bag_foot_1 = select(bag, 'Topic', 'foot_pos_1');
-ts_foot_RF = timeseries(bag_foot_1, 'X', 'Y', 'Z');
+if legCount > 1
+    bag_foot_1 = select(bag, 'Topic', 'foot_pos_1');
+    ts_foot_RF = timeseries(bag_foot_1, 'X', 'Y', 'Z');
+end
 
-bag_foot_2 = select(bag, 'Topic', 'foot_pos_2');
-ts_foot_LH = timeseries(bag_foot_2, 'X', 'Y','Z');
+if legCount > 2
+    bag_foot_2 = select(bag, 'Topic', 'foot_pos_2');
+    ts_foot_LH = timeseries(bag_foot_2, 'X', 'Y','Z');
+end
 
-bag_foot_3 = select(bag, 'Topic', 'foot_pos_3');
-ts_foot_RH = timeseries(bag_foot_3, 'X', 'Y','Z');
+if legCount > 3
+    bag_foot_3 = select(bag, 'Topic', 'foot_pos_3');
+    ts_foot_RH = timeseries(bag_foot_3, 'X', 'Y','Z');
+end
 
 % End effector forces
 bag_force_0 = select(bag, 'Topic', 'foot_force_0');
 ts_force_LF = timeseries(bag_force_0, 'X', 'Y','Z');
 
-bag_force_1 = select(bag, 'Topic', 'foot_force_1');
-ts_force_RF  = timeseries(bag_force_1, 'X', 'Y','Z');
+if legCount > 1
+    bag_force_1 = select(bag, 'Topic', 'foot_force_1');
+    ts_force_RF  = timeseries(bag_force_1, 'X', 'Y','Z');
+end
 
-bag_force_2 = select(bag, 'Topic', 'foot_force_2');
-ts_force_LH  = timeseries(bag_force_2, 'X', 'Y','Z');
+if legCount > 2
+    bag_force_2 = select(bag, 'Topic', 'foot_force_2');
+    ts_force_LH  = timeseries(bag_force_2, 'X', 'Y','Z');
+end
 
-bag_force_3 = select(bag, 'Topic', 'foot_force_3');
-ts_force_RH  = timeseries(bag_force_3, 'X', 'Y','Z');
-
+if legCount > 3
+    bag_force_3 = select(bag, 'Topic', 'foot_force_3');
+    ts_force_RH  = timeseries(bag_force_3, 'X', 'Y','Z');
+end
 motion.t = ts_base_pos.Time; 
 motion.dt = motion.t(2)-motion.t(1);
 
@@ -107,13 +118,28 @@ end
 
 motion.trajectoryData.base.position     = [ts_base_pos.Data(:,1) ts_base_pos.Data(:,2) ts_base_pos.Data(:,3)];
 
-save('ANYmalTrotVersatilityStep.mat', '-struct','motion') 
+save('ANYmalBearElongatedTrot.mat', '-struct','motion') 
 
 %% Error 
-m = 29.52;   % mass of the robot
+m = 38.8;   % mass of the robot
 g = 9.81; % gravity acceleration
 
-F_ext = motion.trajectoryData.LF.force(:,3) + motion.trajectoryData.RF.force(:,3) + motion.trajectoryData.LH.force(:,3) + motion.trajectoryData.RH.force(:,3);
+if legCount == 1
+    F_ext = motion.trajectoryData.LF.force(:,3);
+end
+
+if legCount == 2
+    F_ext = motion.trajectoryData.LF.force(:,3) + motion.trajectoryData.RF.force(:,3);
+end
+
+if legCount == 3
+    F_ext = motion.trajectoryData.LF.force(:,3) + motion.trajectoryData.RF.force(:,3) + motion.trajectoryData.LH.force(:,3);
+end
+
+if legCount == 4
+    F_ext = motion.trajectoryData.LF.force(:,3) + motion.trajectoryData.RF.force(:,3) + motion.trajectoryData.LH.force(:,3) + motion.trajectoryData.RH.force(:,3);
+end
+
 base_zdd_dynamics = 1/m*F_ext - g;
 % calculate Root mean square error
 base_zdd_error = base_zdd_dynamics - base_zdd;

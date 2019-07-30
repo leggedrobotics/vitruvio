@@ -256,7 +256,17 @@ for j = 1:linkCount+1
 end
 
 %% Get link mass for optimal design
-[linkMassOpt, ~, totalLinkMassOpt] = getLinkMass(tempLeg, EEselection, linkCount);
+linkMassOpt = [robotProperties.hip(selectFrontHind).mass, ...
+               robotProperties.thigh(selectFrontHind).mass, ...
+               robotProperties.shank(selectFrontHind).mass];
+if linkCount > 2
+    linkMassOpt(end+1) = robotProperties.foot(selectFrontHind).mass;
+end
+
+if linkCount > 3
+    linkMassOpt(end+1) = robotProperties.phalanges(selectFrontHind).mass;
+end
+totalLinkMassOpt = sum(linkMassOpt);
 
 %% Get maximum joint states
 [deltaqMaxOpt, qdotMaxOpt, jointTorqueMaxOpt, jointPowerMaxOpt]  = getMaximumJointStates(tempLeg, EEselection);    

@@ -24,6 +24,7 @@ opts = optimoptions('ga');
 opts.Display = 'iter';
 opts.MaxGenerations = optimizationProperties.options.maxGenerations;
 opts.PopulationSize = optimizationProperties.options.populationSize;
+opts.CreationFcn = {@gacreationuniform};
 if optimizationProperties.viz.displayBestCurrentDesign
     opts.PlotFcn = {@gaplotbestindiv};
 end

@@ -24,7 +24,7 @@ function robotProperties = getRobotProperties(robotSelection, transmissionMethod
     robot.yourRobot.xNom(2) = 0.34;
     robot.yourRobot.yNom(1) = 0.19;
     robot.yourRobot.yNom(2) = 0.19;
-    robot.yourRobot.zNom = 0.05; % offset from CoM to HAA in z direction. Positive value means HAA above CoM.
+    robot.yourRobot.zNom = 0; % offset from CoM to HAA in z direction. Positive value means HAA above CoM.
     
     robot.yourRobot.nomHipPos.LF = [ robot.yourRobot.xNom(1),  robot.yourRobot.yNom(1), robot.yourRobot.zNom];
     robot.yourRobot.nomHipPos.LH = [-robot.yourRobot.xNom(2),  robot.yourRobot.yNom(2), robot.yourRobot.zNom];
@@ -33,8 +33,8 @@ function robotProperties = getRobotProperties(robotSelection, transmissionMethod
 
     % link lengths [m]
     % fore, hind
-    robot.yourRobot.hip(1).length = 0.14;
-    robot.yourRobot.hip(2).length = 0.14;
+    robot.yourRobot.hip(1).length = 0.0001;
+    robot.yourRobot.hip(2).length = 0.0001;
     robot.yourRobot.thigh(1).length = 0.25;
     robot.yourRobot.thigh(2).length = 0.25;
     robot.yourRobot.shank(1).length = 0.33;
@@ -74,7 +74,6 @@ function robotProperties = getRobotProperties(robotSelection, transmissionMethod
     % an optimization parameter and is initially set to the hip length such
     % that HFE is at the location specified above by nomHipPos.
      robot.yourRobot.hipOffset(1) = robot.yourRobot.hip(1).length;
-     robot.yourRobot.hipOffset(2) = robot.yourRobot.hip(2).length;
 %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%    
 
     %% ANYmal
@@ -148,6 +147,136 @@ function robotProperties = getRobotProperties(robotSelection, transmissionMethod
     % that HFE is at the location specified above by nomHipPos.
      robot.ANYmal.hipOffset(1) = robot.ANYmal.hip(1).length;
      robot.ANYmal.hipOffset(2) = robot.ANYmal.hip(2).length;
+     
+     
+    %% ANYmal Bear
+    robot.ANYmalBear.mass.total = 38.8; 
+    robot.ANYmalBear.legCount   = 4;
+    
+    % Density of each link
+    robot.ANYmalBear.legDensity.hip(1)       = 9391;     robot.ANYmalBear.legDensity.hip(2)       = 888.2668;
+    robot.ANYmalBear.legDensity.thigh(1)     = 5829;     robot.ANYmalBear.legDensity.thigh(2)     = 888.2668;
+    robot.ANYmalBear.legDensity.shank(1)     = 888.2668; robot.ANYmalBear.legDensity.shank(2)     = 888.2668;
+    robot.ANYmalBear.legDensity.foot(1)      = 800;      robot.ANYmalBear.legDensity.foot(2)      = 800;
+    robot.ANYmalBear.legDensity.phalanges(1) = 800;      robot.ANYmalBear.legDensity.phalanges(2) = 800;    
+    
+    % End effector mass
+    robot.ANYmalBear.EE(1).mass = 0.1402;
+    robot.ANYmalBear.EE(2).mass = 0.1402;
+
+    % offset from CoM to HAA for each leg.
+    robot.ANYmalBear.xNom(1) = 0.4; % 0.44; 
+    robot.ANYmalBear.xNom(2) = 0.4; 
+    robot.ANYmalBear.yNom(1) = 0.112;
+    robot.ANYmalBear.yNom(2) = 0.112;
+    robot.ANYmalBear.zNom = 0.05; % offset from CoM to HAA in z direction. Positive value means HAA above CoM.
+    
+    robot.ANYmalBear.nomHipPos.LF = [ robot.ANYmalBear.xNom(1),  robot.ANYmalBear.yNom(1), robot.ANYmalBear.zNom];
+    robot.ANYmalBear.nomHipPos.LH = [-robot.ANYmalBear.xNom(2),  robot.ANYmalBear.yNom(2), robot.ANYmalBear.zNom];
+    robot.ANYmalBear.nomHipPos.RF = [ robot.ANYmalBear.xNom(1), -robot.ANYmalBear.yNom(1), robot.ANYmalBear.zNom];
+    robot.ANYmalBear.nomHipPos.RH = [-robot.ANYmalBear.xNom(2), -robot.ANYmalBear.yNom(2), robot.ANYmalBear.zNom];
+
+    % link lengths [m]
+    % fore, hind
+    robot.ANYmalBear.hip(1).length = 0.112;
+    robot.ANYmalBear.hip(2).length = 0.112;
+    robot.ANYmalBear.thigh(1).length = 0.25;
+    robot.ANYmalBear.thigh(2).length = 0.25;
+    robot.ANYmalBear.shank(1).length = 0.33; % 0.3045;
+    robot.ANYmalBear.shank(2).length = 0.33; % 0.3045;
+    robot.ANYmalBear.foot(1).length = 0.15;
+    robot.ANYmalBear.foot(2).length = 0.15;
+    robot.ANYmalBear.phalanges(1).length = 0.1;
+    robot.ANYmalBear.phalanges(2).length = 0.1;
+
+    % link radius [m]
+    % update these values
+    robot.ANYmalBear.hip(1).radius = 0.015;
+    robot.ANYmalBear.hip(2).radius = 0.015;
+    robot.ANYmalBear.thigh(1).radius = 0.015;
+    robot.ANYmalBear.thigh(2).radius = 0.015;
+    robot.ANYmalBear.shank(1).radius = 0.015;
+    robot.ANYmalBear.shank(2).radius = 0.015;
+    robot.ANYmalBear.foot(1).radius = 0.015;
+    robot.ANYmalBear.foot(2).radius = 0.015;
+    robot.ANYmalBear.phalanges(1).radius = 0.015;
+    robot.ANYmalBear.phalanges(2).radius = 0.015;
+
+    % joint angle limits
+    % q1 HAA, q2 HFE, q3 KFE, q4 AFE
+    robot.ANYmalBear.q1.minAngle = -pi;
+    robot.ANYmalBear.q1.maxAngle = pi;
+    robot.ANYmalBear.q2.minAngle = -2*pi;
+    robot.ANYmalBear.q2.maxAngle = 2*pi;
+    robot.ANYmalBear.q3.minAngle = -2*pi;
+    robot.ANYmalBear.q3.maxAngle = 2*pi;
+    robot.ANYmalBear.q4.minAngle = -pi;
+    robot.ANYmalBear.q4.maxAngle = pi;
+    robot.ANYmalBear.q5.minAngle = -pi;
+    robot.ANYmalBear.q5.maxAngle = pi;
+
+    % Hip offset. This shifts HAA along the body x direction. It is
+    % an optimization parameter and is initially set to the hip length such
+    % that HFE is at the location specified above by nomHipPos.
+     robot.ANYmalBear.hipOffset(1) = robot.ANYmalBear.hip(1).length + 0.1; %robot.ANYmalBear.hip(1).length + 0.1;
+     robot.ANYmalBear.hipOffset(2) = robot.ANYmalBear.hip(2).length + 0.1;
+     
+     %% Vitruvian Biped
+    robot.vitruvianBiped.mass.total = 2.6423; 
+    robot.vitruvianBiped.legCount   = 2;
+    
+    % Density of each link kg/m^3
+    robot.vitruvianBiped.legDensity.hip(1)       = 1060;    
+    robot.vitruvianBiped.legDensity.thigh(1)     = 1060;  
+    robot.vitruvianBiped.legDensity.shank(1)     = 1060; 
+    robot.vitruvianBiped.legDensity.foot(1)      = 1060;  
+    robot.vitruvianBiped.legDensity.phalanges(1) = 1060; 
+    
+    % End effector mass
+    robot.vitruvianBiped.EE(1).mass = 0.025;
+
+    % offset from CoM to HAA for each leg.
+    robot.vitruvianBiped.xNom(1) = 0.02212;
+    robot.vitruvianBiped.yNom(1) = 0.1;
+    robot.vitruvianBiped.zNom = 0.015; % offset from CoM to HAA in z direction. Positive value means HAA above CoM.
+    
+    robot.vitruvianBiped.nomHipPos.LF = [ robot.vitruvianBiped.xNom(1),  robot.vitruvianBiped.yNom(1), robot.vitruvianBiped.zNom];
+    robot.vitruvianBiped.nomHipPos.RF = [ robot.vitruvianBiped.xNom(1), -robot.vitruvianBiped.yNom(1), robot.vitruvianBiped.zNom];
+
+    % link lengths [m]
+    % fore, hind
+    robot.vitruvianBiped.hip(1).length = 0.0001;
+    robot.vitruvianBiped.thigh(1).length = 0.2;
+    robot.vitruvianBiped.shank(1).length = 0.2;
+    robot.vitruvianBiped.foot(1).length = 0.05;
+    robot.vitruvianBiped.phalanges(1).length = 0.05;
+
+    % link radius [m]
+    % These were selected to get the correct mass value considering the
+    % material density and link length.
+    robot.vitruvianBiped.hip(1).radius = 0.0169;
+    robot.vitruvianBiped.thigh(1).radius = 0.0169;
+    robot.vitruvianBiped.shank(1).radius = 0.0166;
+    robot.vitruvianBiped.foot(1).radius = 0.015;
+    robot.vitruvianBiped.phalanges(1).radius = 0.015;
+
+    % joint angle limits
+    % q1 HAA, q2 HFE, q3 KFE, q4 AFE
+    robot.vitruvianBiped.q1.minAngle = -pi;
+    robot.vitruvianBiped.q1.maxAngle = pi;
+    robot.vitruvianBiped.q2.minAngle = -2*pi;
+    robot.vitruvianBiped.q2.maxAngle = 2*pi;
+    robot.vitruvianBiped.q3.minAngle = -2*pi;
+    robot.vitruvianBiped.q3.maxAngle = 2*pi;
+    robot.vitruvianBiped.q4.minAngle = -pi;
+    robot.vitruvianBiped.q4.maxAngle = pi;
+    robot.vitruvianBiped.q5.minAngle = -pi;
+    robot.vitruvianBiped.q5.maxAngle = pi;
+
+    % Hip offset. This shifts HAA along the body x direction. It is
+    % an optimization parameter and is initially set to the hip length such
+    % that HFE is at the location specified above by nomHipPos.
+     robot.vitruvianBiped.hipOffset(1) = robot.vitruvianBiped.hip(1).length;
      
     %% Universal
     robot.universal.mass.total = 39.53; % (with payload). This value is only used in computing CoT.

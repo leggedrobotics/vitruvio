@@ -1,4 +1,4 @@
-function Leg = runDataExtractionAndOptScripts(actuatorSelection, dataExtraction, imposeJointLimits, heuristic, actuateJointDirectly, transmissionMethod, viewVisualization, numberOfStepsVisualized, linkCount, runOptimization, optimizeLeg, optimizationProperties, dataSelection, classSelection, configSelection, hipParalleltoBody, legCount, task, saveFiguresToPDF)
+function Leg = runDataExtractionAndOptScripts(actuatorSelection, dataExtraction, imposeJointLimits, heuristic, actuateJointDirectly, transmissionMethod, viewVisualization, numberOfStepsVisualized, linkCount, runOptimization, optimizeLeg, optimizationProperties, dataSelection, classSelection, configSelection, hipParalleltoBody, legCount, task, saveFiguresToPDF, springInParallelWithJoints, kSpringJoint)
 
 %% Display selections
 fprintf('Robot class: %s.\n', classSelection);
@@ -58,7 +58,7 @@ if linkCount > 2 && heuristic.torqueAngle.apply
 end
 
 % Actuator properties
-fprintf('Loading actuator properties');
+fprintf('Loading actuator properties \n');
 for i = 1:jointCount
     jointSelection = jointNames(i,:);
     actuatorName = actuatorSelection.(jointSelection);
@@ -145,6 +145,12 @@ Leg.optimizationProperties.allowableExtension = optimizationProperties.allowable
 %% Reconstruct terrain map from EE force and position data
 % This feature is in progress.
 % terrainMap = constructTerrainMap(trajectoryData, legCount, EEnames);
+
+%% Save the inertial frame EE position data
+for i = 1:legCount
+    EEselection = EEnames(i,:);
+    Leg.inertialFrame.EEposition.(EEselection) = trajectoryData.(EEselection).position;
+end
 
 %% Get the relative motion of the end effectors to the hips
 fprintf('Computing motion of end effectors relative to hip attachment points. \n');
@@ -306,6 +312,18 @@ for i = 1:legCount
     Leg.(EEselection).jointPower = Leg.(EEselection).jointTorque .* Leg.(EEselection).qdot(:,1:end-1);
 end
 
+%% Get active and passive torques for spring modeled in parallel with joint
+for i = 1:legCount
+    EEselection = EEnames(i,:);    
+    if springInParallelWithJoints
+        q0SpringJoint.(EEselection) = mean(Leg.(EEselection).q(:,1:end-1)); % Set undeformed spring position to mean position. This can be updated in optimizer.
+        [Leg.(EEselection).activeTorque, Leg.(EEselection).passiveTorque] = getActiveAndPassiveTorque(kSpringJoint, q0SpringJoint, Leg, EEselection, linkCount);
+    else
+        Leg.(EEselection).activeTorque = Leg.(EEselection).jointTorque;
+        Leg.(EEselection).passiveTorque = 0;
+    end  
+end
+
 %% Get actuator torque and speed as result of gearing between actuator and joint
 % This is the required output torque and speed from the actuator to produce
 % the joint torque and speed.
@@ -322,7 +340,7 @@ for i = 1:legCount
         transmissionGearRatio = robotProperties.transmissionGearRatio.(jointNames(j,:))(selectFrontHind);
         Leg.(EEselection).actuatorq(:,j)      = transmissionGearRatio * Leg.(EEselection).q(:,j);
         Leg.(EEselection).actuatorqdot(:,j)   = transmissionGearRatio * Leg.(EEselection).qdot(:,j);
-        Leg.(EEselection).actuatorTorque(:,j) = (1/transmissionGearRatio) * Leg.(EEselection).jointTorque(:,j);
+        Leg.(EEselection).actuatorTorque(:,j) = (1/transmissionGearRatio) * Leg.(EEselection).activeTorque(:,j);
     end
 end
 
@@ -346,7 +364,24 @@ end
 %% Save link lengths and mass
 for i = 1:legCount
     EEselection = EEnames(i,:);
-    [Leg.(EEselection).linkMass, Leg.(EEselection).EEMass, Leg.(EEselection).totalLinkMass] = getLinkMass(Leg, EEselection, linkCount);
+    if strcmp(EEselection,'LF') || strcmp(EEselection,'RF')
+         selectFrontHind = 1;
+     else
+         selectFrontHind = 2;
+     end
+    Leg.(EEselection).linkMass = [robotProperties.hip(selectFrontHind).mass, ...
+                                  robotProperties.thigh(selectFrontHind).mass, ...
+                                  robotProperties.shank(selectFrontHind).mass];
+    Leg.(EEselection).EEMass = robotProperties.EE(selectFrontHind).mass;
+    
+    if linkCount > 2
+        Leg.(EEselection).linkMass(end+1) = robotProperties.foot(selectFrontHind).mass;
+    end
+    if linkCount > 3
+        Leg.(EEselection).linkMass(end+1) = robotProperties.phalanges(selectFrontHind).mass;
+    end
+
+    Leg.(EEselection).totalLinkMass = sum(Leg.(EEselection).linkMass);
 end
 %% Get meta parameters
 Leg.CoM.velocity = trajectoryData.base.velocity(floor(removalRatioStart*length(trajectoryData.base.velocity))+1:floor((1-removalRatioEnd)*length(trajectoryData.base.velocity)),:);

@@ -1,7 +1,8 @@
 function [electricalPower, operatingPointEfficiency] = computeElectricalPowerInput(Leg, EEselection, actuatorProperties, linkCount, actuatorEfficiency, actuatorSelection)
 
-    torque = Leg.(EEselection).jointTorque; % array with columns [HAA HFE KFE (AFE) (DFE)]
-    qdot = Leg.(EEselection).qdot(:,1:end-1);
+    % Actuator torque and speed values after applying gear and spring at joint
+    torque = Leg.(EEselection).actuatorTorque; 
+    qdot = Leg.(EEselection).actuatorqdot;
 
     % get the actuator limits for the actuator at each joint
     torqueMax = [actuatorProperties.maxTorqueLimit.HAA, ...
@@ -85,7 +86,7 @@ function [electricalPower, operatingPointEfficiency] = computeElectricalPowerInp
         end
     end
     
-    mechanicalPower = qdot .* torque;
+    mechanicalPower = qdot .* torque; % of active component of torque
     electricalPower = mechanicalPower./operatingPointEfficiency;
     electricalPower(electricalPower<0) = 0; % set negative power terms to zero (no recuperation)
 end

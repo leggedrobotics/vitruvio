@@ -6,9 +6,9 @@ function  [transmissionMass, transmissionGearRatio] = getTransmissionProperties(
 % joint, the mass of this chain is applied to the shank, thigh and hip.
 
     % Look up these values. Also scale based on torque?
-    transmissionDensity.chain = 1.0; % kg/m
-    transmissionDensity.belt  = 0.5; % kg/m
-    transmissionDensity.cable = 0.5; % kg/m
+    transmissionDensity.chain = 0.0001; % kg/m
+    transmissionDensity.belt  = 0.0001; % kg/m
+    transmissionDensity.cable = 0.0001; % kg/m
 
     % There is never a transmission mass for the hip because there is no
     % link distance over which the transmission is applied.

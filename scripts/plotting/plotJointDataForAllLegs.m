@@ -1,7 +1,5 @@
 % plot joint data for all legs over 3 cycles
 function [] = plotJointDataForAllLegs(data, task, data2, task2, optimizeLeg, saveFiguresToPDF)
-    savePlotsToPDF = false;
-
     legCount                      = data.(task).basicProperties.legCount;
     linkCount                     = data.(task).basicProperties.linkCount;
     EEnames                       = data.(task).basicProperties.EEnames;
@@ -76,8 +74,8 @@ function [] = plotJointDataForAllLegs(data, task, data2, task2, optimizeLeg, sav
         qdotMax       = [qdotMax, maxqdot.(EEselection)];             qdotMin       = [qdotMin, minqdot.(EEselection)];
         torqueMax     = [torqueMax, maxTorque.(EEselection)];         torqueMin     = [torqueMin, minTorque.(EEselection)];
         powerMax      = [powerMax, maxPower.(EEselection)];           powerMin      = [powerMin, minPower.(EEselection)];
-        mechEnergyMax = [mechEnergyMax, maxMechEnergy.(EEselection)]; mechEnergyMin = [mechEnergyMin, minMechEnergy.(EEselection)];
-        elecEnergyMax = [elecEnergyMax, maxElecEnergy.(EEselection)]; elecEnergyMin = [elecEnergyMin, minElecEnergy.(EEselection)];
+        mechEnergyMax = [mechEnergyMax, maxMechEnergy.(EEselection)]; 
+        elecEnergyMax = [elecEnergyMax, maxElecEnergy.(EEselection)]; 
 
         %% Get y limits for optimized design
         if optimizeLeg.(EEselection)
@@ -104,17 +102,18 @@ function [] = plotJointDataForAllLegs(data, task, data2, task2, optimizeLeg, sav
             qdotMaxOpt       = [qdotMaxOpt, maxqdotOpt.(EEselection)];             qdotMinOpt       = [qdotMinOpt, minqdotOpt.(EEselection)];
             torqueMaxOpt     = [torqueMaxOpt, maxTorqueOpt.(EEselection)];         torqueMinOpt     = [torqueMinOpt, minTorqueOpt.(EEselection)];
             powerMaxOpt      = [powerMaxOpt, maxPowerOpt.(EEselection)];           powerMinOpt      = [powerMinOpt, minPowerOpt.(EEselection)];
-            mechEnergyMaxOpt = [mechEnergyMaxOpt, maxMechEnergyOpt.(EEselection)]; mechEnergyMinOpt = [mechEnergyMinOpt, minMechEnergyOpt.(EEselection)];
-            elecEnergyMaxOpt = [elecEnergyMaxOpt, maxElecEnergyOpt.(EEselection)]; elecEnergyMinOpt = [elecEnergyMinOpt, minElecEnergyOpt.(EEselection)];
+            mechEnergyMaxOpt = [mechEnergyMaxOpt, maxMechEnergyOpt.(EEselection)]; 
+            elecEnergyMaxOpt = [elecEnergyMaxOpt, maxElecEnergyOpt.(EEselection)]; 
         end
     end
 
-    ylimit.actuatorq          = 1.2*[min([qMin, qMinOpt]), max([qMax, qMaxOpt])];
-    ylimit.actuatorqdot       = 1.2*[min([qdotMin, qdotMinOpt]), max([qdotMax, qdotMaxOpt])];
+    ylimit.actuatorq    = 1.2*[min([qMin, qMinOpt]), max([qMax, qMaxOpt])];
+    ylimit.actuatorqdot = 1.2*[min([qdotMin, qdotMinOpt]), max([qdotMax, qdotMaxOpt])];
     ylimit.torque     = 1.2*[min([torqueMin, torqueMinOpt]), max([torqueMax, torqueMaxOpt])];
     ylimit.power      = 1.2*[min([powerMin, powerMinOpt]), max([powerMax, powerMaxOpt])];
+    ylimit.mechEnergy = 1.2*[0, max([mechEnergyMax, mechEnergyMaxOpt])];
 
-    if averageStepsForCyclicalMotion % When the motion is averaged we repeat the motion 3 times.
+     if averageStepsForCyclicalMotion % When the motion is averaged we repeat the motion 3 times.
         ylimit.mechEnergy = [0, 3*max([mechEnergyMax mechEnergyMaxOpt])]; 
         ylimit.elecEnergy = [0, 3*max([elecEnergyMax  elecEnergyMaxOpt])];
     else % When the motion is not averaged we should the sampled range without repetition.
@@ -196,14 +195,17 @@ function [] = plotJointDataForAllLegs(data, task, data2, task2, optimizeLeg, sav
         Y_power.(EEselection)  = repmat(Y_powerTemp, 1, length(X.(EEselection)(1,:)));
         Y_mechEnergy.(EEselection)  = repmat(Y_mechEnergyTemp, 1, length(X.(EEselection)(1,:)));        
     end
-
-    %% Repeat data multiple times if we average one cycle to string together multiple steps.
+    
+     %% Repeat data multiple times if we average one cycle to string together multiple steps.
         for i = 1:legCount
             EEselection = EEnames(i,:);
             for j = 1:linkCount+1
                 q.(EEselection)(:,j)           = repmat(data.(task).(EEselection).actuatorq(:,j), numberOfCycles, 1);
                 qdot.(EEselection)(:,j)        = repmat(data.(task).(EEselection).actuatorqdot(:,j), numberOfCycles, 1);
                 actuatorTorque.(EEselection)(:,j) = repmat(data.(task).(EEselection).actuatorTorque(:,j), numberOfCycles, 1);
+                activeTorque.(EEselection)(:,j) = repmat(data.(task).(EEselection).activeTorque(:,j), numberOfCycles, 1);
+                passiveTorque.(EEselection)(:,j) = repmat(data.(task).(EEselection).passiveTorque(:,j), numberOfCycles, 1);
+                jointTorque.(EEselection)(:,j) = repmat(data.(task).(EEselection).jointTorque(:,j), numberOfCycles, 1);                
                 jointPower.(EEselection)(:,j)  = repmat(data.(task).(EEselection).jointPower(:,j), numberOfCycles, 1);
                 mechEnergy.(EEselection)(:,j)  = repmat(data.(task).(EEselection).mechEnergy(:,j), numberOfCycles, 1);
                 if optimizeLeg.(EEselection)
@@ -244,13 +246,13 @@ function [] = plotJointDataForAllLegs(data, task, data2, task2, optimizeLeg, sav
         end
 
     if averageStepsForCyclicalMotion
-        % one cycle repeated three times
+        % one cycle repeated multiple times
         xlimit.time = [0, dt*numberOfCycles*length(data.(task).LF.r.EE)];  
     else
         % sampled motion range
         xlimit.time = [data.(task).time(startIndexFullTrajectory), data.(task).time(endIndexFullTrajectory)]; 
     end
-
+ 
     %% Plot settings
     lineColour = 'r';
     faceColour = 'r';
@@ -315,7 +317,7 @@ function [] = plotJointDataForAllLegs(data, task, data2, task2, optimizeLeg, sav
             hold off
         end
     end
-    if savePlotsToPDF
+    if saveFiguresToPDF
         export_fig results.pdf -nocrop -append
     end
 
@@ -417,6 +419,68 @@ function [] = plotJointDataForAllLegs(data, task, data2, task2, optimizeLeg, sav
     if saveFiguresToPDF
         export_fig results.pdf -nocrop -append
     end
+    
+    %% Active/Passive Torque
+    figure('name', 'Active/Passive Torque', 'DefaultAxesFontSize', 10, 'units','normalized','outerposition',[0 0 1 1])
+    set(gcf,'color','w')
+    plotTitle = {'\tau_{HAA}','\tau_{HFE}','\tau_{KFE}','\tau_{AFE}','\tau_{DFE}'};
+    activeTorqueColor  = 'r';
+    passiveTorqueColor = 'b';
+    jointTorqueColor   = 'k';
+    
+    activeTorqueColorOpt  = 'r--';
+    passiveTorqueColorOpt = 'b--';
+    jointTorqueColorOpt   = 'k--';
+    
+    for i = 1:legCount
+        k = 1; % plot title index
+        EEselection = EEnames(i,:);
+        for j = 1:linkCount+1
+            subplot(linkCount+1, legCount, i + (j-1)*legCount);
+            hold on
+            patch(X.(EEselection), Y_torque.(EEselection), patchColor, 'FaceAlpha', patchAlpha, 'EdgeAlpha', 0)            
+            p(1) = plot(data.(task).time(startTimeIndex:startTimeIndex+length(activeTorque.(EEselection))-1),  activeTorque.(EEselection)(:,j), activeTorqueColor, 'LineWidth', LineWidth);
+            p(2) = plot(data.(task).time(startTimeIndex:startTimeIndex+length(passiveTorque.(EEselection))-1),  passiveTorque.(EEselection)(:,j), passiveTorqueColor, 'LineWidth', LineWidth);
+            p(3) = plot(data.(task).time(startTimeIndex:startTimeIndex+length(jointTorque.(EEselection))-1),  jointTorque.(EEselection)(:,j), jointTorqueColor, 'LineWidth', LineWidth);            
+            if plotDataSet2    
+                p(4) = plot(data2.(task2).time(startTimeIndex:startTimeIndex+length(activeTorque.(EEselection))-1),  activeTorque.(EEselection)(:,j), activeTorqueColor, 'LineWidth', LineWidth);
+                p(5) = plot(data2.(task2).time(startTimeIndex:startTimeIndex+length(passiveTorque.(EEselection))-1),  passiveTorque.(EEselection)(:,j), passiveTorqueColor, 'LineWidth', LineWidth);
+                p(6) = plot(data2.(task2).time(startTimeIndex:startTimeIndex+length(jointTorque.(EEselection))-1),  jointTorque.(EEselection)(:,j), jointTorqueColor, 'LineWidth', LineWidth);            
+            end
+            if optimizeLeg.(EEselection)
+                p(7) = plot(data.(task).time(startTimeIndex:startTimeIndex+length(activeTorqueOpt.(EEselection))-1),  activeTorqueOpt.(EEselection)(:,j), activeTorqueColorOpt, 'LineWidth', LineWidth);
+                p(8) = plot(data.(task).time(startTimeIndex:startTimeIndex+length(passiveTorqueOpt.(EEselection))-1),  passiveTorqueOpt.(EEselection)(:,j), passiveTorqueColorOpt, 'LineWidth', LineWidth);
+                p(9) = plot(data.(task).time(startTimeIndex:startTimeIndex+length(jointTorqueOpt.(EEselection))-1),  jointTorqueOpt.(EEselection)(:,j), jointTorqueColorOpt, 'LineWidth', LineWidth);            
+            end
+            % plot actuator limits on the same plot
+            p(10) = line([min(xlim),max(xlim)],[data.(task).actuatorProperties.maxTorqueLimit.(jointNames(j,:)), data.(task).actuatorProperties.maxTorqueLimit.(jointNames(j,:))], 'Color', 'k', 'LineStyle', '--');
+            p(11) = line([min(xlim),max(xlim)],[-data.(task).actuatorProperties.maxTorqueLimit.(jointNames(j,:)), -data.(task).actuatorProperties.maxTorqueLimit.(jointNames(j,:))], 'Color', 'k', 'LineStyle', '--');               
+            
+            if j == 1 % only show legend on HAA subplots
+                if ~optimizeLeg.(EEselection) && max(ylimit.torque) > data.(task).actuatorProperties.maxTorqueLimit.(jointNames(j,:)) % If actuator limits visible on plot
+                    legend([p(1) p(2) p(3) p(10)], 'active torque', 'passive torque', 'joint torque', 'actuator limits')
+                elseif ~optimizeLeg.(EEselection) && max(ylimit.torque) < data.(task).actuatorProperties.maxTorqueLimit.(jointNames(j,:)) % Actuator limits not visible
+                    legend([p(1) p(2) p(3)], 'active torque', 'passive torque', 'joint torque')
+                elseif optimizeLeg.(EEselection) && max(ylimit.torque) > data.(task).actuatorProperties.maxTorqueLimit.(jointNames(j,:)) 
+                    legend([p(1) p(2) p(3) p(7) p(8) p(9) p(10)], 'active torque', 'passive torque', 'joint torque', 'active torque opt', 'passive torque opt', 'joint torque opt', 'actuator limits')
+                elseif optimizeLeg.(EEselection)
+                    legend([p(1) p(2) p(3) p(7) p(8) p(9)], 'active torque', 'passive torque', 'joint torque', 'active torque opt', 'passive torque opt', 'joint torque opt')
+                end
+            end
+            grid on
+            xlabel('Time [s]')
+            ylabel('Torque [Nm]')
+            xlim(xlimit.time)
+            ylim(ylimit.torque)
+            title([EEselection, ' ', plotTitle{k}])
+            k = k+1;
+            hold off
+        end
+    end
+    if saveFiguresToPDF
+        export_fig results.pdf -nocrop -append
+    end
+    
     
     %% Joint Power
     figure('name', 'Joint Power', 'DefaultAxesFontSize', 10, 'units','normalized','outerposition',[0 0 1 1])

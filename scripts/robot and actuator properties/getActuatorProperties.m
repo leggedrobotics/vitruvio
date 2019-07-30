@@ -13,7 +13,16 @@ function [maxTorqueLimit, maxqdotLimit, maxPowerLimit, actuatorMass, gearRatio, 
         efficiencyMaxMotor = 0.9; % motor efficiency before gearing losses
     end
 %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%    
-    
+    if isequal(actuatorName,'Dynamixel') % Dynamixel MX-64R
+        maxTorqueLimit = 7.3;  % [Nm]   
+        maxqdotLimit   = 8.2;  % [rad/s] 
+        maxPowerLimit  = 20;  % [W] Not sure about this value 
+        actuatorMass   = 0.126;  % [kg]
+        gearRatio      = 50; % Incorrect value
+        efficiencyMinMotor = 0.1;  
+        efficiencyMaxMotor = 0.9; % motor efficiency before gearing losses        
+    end
+
     if isequal(actuatorName,'ANYdrive')
         maxTorqueLimit = 40;  % [Nm]   
         maxqdotLimit   = 12;  % [rad/s] 

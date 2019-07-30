@@ -12,7 +12,7 @@ elseif linkCount == 3
 elseif linkCount == 4
     endEffector = 'body6';
 end
-    
+
 jointTorque = zeros(length(Leg.(EEselection).qdotdot),linkCount+2);
     for i = 1:length(Leg.(EEselection).qdotdot)
         rotBodyY = -meanCyclicMotionHipEE.body.eulerAngles.(EEselection)(i,2);

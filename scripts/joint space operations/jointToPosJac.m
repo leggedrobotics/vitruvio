@@ -27,14 +27,14 @@ function [J_P, C_0EE, r_H_01, r_H_02, r_H_03, r_H_04, r_H_05, r_H_0EE]  = jointT
         -sin(rotBodyY),  0, cos(rotBodyY), 0;
          0,              0, 0,             1];
      
-  % transformation from hip attachment frame to HAA frame   
+  % transformation from nominal HAA point with coord. sys aligned with body frame to HAA frame   
   % rotation about x of hip attachment frame (HAA rotation)
   T_H1 = [1, 0,          0,          hipAttachmentOffset;
           0, cos(q(1)), -sin(q(1)),  0;
           0, sin(q(1)),  cos(q(1)),  0;
           0, 0,          0,          1];
 
-  % transformation from HFE to HAA
+  % transformation from HAA to HFE
   % rotation about y, translation along hip link 
    if hipParalleltoBody == true
        T_12 = [cos(q(2)), 0,  sin(q(2)),  hipOffsetDirection*l_hip;

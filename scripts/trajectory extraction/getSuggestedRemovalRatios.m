@@ -44,19 +44,28 @@ suggestedRemovalRatioStart.ANYmalTrot = 0.4;
 suggestedRemovalRatioEnd.ANYmalTrot   = 0.5;
 
 suggestedRemovalRatioStart.ANYmalSlowTrotAccurateMotion = 0;
-suggestedRemovalRatioEnd.ANYmalSlowTrotAccurateMotion   = 0.1;
+suggestedRemovalRatioEnd.ANYmalSlowTrotAccurateMotion   = 0;
 
 suggestedRemovalRatioStart.ANYmalSlowTrot2 = 0.3;
 suggestedRemovalRatioEnd.ANYmalSlowTrot2   = 0.3;
 
-suggestedRemovalRatioStart.ANYmalFlyingTrot = 0.1;
-suggestedRemovalRatioEnd.ANYmalFlyingTrot   = 0.1;
+suggestedRemovalRatioStart.ANYmalFlyingTrot = 0.4;
+suggestedRemovalRatioEnd.ANYmalFlyingTrot   = 0.4;
 
 suggestedRemovalRatioStart.ANYmalTrotVersatilityStep = 0.6;
 suggestedRemovalRatioEnd.ANYmalTrotVersatilityStep   = 0.1;
 
-suggestedRemovalRatioStart.defaultHopperHop = 0;
-suggestedRemovalRatioEnd.defaultHopperHop   = 0;
+suggestedRemovalRatioStart.ANYmalBearTrot = 0.3;
+suggestedRemovalRatioEnd.ANYmalBearTrot   = 0.3;
+
+suggestedRemovalRatioStart.ANYmalBearSlowTrot = 0;
+suggestedRemovalRatioEnd.ANYmalBearSlowTrot   = 0;
+
+suggestedRemovalRatioStart.ANYmalBearFlyingTrot2 = 0.3;
+suggestedRemovalRatioEnd.ANYmalBearFlyingTrot2  = 0.3;
+
+suggestedRemovalRatioStart.vitruvianBipedWalkOnSpot = 0.2;
+suggestedRemovalRatioEnd.vitruvianBipedWalkOnSpot   = 0.2;
 
 removalRatioStart = suggestedRemovalRatioStart.(taskSelection);
 removalRatioEnd = suggestedRemovalRatioEnd.(taskSelection);

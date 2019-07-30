@@ -134,30 +134,50 @@ function robot = buildRobotRigidBodyModel(actuatorProperties, actuateJointDirect
     end 
     
     %% Compute inertia for each link and end effector
-    % Links are constant density cylinders, actuators and end effectors are point masses
+    % Links are thin rod, actuators and end effectors are point masses
     % inertia = [Ixx Iyy Izz Iyz Ixz Ixy] relative to body frame in kg/m^2
-    I_hip =   [0.00000001, 1/3*body1.Mass*l_hip^2,   1/3*body1.Mass*l_hip^2,   0, 0, 0];   
-    I_thigh = [0.00000001, 1/3*body2.Mass*l_thigh^2, 1/3*body2.Mass*l_thigh^2, 0, 0, 0];      
-    I_shank = [0.00000001, 1/3*body3.Mass*l_shank^2, 1/3*body3.Mass*l_shank^2, 0, 0, 0];      
+    
+%     I_hip =   [0.00000001, 1/3*body1.Mass*l_hip^2,   1/3*body1.Mass*l_hip^2,   0, 0, 0];   
+%     I_thigh = [0.00000001, 1/3*body2.Mass*l_thigh^2, 1/3*body2.Mass*l_thigh^2, 0, 0, 0];      
+%     I_shank = [0.00000001, 1/3*body3.Mass*l_shank^2, 1/3*body3.Mass*l_shank^2, 0, 0, 0];      
+% 
+%     if linkCount == 2
+%         I_EE =    [0.00000001, body4.Mass*l_shank^2, body4.Mass*l_shank^2,     0, 0, 0]; % Point mass at distance L from axis of rotation
+%     elseif linkCount == 3
+%         I_foot =  [0.00000001, 1/3*body4.Mass*l_foot^2,   1/3*body4.Mass*l_foot^2, 0, 0, 0];
+%         I_EE =    [0.00000001, body5.Mass*l_foot^2,      body5.Mass*l_foot^2,      0, 0, 0]; 
+%     elseif linkCount == 4
+%         I_foot =       [0.00000001, 1/3*body4.Mass*l_foot^2,      1/3*body4.Mass*l_foot^2,      0, 0, 0];
+%         I_phalanges =  [0.00000001, 1/3*body5.Mass*l_phalanges^2, 1/3*body5.Mass*l_phalanges^2, 0, 0, 0];
+%         I_EE =         [0.00000001, body6.Mass*l_phalanges^2, body6.Mass*l_phalanges^2,     0, 0, 0]; 
+%     end
 
-    if linkCount == 2
-        I_EE =    [0.00000001, body4.Mass*l_shank^2,     body4.Mass*l_shank^2,     0, 0, 0]; % Point mass at distance L from axis of rotation
-    elseif linkCount == 3
-        I_foot =  [0.00000001, 1/3*body4.Mass*l_foot^2,   1/3*body4.Mass*l_foot^2, 0, 0, 0];
-        I_EE =    [0.00000001, body5.Mass*l_foot^2,      body5.Mass*l_foot^2,      0, 0, 0]; 
-    elseif linkCount == 4
-        I_foot =       [0.00000001, 1/3*body4.Mass*l_foot^2,      1/3*body4.Mass*l_foot^2,      0, 0, 0];
-        I_phalanges =  [0.00000001, 1/3*body5.Mass*l_phalanges^2, 1/3*body5.Mass*l_phalanges^2, 0, 0, 0];
-        I_EE =         [0.00000001, body6.Mass*l_phalanges^2,     body6.Mass*l_phalanges^2,     0, 0, 0]; 
-    end
+%% Set inertia's to zero and instead provide point mass and position.
+
+% CoM located at 1/2 link length
+I_hip       = [0 0 0 0 0 0];
+I_thigh     = [0 0 0 0 0 0];
+I_shank     = [0 0 0 0 0 0];
+I_foot      = [0 0 0 0 0 0];
+I_phalanges = [0 0 0 0 0 0];
+
+% CoM located at part origin
+I_EE        = [0 0 0 0 0 0];
+
+I_HAA = [0 0 0 0 0 0];
+I_HFE = [0 0 0 0 0 0];
+I_KFE = [0 0 0 0 0 0];
+I_AFE = [0 0 0 0 0 0];
+I_DFE = [0 0 0 0 0 0];
+
 
     %% Assign the inertia values to the inertia properties for the links and end effectors
     body0.Inertia = [0 0 0 0 0 0]; % base    
     body1.Inertia =  I_hip;     
     body2.Inertia =  I_thigh; 
-    body3.Inertia =  I_shank;
+    body3.Inertia =  I_shank + I_EE; % Try lumping IEE and shank?
     if linkCount == 2
-        body4.Inertia = I_EE;
+        body4.Inertia = [0 0 0 0 0 0]; %I_EE;
     elseif linkCount == 3
         body4.Inertia = I_foot;
         body5.Inertia = I_EE;
@@ -172,35 +192,35 @@ function robot = buildRobotRigidBodyModel(actuatorProperties, actuateJointDirect
     if actuateJointDirectly.HAA
         body7  = robotics.RigidBody('body7');  % HAA
         body7.Mass  = actuatorMass.HAA; % HAA
-        I_HAA = [0 0 0 0 0 0]; % HAA does not contribute an inertia   
+        %I_HAA = [0 0 0 0 0 0]; % HAA does not contribute an inertia   
         body7.Inertia  = I_HAA;
     end
     
     if actuateJointDirectly.HFE
         body8  = robotics.RigidBody('body8');  % HFE
         body8.Mass  = actuatorMass.HFE; % HFE        
-        I_HFE = [0.00000001, body8.Mass*l_hip^2, body8.Mass*l_hip^2, 0, 0, 0]; 
+        %I_HFE = [0.00000001, body8.Mass*l_hip^2, body8.Mass*l_hip^2, 0, 0, 0]; 
         body8.Inertia  = I_HFE;        
     end
     
     if actuateJointDirectly.KFE    
         body9  = robotics.RigidBody('body9');  % KFE
         body9.Mass  = actuatorMass.KFE; % KFE   
-        I_KFE = [0.00000001, body9.Mass*l_thigh^2, body9.Mass*l_thigh^2, 0, 0, 0]; 
+        %I_KFE = [0.00000001, body9.Mass*l_thigh^2, body9.Mass*l_thigh^2, 0, 0, 0]; 
         body9.Inertia = I_KFE;
     end
     
     if linkCount > 2 && actuateJointDirectly.AFE
         body10 = robotics.RigidBody('body10'); % AFE
         body10.Mass = actuatorMass.AFE; % AFE  
-        I_AFE = [0.00000001, body10.Mass*l_foot^2, body10.Mass*l_foot^2, 0, 0, 0]; 
+        %I_AFE = [0.00000001, body10.Mass*l_foot^2, body10.Mass*l_foot^2, 0, 0, 0]; 
         body10.Inertia = I_AFE;
     end
     
     if linkCount == 4 && actuateJointDirectly.DFE
         body11 = robotics.RigidBody('body11'); % DFE
         body11.Mass = actuatorMass.DFE; % DFE     
-        I_DFE = [0.00000001, body11.Mass*l_phalanges^2, body11.Mass*l_phalanges^2, 0, 0, 0]; 
+        %I_DFE = [0.00000001, body11.Mass*l_phalanges^2, body11.Mass*l_phalanges^2, 0, 0, 0]; 
         body11.Inertia = I_DFE;  
     end
     
@@ -210,15 +230,15 @@ function robot = buildRobotRigidBodyModel(actuatorProperties, actuateJointDirect
     
                 % EE inertia about it's own axis + parallel axis thm for
 %                 % offset from knee joint
-%             I_EE = [0.00008308641, 0.00008286021, 0.000081948124, 0.000000417, 0.000000399, -0.0000003457] + 0.1923*0.33^2;
+%             I_EE = [0.00008308641, 0.00008286021, 0.000081948124, 0.000000417, 0.000000399, -0.0000003457] + 0.14017*0.3045^2*[1 1 1 0 0 0];
 %        
 %             body0.Inertia = [0 0 0 0 0 0]; % base    
-%             body1.Inertia = [0.003405632878267  0.003314085487041 0.002846183568995 -0.000041002516348 0.000038637450575  0.000095056519150]; % Hip   
-%             body2.Inertia = [0.013643508342442  0.013867202422874 0.004050514971409  0.000221282089445 0.000231195468648 -0.001585398106631]; % Thigh
-%             body3.Inertia = [0.000210488024800  0.000676270210023 0.000545032674924 -0.000056750980345 0.000010127699391 -0.000000822869024]; % Shank
+%             body1.Inertia = 0*[0.003405632878267  0.003314085487041 0.002846183568995 -0.000041002516348 0.000038637450575  0.000095056519150]; % Hip   
+%             body2.Inertia = 0*[0.013643508342442  0.013867202422874 0.004050514971409  0.000221282089445 0.000231195468648 -0.001585398106631]; % Thigh
+%             body3.Inertia = 0*[0.000210488024800  0.000676270210023 0.000545032674924 -0.000056750980345 0.000010127699391 -0.000000822869024]; % Shank
 %             
 %             if linkCount == 2
-%                 body4.Inertia = I_EE; % We bundle the end effector with shank so body 4 has zero inertia
+%                 body4.Inertia = 0*I_EE; % We bundle the end effector with shank so body 4 has zero inertia
 %             end
 % 
 %             % Actuator inertias are bundled in with link inertias so we set
@@ -235,10 +255,10 @@ function robot = buildRobotRigidBodyModel(actuatorProperties, actuateJointDirect
 %             end
 % 
 %             body0.Mass = 0;      
-%             body1.Mass = 1.860175228 - 1.09;    % hip  
-%             body2.Mass = 2.119626278 - 1.09;  % thigh
-%             body3.Mass = 0.207204302;  % shank
-%             body4.Mass = 0.140170767;     % EE
+%             body1.Mass = (1.860175228 - 1.09);    % hip  
+%             body2.Mass = (2.119626278 - 1.09);  % thigh
+%             body3.Mass = (0.207204302);  % shank
+%             body4.Mass = (0.140170767);     % EE
     
     %% Compute link center of mass
     % Center of mass and mass terms do not affect inertia but are used 
@@ -287,12 +307,12 @@ function robot = buildRobotRigidBodyModel(actuatorProperties, actuateJointDirect
     addBody(robot, body1,'body0');
     addBody(robot, body2,'body1');
     addBody(robot, body3,'body2');
-    addBody(robot, body4,'body3');
+    addBody(robot, body4,'body3'); % EE connected to shank
     if (linkCount == 3)
-        addBody(robot, body5,'body4');
+        addBody(robot, body5,'body4'); % EE connected to foot
     elseif (linkCount == 4)
-        addBody(robot, body5,'body4');
-        addBody(robot, body6,'body5');
+        addBody(robot, body5,'body4'); % phalanges connected to foot
+        addBody(robot, body6,'body5'); % EE connected to phalanges
     end
 
     if actuateJointDirectly.HAA
@@ -313,8 +333,11 @@ function robot = buildRobotRigidBodyModel(actuatorProperties, actuateJointDirect
         addBody(robot, body10,'body4');
         addBody(robot, body11,'body5');
     end
-
-    robot.Gravity = [0 0 -9.8];
+    
+    % "Gravitational acceleration experienced by robot, specified 
+    % as an [x y z] vector in meters per second squared. Each element corresponds 
+    % to the acceleration of the base robot frame in that direction."
+    robot.Gravity = [0 0 9.81]; 
 
     %% Visualization of robot tracking motion.
     if viewVisualization
@@ -337,7 +360,8 @@ function robot = buildRobotRigidBodyModel(actuatorProperties, actuateJointDirect
                                Leg.(EEselection).q(i,1), ... % HAA
                                Leg.(EEselection).q(i,2), ... % HFE
                                Leg.(EEselection).q(i,3)]; % KFE
-            elseif (linkCount == 3)
+            
+            elseif (linkCount == 3)    
                 config(i,:) = [-meanCyclicMotionHipEE.body.eulerAngles.(EEselection)(i,2), ... %body rotation about inertial y
                                Leg.(EEselection).q(i,1), ... % HAA
                                Leg.(EEselection).q(i,2), ... % HFE
