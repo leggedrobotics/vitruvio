@@ -24,7 +24,7 @@ function robotProperties = getRobotProperties(robotSelection, transmissionMethod
     robot.yourRobot.xNom(2) = 0.34;
     robot.yourRobot.yNom(1) = 0.19;
     robot.yourRobot.yNom(2) = 0.19;
-    robot.yourRobot.zNom = 0; % offset from CoM to HAA in z direction. Positive value means HAA above CoM.
+    robot.yourRobot.zNom = -0.05; % offset from CoM to HAA in z direction. Positive value means HAA above CoM.
     
     robot.yourRobot.nomHipPos.LF = [ robot.yourRobot.xNom(1),  robot.yourRobot.yNom(1), robot.yourRobot.zNom];
     robot.yourRobot.nomHipPos.LH = [-robot.yourRobot.xNom(2),  robot.yourRobot.yNom(2), robot.yourRobot.zNom];
@@ -164,12 +164,12 @@ function robotProperties = getRobotProperties(robotSelection, transmissionMethod
     robot.ANYmalBear.EE(1).mass = 0.1402;
     robot.ANYmalBear.EE(2).mass = 0.1402;
 
-    % offset from CoM to HAA for each leg.
-    robot.ANYmalBear.xNom(1) = 0.4; % 0.44; 
-    robot.ANYmalBear.xNom(2) = 0.4; 
-    robot.ANYmalBear.yNom(1) = 0.112;
-    robot.ANYmalBear.yNom(2) = 0.112;
-    robot.ANYmalBear.zNom = 0.05; % offset from CoM to HAA in z direction. Positive value means HAA above CoM.
+    % offset from CoM to base hip attachment for each leg.
+    robot.ANYmalBear.xNom(1) = 0.43; %0.4; % 0.44; 
+    robot.ANYmalBear.xNom(2) = 0.43; 
+    robot.ANYmalBear.yNom(1) = 0.112;%0.112;
+    robot.ANYmalBear.yNom(2) = 0.112;%0.112;
+    robot.ANYmalBear.zNom = 0; % offset from CoM to HAA in z direction. Positive value means HAA above CoM.
     
     robot.ANYmalBear.nomHipPos.LF = [ robot.ANYmalBear.xNom(1),  robot.ANYmalBear.yNom(1), robot.ANYmalBear.zNom];
     robot.ANYmalBear.nomHipPos.LH = [-robot.ANYmalBear.xNom(2),  robot.ANYmalBear.yNom(2), robot.ANYmalBear.zNom];
@@ -218,8 +218,9 @@ function robotProperties = getRobotProperties(robotSelection, transmissionMethod
     % Hip offset. This shifts HAA along the body x direction. It is
     % an optimization parameter and is initially set to the hip length such
     % that HFE is at the location specified above by nomHipPos.
-     robot.ANYmalBear.hipOffset(1) = robot.ANYmalBear.hip(1).length + 0.1; %robot.ANYmalBear.hip(1).length + 0.1;
-     robot.ANYmalBear.hipOffset(2) = robot.ANYmalBear.hip(2).length + 0.1;
+    % Keep HAA at 0.225 from CoM to match ANYmal geometry
+     robot.ANYmalBear.hipOffset(1) = robot.ANYmalBear.xNom(1)-0.225; %robot.ANYmalBear.hip(1).length + 0.1;
+     robot.ANYmalBear.hipOffset(2) = robot.ANYmalBear.xNom(1)-0.225; %robot.ANYmalBear.hip(2).length + 0.1;
      
      %% Vitruvian Biped
     robot.vitruvianBiped.mass.total = 2.6423; 

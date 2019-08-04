@@ -3,11 +3,11 @@
 % the name of the .mat file where the data is saved.
 
 clc;
-clear all;
+clear;
 close all;
 
 %% Enter path to bag containing trajectory data
-pathToTrajectoryData =  '/Users/michaelchadwick/Documents/git/vitruvio/data/extractedBags/matlab_ANYmalBear_elongatedTrot.bag';
+pathToTrajectoryData =  '/Users/michaelchadwick/Documents/git/vitruvio/data/extractedBags/matlab_ANYmalBear_slowTrot_intermediateTorque.bag';
 legCount = 4; % Specify number of legs from 1 to 4.
 
 %% Extract the desired 3D vectors from the bag
@@ -118,7 +118,7 @@ end
 
 motion.trajectoryData.base.position     = [ts_base_pos.Data(:,1) ts_base_pos.Data(:,2) ts_base_pos.Data(:,3)];
 
-save('ANYmalBearElongatedTrot.mat', '-struct','motion') 
+save('ANYmalBearSlowTrotIntermediateTorque.mat', '-struct','motion') 
 
 %% Error 
 m = 38.8;   % mass of the robot

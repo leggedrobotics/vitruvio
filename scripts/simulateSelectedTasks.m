@@ -318,7 +318,20 @@ for i = 1:numberOfRepetitions+1
         end
         generatePlots(viewPlots, results.(classSelection), task, optimizeLeg, saveFiguresToPDF);        
     end
-        
+
+    if ANYmalBearSlowTrotIntermediateTorque
+        dataSelection = 'ANYmalBearSlowTrotIntermediateTorque'; 
+        classSelection = 'ANYmalBear';
+        task = 'slowTrotIntermediateTorque';        
+        results.(classSelection).(task)(i) = runDataExtractionAndOptScripts(actuatorSelection, dataExtraction, imposeJointLimits, heuristic, actuateJointDirectly, transmissionMethod, viewVisualization, numberOfStepsVisualized, linkCount, runOptimization, optimizeLeg, optimizationProperties, dataSelection, classSelection, configSelection, hipParalleltoBody, legCount, task, saveFiguresToPDF, springInParallelWithJoints, kSpringJoint);        
+        results.(classSelection).(task)(i).metaParameters = orderfields(results.(classSelection).(task)(i).metaParameters);        
+        for j = 1:legCount
+            EEselection = EEnames(j,:);
+            results.(classSelection).(task)(i).(EEselection) = orderfields(results.(classSelection).(task)(i).(EEselection));
+        end
+        generatePlots(viewPlots, results.(classSelection), task, optimizeLeg, saveFiguresToPDF);        
+    end
+    
     if ANYmalBearFlyingTrot2
         dataSelection = 'ANYmalBearFlyingTrot2'; 
         classSelection = 'ANYmalBear';

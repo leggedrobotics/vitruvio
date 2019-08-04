@@ -61,6 +61,9 @@ suggestedRemovalRatioEnd.ANYmalBearTrot   = 0.3;
 suggestedRemovalRatioStart.ANYmalBearSlowTrot = 0;
 suggestedRemovalRatioEnd.ANYmalBearSlowTrot   = 0;
 
+suggestedRemovalRatioStart.ANYmalBearSlowTrotIntermediateTorque = 0.3;
+suggestedRemovalRatioEnd.ANYmalBearSlowTrotIntermediateTorque   = 0.3;
+
 suggestedRemovalRatioStart.ANYmalBearFlyingTrot2 = 0.3;
 suggestedRemovalRatioEnd.ANYmalBearFlyingTrot2  = 0.3;
 

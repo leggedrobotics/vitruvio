@@ -1,5 +1,5 @@
 % this function calls evolveOptimalLeg which starts the optimization by calling computePenalty 
-function optimizationResults = evolveAndVisualizeOptimalLeg(actuatorProperties, imposeJointLimits, heuristic, actuateJointDirectly, hipAttachmentOffset, linkCount, optimizationProperties, EEselection, meanCyclicMotionHipEE, robotProperties, configSelection, dt, taskSelection, hipParalleltoBody, Leg, actuatorEfficiency, actuatorSelection, dataExtraction, jointNames, saveFiguresToPDF)
+function optimizationResults = evolveAndVisualizeOptimalLeg(actuatorProperties, imposeJointLimits, heuristic, actuateJointDirectly, hipAttachmentOffset, linkCount, optimizationProperties, EEselection, meanCyclicMotionHipEE, robotProperties, configSelection, dt, taskSelection, hipParalleltoBody, Leg, actuatorEfficiency, actuatorSelection, dataExtraction, jointNames, saveFiguresToPDF, springInParallelWithJoints, kSpringJoint, q0SpringJoint)
 if strcmp(EEselection, 'LF') || strcmp(EEselection, 'RF')
     selectFrontHind = 1;
 else 
@@ -153,7 +153,7 @@ end
 
 %% Evolve optimal leg design and return optimized design parameters
 tic;
-[legDesignParameters, penaltyMin, output] = evolveOptimalLeg(actuatorProperties, imposeJointLimits, heuristic, upperBound, lowerBound, actuateJointDirectly, hipAttachmentOffset, linkCount, optimizationProperties, initialLinkLengths, taskSelection, robotProperties, configSelection, EEselection, dt, meanCyclicMotionHipEE, hipParalleltoBody, Leg, actuatorEfficiency, actuatorSelection, dataExtraction, jointNames);
+[legDesignParameters, penaltyMin, output] = evolveOptimalLeg(actuatorProperties, imposeJointLimits, heuristic, upperBound, lowerBound, actuateJointDirectly, hipAttachmentOffset, linkCount, optimizationProperties, initialLinkLengths, taskSelection, robotProperties, configSelection, EEselection, dt, meanCyclicMotionHipEE, hipParalleltoBody, Leg, actuatorEfficiency, actuatorSelection, dataExtraction, jointNames, springInParallelWithJoints, kSpringJoint, q0SpringJoint);
 optimizationResults.elapsedTime = toc;
 optimizationResults.elapsedTimePerFuncEval = optimizationResults.elapsedTime/output.funccount;
 fprintf('Optimized leg design parameters :')
@@ -240,6 +240,17 @@ for j = 1:length(Leg.(EEselection).jointTorque(1,:))
     tempLeg.(EEselection).jointTorque(:,j) = smooth(tempLeg.(EEselection).jointTorque(:,j));
 end
 
+%% Get active and passive torques for spring modeled in parallel with joint
+if springInParallelWithJoints
+    q0SpringJoint.(EEselection) = mean(tempLeg.(EEselection).q(:,1:end-1)); % Set undeformed spring position to mean position. This can be updated in optimizer.
+    [tempLeg.activeTorqueOpt, tempLeg.passiveTorqueOpt] = getActiveAndPassiveTorque(kSpringJoint, q0SpringJoint, tempLeg, EEselection, linkCount);
+    tempLeg.activePowerOpt  = tempLeg.activeTorqueOpt  .* tempLeg.(EEselection).qdot(:,1:end-1);
+    tempLeg.passivePowerOpt = tempLeg.passiveTorqueOpt .* tempLeg.(EEselection).qdot(:,1:end-1);
+else
+    tempLeg.activeTorqueOpt = tempLeg.jointTorqueOpt;
+    tempLeg.passiveTorqueOpt = 0;
+end  
+
 %% Get joint power for optimal design
 tempLeg.(EEselection).jointPower = tempLeg.(EEselection).jointTorque .* tempLeg.(EEselection).qdot(:,1:end-1);
 
@@ -323,3 +334,7 @@ optimizationResults.actuatordeltaqMaxOpt = actuatordeltaqMaxOpt;
 optimizationResults.actuatorqdotMaxOpt = actuatorqdotMaxOpt;
 optimizationResults.actuatorTorqueMaxOpt = actuatorTorqueMaxOpt;
 optimizationResults.gaSettings = output;
+optimizationResults.activeTorqueOpt = tempLeg.activeTorqueOpt;
+optimizationResults.activePowerOpt = tempLeg.activePowerOpt;
+optimizationResults.passiveTorqueOpt = tempLeg.passiveTorqueOpt;
+optimizationResults.passivePowerOpt = tempLeg.passivePowerOpt;

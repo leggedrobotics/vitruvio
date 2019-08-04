@@ -318,6 +318,8 @@ for i = 1:legCount
     if springInParallelWithJoints
         q0SpringJoint.(EEselection) = mean(Leg.(EEselection).q(:,1:end-1)); % Set undeformed spring position to mean position. This can be updated in optimizer.
         [Leg.(EEselection).activeTorque, Leg.(EEselection).passiveTorque] = getActiveAndPassiveTorque(kSpringJoint, q0SpringJoint, Leg, EEselection, linkCount);
+        Leg.(EEselection).activePower  = Leg.(EEselection).activeTorque  .* Leg.(EEselection).qdot(:,1:end-1);
+        Leg.(EEselection).passivePower = Leg.(EEselection).passiveTorque .* Leg.(EEselection).qdot(:,1:end-1);
     else
         Leg.(EEselection).activeTorque = Leg.(EEselection).jointTorque;
         Leg.(EEselection).passiveTorque = 0;
@@ -451,7 +453,7 @@ if runOptimization % master toggle in main
         if optimizeLeg.(EEselection) % Toggle in main to select legs for optimization
             fprintf('\nInitiating optimization of link lengths for %s\n', EEselection);
              % Evolve leg and return joint data of optimized design
-            optimizationResults = evolveAndVisualizeOptimalLeg(actuatorProperties, imposeJointLimits, heuristic, actuateJointDirectly, Leg.(EEselection).hipAttachmentOffset, linkCount, optimizationProperties, EEselection, meanCyclicMotionHipEE, robotProperties, configSelection, dt, dataSelection, hipParalleltoBody, Leg, actuatorEfficiency, actuatorSelection, dataExtraction, jointNames, saveFiguresToPDF);
+            optimizationResults = evolveAndVisualizeOptimalLeg(actuatorProperties, imposeJointLimits, heuristic, actuateJointDirectly, Leg.(EEselection).hipAttachmentOffset, linkCount, optimizationProperties, EEselection, meanCyclicMotionHipEE, robotProperties, configSelection, dt, dataSelection, hipParalleltoBody, Leg, actuatorEfficiency, actuatorSelection, dataExtraction, jointNames, saveFiguresToPDF, springInParallelWithJoints, kSpringJoint, q0SpringJoint);
 
             % Save all the results of the optimization
             Leg.(EEselection).jointTorqueOpt                                 = optimizationResults.jointTorqueOpt;
@@ -490,7 +492,11 @@ if runOptimization % master toggle in main
             Leg.metaParameters.actuatordeltaqMaxOpt.(EEselection)            = optimizationResults.actuatordeltaqMaxOpt;
             Leg.metaParameters.actuatorqdotMaxOpt.(EEselection)              = optimizationResults.actuatorqdotMaxOpt;
             Leg.metaParameters.actuatorTorqueMaxOpt.(EEselection)            = optimizationResults.actuatorTorqueMaxOpt;
-
+            Leg.(EEselection).activeTorqueOpt                                = optimizationResults.activeTorqueOpt;
+            Leg.(EEselection).activePowerOpt                                 = optimizationResults.activePowerOpt;
+            Leg.(EEselection).passiveTorqueOpt                               = optimizationResults.passiveTorqueOpt;
+            Leg.(EEselection).passivePowerOpt                                = optimizationResults.passivePowerOpt;
+            
             % compute CoT
              power = Leg.(EEselection).jointPowerOpt;
              Leg.metaParameters.CoTOpt.(EEselection) = getCostOfTransport(Leg, power, robotProperties);

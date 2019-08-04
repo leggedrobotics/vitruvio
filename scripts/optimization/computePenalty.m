@@ -1,8 +1,4 @@
-% the optimization returns new leg design parameters with unit cm. Convert
-% lengths back to m to run the simulation and obtain results with base
-% units.
-
-function penalty = computePenalty(actuatorProperties, imposeJointLimits, heuristic, legDesignParameters, actuateJointDirectly, linkCount, optimizationProperties, robotProperties, selectFrontHind, taskSelection, dt, configSelection, EEselection, meanCyclicMotionHipEE, hipParalleltoBody, Leg, actuatorEfficiency, actuatorSelection, dataExtraction)
+function penalty = computePenalty(actuatorProperties, imposeJointLimits, heuristic, legDesignParameters, actuateJointDirectly, linkCount, optimizationProperties, robotProperties, selectFrontHind, taskSelection, dt, configSelection, EEselection, meanCyclicMotionHipEE, hipParalleltoBody, Leg, actuatorEfficiency, actuatorSelection, dataExtraction, springInParallelWithJoints, kSpringJoint, q0SpringJoint)
     jointNames = ['HAA'; 'HFE'; 'KFE'; 'AFE'; 'DFE'];
 
     % Design parameters always start with [links(3-5), hip offset]

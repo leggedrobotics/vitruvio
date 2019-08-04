@@ -1,13 +1,13 @@
 clear;
 close all;
-%diary results
+diary results
 
 %% Data extraction
 % if averageStepsForCyclicalMotion is true, the motion is segmented into individual steps which are averaged
 % to create an average cycle. This works well when the motion is very cyclical.
 % If false the individual steps are not averaged. This should be selected
 % when the generated motion is irregular and highly cyclical.
-dataExtraction.averageStepsForCyclicalMotion = true; 
+dataExtraction.averageStepsForCyclicalMotion = false; 
 dataExtraction.allowableDeviation = 0.05; % [m] Deviation between neighbouring points. If the deviation is larger, additional points are interpolated.
 
 %% Toggle leg properties: leg count, link count, configuration, direct/remote joint actuation, spider/serial leg
@@ -53,10 +53,10 @@ hipParalleltoBody = true;
 % Model springs in parallel with each joint.
 springInParallelWithJoints = true;
 % Spring constant in Nm/rad
-kSpringJoint.LF = [100, 100, 100, 100, 100]; % HAA, HFE, KFE, AFE, DFE
-kSpringJoint.RF = [100, 100, 100, 100, 100]; % HAA, HFE, KFE, AFE, DFE
-kSpringJoint.LH = [100, 100, 100, 100, 100]; % HAA, HFE, KFE, AFE, DFE
-kSpringJoint.RH = [100, 100, 100, 100, 100]; % HAA, HFE, KFE, AFE, DFE
+kSpringJoint.LF = [0, 0, 120, 0, 0]; % HAA, HFE, KFE, AFE, DFE
+kSpringJoint.RF = [40, 40, 40, 40, 40]; % HAA, HFE, KFE, AFE, DFE
+kSpringJoint.LH = [40, 40, 40, 40, 40]; % HAA, HFE, KFE, AFE, DFE
+kSpringJoint.RH = [40, 40, 40, 40, 40]; % HAA, HFE, KFE, AFE, DFE
 
 %% AFE and DFE heuristics (for 3 and 4 link legs)
 % The heuristic computes the final joint angle (AFE or DFE) as a 
@@ -73,7 +73,7 @@ numberOfStepsVisualized      = 1;    % number of steps visualized for leg motion
 viewPlots.motionData         = false; % CoM position, speed. EE position and forces. Trajectory to be tracked.
 viewPlots.rangeOfMotionPlots = false; % range of motion of leg for given link lengths and angle limits
 viewPlots.efficiencyMap      = false; % actuator operating efficiency map
-viewPlots.jointDataPlot      = true; % angle, speed, torque, power, energy data
+viewPlots.jointDataPlot      = false; % angle, speed, torque, power, energy data
 viewPlots.metaParameterPlot  = false; % design parameters and key results plotted as pie charts
 % Optimization visualization
 optimizationProperties.viz.viewVisualization = false;
@@ -108,11 +108,13 @@ ANYmalBearTrot  = false;
 ANYmalBearTrot2 = false; % Updated to match measured data
 ANYmalBearTrot3 = false; % Updated EE force splines
 
-ANYmalBearTrotSwing3    = true; 
-ANYmalBearTrotSwing5    = false; 
+ANYmalBearTrotSwing3    = false; 
+ANYmalBearTrotSwing5    = true; 
 ANYmalBearElongatedTrot = false; 
 
 ANYmalBearSlowTrot    = false;
+ANYmalBearSlowTrotIntermediateTorque    = false;
+
 ANYmalBearFlyingTrot  = false;
 ANYmalBearFlyingTrot2 = false;
 
@@ -122,7 +124,7 @@ vitruvianBipedPushup = false;
 numberOfRepetitions = 0; % Number of times that leg is reoptimized. This allows for an easy check if the same optimal solution is found each time the optimization is run.
 
 %% Toggle optimization for each leg
-runOptimization = false; 
+runOptimization = true; 
 % select which legs are to be optimized
 optimizeLeg.LF = true; 
 optimizeLeg.RF = false; 
@@ -133,13 +135,13 @@ optimizeLeg.RH = false;
 
 % Set number of generations and population size
 optimizationProperties.options.maxGenerations = 20;
-optimizationProperties.options.populationSize = 70;
+optimizationProperties.options.populationSize = 40;
 
 % Impose limits on maximum joint torque, speed and power
 % the values are defined in getActuatorProperties. A penalty term is incurred
 % for violations of these limits.
-imposeJointLimits.maxTorque = true;
-imposeJointLimits.maxqdot   = true;
+imposeJointLimits.maxTorque = false;
+imposeJointLimits.maxqdot   = false;
 imposeJointLimits.maxPower  = false;
 
 % Set weights for fitness function terms. Total means summed over all
@@ -149,7 +151,7 @@ imposeJointLimits.maxPower  = false;
 % penalty function.
 optimizationProperties.penaltyWeight.totalSwingTorque  = 0;
 optimizationProperties.penaltyWeight.totalStanceTorque = 0;
-optimizationProperties.penaltyWeight.totalTorque       = 0;
+optimizationProperties.penaltyWeight.totalTorque       = 1;
 optimizationProperties.penaltyWeight.totalTorqueHFE    = 0;
 optimizationProperties.penaltyWeight.totalTorqueKFE    = 0;
 optimizationProperties.penaltyWeight.swingTorqueHFE    = 0;
@@ -158,7 +160,7 @@ optimizationProperties.penaltyWeight.totalPower        = 0;     % only considers
 optimizationProperties.penaltyWeight.totalMechEnergy   = 0;
 optimizationProperties.penaltyWeight.totalElecEnergy   = 0;
 optimizationProperties.penaltyWeight.averageEfficiency = 0;     % Maximizes average efficiency (even though this could increase overall energy use)
-optimizationProperties.penaltyWeight.maxTorque         = 1;
+optimizationProperties.penaltyWeight.maxTorque         = 0;
 optimizationProperties.penaltyWeight.maxqdot           = 0;
 optimizationProperties.penaltyWeight.maxPower          = 0;     % only considers power terms > 0
 optimizationProperties.penaltyWeight.antagonisticPower = 0;     % seeks to minimize antagonistic power which improves power quality
@@ -194,11 +196,11 @@ optimizationProperties.bounds.upperBoundMultiplier.thetaLiftoff_des = 1; % with 
 optimizationProperties.bounds.lowerBoundMultiplier.transmissionGearRatio.HAA = 1;
 optimizationProperties.bounds.upperBoundMultiplier.transmissionGearRatio.HAA = 1;
 
-optimizationProperties.bounds.lowerBoundMultiplier.transmissionGearRatio.HFE = 0.5;
-optimizationProperties.bounds.upperBoundMultiplier.transmissionGearRatio.HFE = 2;
+optimizationProperties.bounds.lowerBoundMultiplier.transmissionGearRatio.HFE = 1;
+optimizationProperties.bounds.upperBoundMultiplier.transmissionGearRatio.HFE = 1;
 
-optimizationProperties.bounds.lowerBoundMultiplier.transmissionGearRatio.KFE = 0.5;
-optimizationProperties.bounds.upperBoundMultiplier.transmissionGearRatio.KFE = 2;
+optimizationProperties.bounds.lowerBoundMultiplier.transmissionGearRatio.KFE = 1;
+optimizationProperties.bounds.upperBoundMultiplier.transmissionGearRatio.KFE = 1;
 
 optimizationProperties.bounds.lowerBoundMultiplier.transmissionGearRatio.AFE = 1;
 optimizationProperties.bounds.upperBoundMultiplier.transmissionGearRatio.AFE = 1;
@@ -213,4 +215,4 @@ end
 simulateSelectedTasks;
 fprintf('Done.\n');
 
-%diary off
+diary off

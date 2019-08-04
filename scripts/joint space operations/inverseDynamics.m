@@ -13,6 +13,7 @@ elseif linkCount == 4
     endEffector = 'body6';
 end
 
+% jointTorque = zeros(length(Leg.(EEselection).qdotdot),linkCount+1);
 jointTorque = zeros(length(Leg.(EEselection).qdotdot),linkCount+2);
     for i = 1:length(Leg.(EEselection).qdotdot)
         rotBodyY = -meanCyclicMotionHipEE.body.eulerAngles.(EEselection)(i,2);
@@ -26,8 +27,10 @@ jointTorque = zeros(length(Leg.(EEselection).qdotdot),linkCount+2);
         % inverse dynamics solver of form:
         % jointTorq = inverseDynamics(robot,configuration,jointVel,jointAccel,fext) computes joint torques for the specified joint configuration, velocities, accelerations, and external forces. 
         jointTorque(i,:) = inverseDynamics(rigidBodyModel, [rotBodyY q], [0 qdot], [0 qdotdot], fext);
+%         jointTorque(i,:) = inverseDynamics(rigidBodyModel, q, qdot, qdotdot, fext);
     end
     
 % the first term is due to body rotation but this is not related to an actuated joint so we neglect it    
 jointTorque = jointTorque(:,2:end);
+
 end
