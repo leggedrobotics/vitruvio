@@ -12,19 +12,29 @@ end
 % Set initial values for link lengths
 linkLengths = initialLinkLengths;
 legDesignParameters = [linkLengths, hipAttachmentOffset, transmissionGearRatio];
-% If also optimizing spring parameters
+
+% If also optimizing joint spring parameters
+if springInParallelWithJoints
+    legDesignParameters = [legDesignParameters kSpringJoint.(EEselection)(1:linkCount+1)];
+end
+
+% If also optimizing spring parameters at AFE/DFE
 if linkCount>2 && heuristic.torqueAngle.apply
     kTorsionalSpring = heuristic.torqueAngle.kTorsionalSpring;
     thetaLiftoff_des = heuristic.torqueAngle.thetaLiftoff_des;
-    legDesignParameters = [linkLengths, hipAttachmentOffset, transmissionGearRatio, kTorsionalSpring, thetaLiftoff_des];
+    legDesignParameters = [legDesignParameters, kTorsionalSpring, thetaLiftoff_des];
 end
 
 % Set optimization options
-opts = optimoptions('ga');
+% parpool('local')
+opts = optimoptions('ga', 'UseParallel', true, 'UseVectorized', false);
 opts.Display = 'iter';
 opts.MaxGenerations = optimizationProperties.options.maxGenerations;
 opts.PopulationSize = optimizationProperties.options.populationSize;
-opts.CreationFcn = {@gacreationuniform};
+opts.CreationFcn  = {@gacreationuniform};
+%opts.SelectionFcn = {@selectiontournament};
+opts.MutationFcn  = {@mutationadaptfeasible};
+
 if optimizationProperties.viz.displayBestCurrentDesign
     opts.PlotFcn = {@gaplotbestindiv};
 end

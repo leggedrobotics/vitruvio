@@ -57,29 +57,38 @@ function [] = plotEfficiencyMapWithOperatingPoints(classSelection, task, saveFig
     end
     
 %     if classSelection.trot.basicProperties.trajectory.averageStepsForCyclicalMotion  % if true, the points are averaged and we can differentiate swing and stance
-        lineWidth = 2;       
+        lineWidth = 3;       
         lineTypeSwing     = 'r:';        
         lineTypeStance    = 'r';        
         lineTypeSwingOpt  = 'b:'; 
         lineTypeStanceOpt = 'b'; 
      
         %% Plot torque, speed envelope and efficiency map
-        numberOfContours = 10;
+        numberOfContours = 30;
           for i = 1:legCount
             EEselection = EEnames(i,:);
             for j = 1:linkCount+1  
+                % Find indices where efficiency map attains its optimal
+                % value
+                [indTorqueOpt, indqdotOpt] = find(efficiencyMapCropped.(jointNames(j,:)) == max(max(efficiencyMapCropped.(jointNames(j,:)))));
+                
                 figureName = 'Motor Efficiency with Operating Points for' + " " + EEselection + " " + jointNames(j,:);
                 figure('name', figureName, 'DefaultAxesFontSize', 10, 'units','normalized','outerposition',[0 0 1 1])
                 set(gcf,'color','w')
                 hold on
-                contourf(qdotMap.(jointNames(j,:)), torqueMap.(jointNames(j,:)), efficiencyMapCropped.(jointNames(j,:)), numberOfContours)
+                caxis([0.6,1]);
+                colormap(jet)
+                colorbar('eastoutside')
+                contourf(qdotMap.(jointNames(j,:)), torqueMap.(jointNames(j,:)), efficiencyMapCropped.(jointNames(j,:)), numberOfContours, 'lineColor', 'none','ShowText', 'on')
+                xlabel('Motor Speed [rad/s]')
+                ylabel('Motor Torque [Nm]')
                 plot(qdotEnvelope.(jointNames(j,:)), torqueEnvelope.(jointNames(j,:)), 'k', 'lineWidth', lineWidth)
-                
+                plot(qdotMap.(jointNames(j,:))(indqdotOpt), torqueMap.(jointNames(j,:))(indTorqueOpt), 'k*')
                 % Mirror plots to quadrant III where power is also positive
                 plot(-qdotEnvelope.(jointNames(j,:)), -torqueEnvelope.(jointNames(j,:)), 'k', 'lineWidth', lineWidth)
-                contourf(-qdotMap.(jointNames(j,:)), -torqueMap.(jointNames(j,:)), efficiencyMapCropped.(jointNames(j,:)), numberOfContours)
-                colorbar('eastoutside')
-                
+                contourf(-qdotMap.(jointNames(j,:)), -torqueMap.(jointNames(j,:)), efficiencyMapCropped.(jointNames(j,:)), numberOfContours, 'lineColor', 'none')
+                plot(-qdotMap.(jointNames(j,:))(indqdotOpt), -torqueMap.(jointNames(j,:))(indTorqueOpt), 'k*')
+
                 %% Plot the operating point with differentiation between swing and stance phase           
                 if averageStepsForCyclicalMotion
                 pNomSwing  = plot(qdotMotor.(EEselection)(1:touchdownIndex.(EEselection),j), torqueMotor.(EEselection)(1:touchdownIndex.(EEselection),j),  lineTypeSwing, 'lineWidth', lineWidth, 'DisplayName', 'nominal leg, swing');

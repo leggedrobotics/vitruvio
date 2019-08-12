@@ -20,7 +20,7 @@ function [maxTorqueLimit, maxqdotLimit, maxPowerLimit, actuatorMass, gearRatio, 
         actuatorMass   = 0.126;  % [kg]
         gearRatio      = 50; % Incorrect value
         efficiencyMinMotor = 0.1;  
-        efficiencyMaxMotor = 0.9; % motor efficiency before gearing losses        
+        efficiencyMaxMotor = 0.95; % motor efficiency before gearing losses        
     end
 
     if isequal(actuatorName,'ANYdrive')
@@ -30,7 +30,7 @@ function [maxTorqueLimit, maxqdotLimit, maxPowerLimit, actuatorMass, gearRatio, 
         actuatorMass   = 1.09;  % [kg]
         gearRatio      = 50;
         efficiencyMinMotor = 0.1;  
-        efficiencyMaxMotor = 0.9; % motor efficiency before gearing losses        
+        efficiencyMaxMotor = 0.97; % motor efficiency before gearing losses        
     end
 
     if isequal(actuatorName,'Neo')
@@ -40,7 +40,7 @@ function [maxTorqueLimit, maxqdotLimit, maxPowerLimit, actuatorMass, gearRatio, 
         actuatorMass   = 4.5;  % [kg]
         gearRatio      = 6.6;
         efficiencyMinMotor = 0.1;  
-        efficiencyMaxMotor = 0.9; % motor efficiency before gearing losses        
+        efficiencyMaxMotor = 0.95; % motor efficiency before gearing losses        
     end
     
     if isequal(actuatorName,'RoboDrive') % RoboDrive 115x25
@@ -50,7 +50,7 @@ function [maxTorqueLimit, maxqdotLimit, maxPowerLimit, actuatorMass, gearRatio, 
         actuatorMass   = 3; % [kg]
         gearRatio      = 4.5;  
         efficiencyMinMotor = 0.1;  
-        efficiencyMaxMotor = 0.9; % motor efficiency before gearing losses        
+        efficiencyMaxMotor = 1; % motor efficiency before gearing losses        
     end
     
     if isequal(actuatorName,'Other')
@@ -60,6 +60,6 @@ function [maxTorqueLimit, maxqdotLimit, maxPowerLimit, actuatorMass, gearRatio, 
         actuatorMass   = 4.5; % [kg]
         gearRatio      = 50;    
         efficiencyMinMotor = 0.1;  
-        efficiencyMaxMotor = 0.9; % motor efficiency before gearing losses        
+        efficiencyMaxMotor = 0.95; % motor efficiency before gearing losses        
     end
 end

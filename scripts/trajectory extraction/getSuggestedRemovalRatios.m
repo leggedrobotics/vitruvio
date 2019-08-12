@@ -20,7 +20,7 @@ suggestedRemovalRatioStart.universalStairs = 0.4;
 suggestedRemovalRatioEnd.universalStairs   = 0.1;
 
 suggestedRemovalRatioStart.speedyGallop = 0.3;
-suggestedRemovalRatioEnd.speedyGallop   = 0.1;
+suggestedRemovalRatioEnd.speedyGallop   = 0.3;
 
 suggestedRemovalRatioStart.speedyStairs = 0.2;
 suggestedRemovalRatioEnd.speedyStairs   = 0.2;
@@ -40,8 +40,8 @@ suggestedRemovalRatioEnd.centaurWalk   = 0.1;
 suggestedRemovalRatioStart.miniPronk = 0.1;
 suggestedRemovalRatioEnd.miniPronk   = 0.1;
 
-suggestedRemovalRatioStart.ANYmalTrot = 0.4;
-suggestedRemovalRatioEnd.ANYmalTrot   = 0.5;
+suggestedRemovalRatioStart.ANYmalTrot = 0.1;
+suggestedRemovalRatioEnd.ANYmalTrot   = 0.1;
 
 suggestedRemovalRatioStart.ANYmalSlowTrotAccurateMotion = 0;
 suggestedRemovalRatioEnd.ANYmalSlowTrotAccurateMotion   = 0;
@@ -58,11 +58,17 @@ suggestedRemovalRatioEnd.ANYmalTrotVersatilityStep   = 0.1;
 suggestedRemovalRatioStart.ANYmalBearTrot = 0.3;
 suggestedRemovalRatioEnd.ANYmalBearTrot   = 0.3;
 
-suggestedRemovalRatioStart.ANYmalBearSlowTrot = 0;
-suggestedRemovalRatioEnd.ANYmalBearSlowTrot   = 0;
+suggestedRemovalRatioStart.ANYmalBearTrotSwing5 = 0.3;
+suggestedRemovalRatioEnd.ANYmalBearTrotSwing5   = 0.3;
+
+suggestedRemovalRatioStart.ANYmalBearSlowTrot = 0.3;
+suggestedRemovalRatioEnd.ANYmalBearSlowTrot   = 0.3;
 
 suggestedRemovalRatioStart.ANYmalBearSlowTrotIntermediateTorque = 0.3;
 suggestedRemovalRatioEnd.ANYmalBearSlowTrotIntermediateTorque   = 0.3;
+
+suggestedRemovalRatioStart.ANYmalBearElongatedTrot = 0.1;
+suggestedRemovalRatioEnd.ANYmalBearElongatedTrot = 0.1;
 
 suggestedRemovalRatioStart.ANYmalBearFlyingTrot2 = 0.3;
 suggestedRemovalRatioEnd.ANYmalBearFlyingTrot2  = 0.3;

@@ -24,7 +24,7 @@ function robotProperties = getRobotProperties(robotSelection, transmissionMethod
     robot.yourRobot.xNom(2) = 0.34;
     robot.yourRobot.yNom(1) = 0.19;
     robot.yourRobot.yNom(2) = 0.19;
-    robot.yourRobot.zNom = 0; % offset from CoM to HAA in z direction. Positive value means HAA above CoM.
+    robot.yourRobot.zNom = -0.05; % offset from CoM to HAA in z direction. Positive value means HAA above CoM.
     
     robot.yourRobot.nomHipPos.LF = [ robot.yourRobot.xNom(1),  robot.yourRobot.yNom(1), robot.yourRobot.zNom];
     robot.yourRobot.nomHipPos.LH = [-robot.yourRobot.xNom(2),  robot.yourRobot.yNom(2), robot.yourRobot.zNom];
@@ -46,16 +46,16 @@ function robotProperties = getRobotProperties(robotSelection, transmissionMethod
 
     % link radius [m]
     % update these values
-    robot.yourRobot.hip(1).radius = 0.05;
-    robot.yourRobot.hip(2).radius = 0.05;
-    robot.yourRobot.thigh(1).radius = 0.05;
-    robot.yourRobot.thigh(2).radius = 0.05;
-    robot.yourRobot.shank(1).radius = 0.05;
-    robot.yourRobot.shank(2).radius = 0.05;
-    robot.yourRobot.foot(1).radius = 0.05;
-    robot.yourRobot.foot(2).radius = 0.05;
-    robot.yourRobot.phalanges(1).radius = 0.05;
-    robot.yourRobot.phalanges(2).radius = 0.05;
+    robot.yourRobot.hip(1).radius = 0.015;
+    robot.yourRobot.hip(2).radius = 0.015;
+    robot.yourRobot.thigh(1).radius = 0.015;
+    robot.yourRobot.thigh(2).radius = 0.015;
+    robot.yourRobot.shank(1).radius = 0.015;
+    robot.yourRobot.shank(2).radius = 0.015;
+    robot.yourRobot.foot(1).radius = 0.015;
+    robot.yourRobot.foot(2).radius = 0.015;
+    robot.yourRobot.phalanges(1).radius = 0.015;
+    robot.yourRobot.phalanges(2).radius = 0.015;
 
     % joint angle limits
     % q1 HAA, q2 HFE, q3 KFE, q4 AFE
@@ -118,16 +118,16 @@ function robotProperties = getRobotProperties(robotSelection, transmissionMethod
 
     % link radius [m]
     % update these values
-    robot.ANYmal.hip(1).radius = 0.05;
-    robot.ANYmal.hip(2).radius = 0.05;
-    robot.ANYmal.thigh(1).radius = 0.05;
-    robot.ANYmal.thigh(2).radius = 0.05;
-    robot.ANYmal.shank(1).radius = 0.05;
-    robot.ANYmal.shank(2).radius = 0.05;
-    robot.ANYmal.foot(1).radius = 0.05;
-    robot.ANYmal.foot(2).radius = 0.05;
-    robot.ANYmal.phalanges(1).radius = 0.05;
-    robot.ANYmal.phalanges(2).radius = 0.05;
+    robot.ANYmal.hip(1).radius = 0.015;
+    robot.ANYmal.hip(2).radius = 0.015;
+    robot.ANYmal.thigh(1).radius = 0.015;
+    robot.ANYmal.thigh(2).radius = 0.015;
+    robot.ANYmal.shank(1).radius = 0.015;
+    robot.ANYmal.shank(2).radius = 0.015;
+    robot.ANYmal.foot(1).radius = 0.015;
+    robot.ANYmal.foot(2).radius = 0.015;
+    robot.ANYmal.phalanges(1).radius = 0.015;
+    robot.ANYmal.phalanges(2).radius = 0.015;
 
     % joint angle limits
     % q1 HAA, q2 HFE, q3 KFE, q4 AFE
@@ -164,12 +164,12 @@ function robotProperties = getRobotProperties(robotSelection, transmissionMethod
     robot.ANYmalBear.EE(1).mass = 0.1402;
     robot.ANYmalBear.EE(2).mass = 0.1402;
 
-    % offset from CoM to HAA for each leg.
-    robot.ANYmalBear.xNom(1) = 0.4; %0.4; % 0.44; 
-    robot.ANYmalBear.xNom(2) = 0.42; 
-    robot.ANYmalBear.yNom(1) = 0.19;%0.112;
-    robot.ANYmalBear.yNom(2) = 0.19;%0.112;
-    robot.ANYmalBear.zNom = 0.05; % offset from CoM to HAA in z direction. Positive value means HAA above CoM.
+    % offset from CoM to base hip attachment for each leg.
+    robot.ANYmalBear.xNom(1) = 0.43; %0.4; % 0.44; 
+    robot.ANYmalBear.xNom(2) = 0.43; 
+    robot.ANYmalBear.yNom(1) = 0.112;%0.112;
+    robot.ANYmalBear.yNom(2) = 0.112;%0.112;
+    robot.ANYmalBear.zNom = 0; % offset from CoM to HAA in z direction. Positive value means HAA above CoM.
     
     robot.ANYmalBear.nomHipPos.LF = [ robot.ANYmalBear.xNom(1),  robot.ANYmalBear.yNom(1), robot.ANYmalBear.zNom];
     robot.ANYmalBear.nomHipPos.LH = [-robot.ANYmalBear.xNom(2),  robot.ANYmalBear.yNom(2), robot.ANYmalBear.zNom];
@@ -180,10 +180,10 @@ function robotProperties = getRobotProperties(robotSelection, transmissionMethod
     % fore, hind
     robot.ANYmalBear.hip(1).length = 0.112;
     robot.ANYmalBear.hip(2).length = 0.112;
-    robot.ANYmalBear.thigh(1).length = 0.25;
-    robot.ANYmalBear.thigh(2).length = 0.25;
-    robot.ANYmalBear.shank(1).length = 0.33; % 0.3045;
-    robot.ANYmalBear.shank(2).length = 0.33; % 0.3045;
+    robot.ANYmalBear.thigh(1).length = 0.42585; %0.25;
+    robot.ANYmalBear.thigh(2).length = 0.38345; %0.25;
+    robot.ANYmalBear.shank(1).length = 0.42585; %0.33; % 0.3045;
+    robot.ANYmalBear.shank(2).length = 0.38345; %0.33; % 0.3045;
     robot.ANYmalBear.foot(1).length = 0.15;
     robot.ANYmalBear.foot(2).length = 0.15;
     robot.ANYmalBear.phalanges(1).length = 0.1;
@@ -218,8 +218,9 @@ function robotProperties = getRobotProperties(robotSelection, transmissionMethod
     % Hip offset. This shifts HAA along the body x direction. It is
     % an optimization parameter and is initially set to the hip length such
     % that HFE is at the location specified above by nomHipPos.
+    % Keep HAA at 0.225 from CoM to match ANYmal geometry
      robot.ANYmalBear.hipOffset(1) = robot.ANYmalBear.xNom(1)-0.225; %robot.ANYmalBear.hip(1).length + 0.1;
-     robot.ANYmalBear.hipOffset(2) = robot.ANYmalBear.xNom(1); %robot.ANYmalBear.hip(2).length + 0.1;
+     robot.ANYmalBear.hipOffset(2) = robot.ANYmalBear.xNom(1)-0.225; %robot.ANYmalBear.hip(2).length + 0.1;
      
      %% Vitruvian Biped
     robot.vitruvianBiped.mass.total = 2.6423; 
@@ -254,9 +255,9 @@ function robotProperties = getRobotProperties(robotSelection, transmissionMethod
     % link radius [m]
     % These were selected to get the correct mass value considering the
     % material density and link length.
-    robot.vitruvianBiped.hip(1).radius = 0.0169;
-    robot.vitruvianBiped.thigh(1).radius = 0.0169;
-    robot.vitruvianBiped.shank(1).radius = 0.0166;
+    robot.vitruvianBiped.hip(1).radius = 0.015;
+    robot.vitruvianBiped.thigh(1).radius = 0.015;
+    robot.vitruvianBiped.shank(1).radius = 0.015;
     robot.vitruvianBiped.foot(1).radius = 0.015;
     robot.vitruvianBiped.phalanges(1).radius = 0.015;
 
@@ -322,16 +323,16 @@ function robotProperties = getRobotProperties(robotSelection, transmissionMethod
 
     % link radius [m]
     % update these values
-    robot.universal.hip(1).radius = 0.05;
-    robot.universal.hip(2).radius = 0.05;
-    robot.universal.thigh(1).radius = 0.05;
-    robot.universal.thigh(2).radius = 0.05;
-    robot.universal.shank(1).radius = 0.05;
-    robot.universal.shank(2).radius = 0.05;
-    robot.universal.foot(1).radius = 0.05;
-    robot.universal.foot(2).radius = 0.05;
-    robot.universal.phalanges(1).radius = 0.05;
-    robot.universal.phalanges(2).radius = 0.05;
+    robot.universal.hip(1).radius = 0.015;
+    robot.universal.hip(2).radius = 0.015;
+    robot.universal.thigh(1).radius = 0.015;
+    robot.universal.thigh(2).radius = 0.015;
+    robot.universal.shank(1).radius = 0.015;
+    robot.universal.shank(2).radius = 0.015;
+    robot.universal.foot(1).radius = 0.015;
+    robot.universal.foot(2).radius = 0.015;
+    robot.universal.phalanges(1).radius = 0.015;
+    robot.universal.phalanges(2).radius = 0.015;
 
     % joint angle limits
     % q1 HAA, q2 HFE, q3 KFE, q4 AFE
@@ -395,15 +396,15 @@ function robotProperties = getRobotProperties(robotSelection, transmissionMethod
     robot.speedy.phalanges(2).length = 0.1;
 
     % link radius [m]
-    robot.speedy.hip(1).radius = 0.02;
-    robot.speedy.hip(2).radius = 0.02;
-    robot.speedy.thigh(1).radius = 0.02;
-    robot.speedy.thigh(2).radius = 0.03;
-    robot.speedy.shank(1).radius = 0.03;
-    robot.speedy.shank(2).radius = 0.03;
-    robot.speedy.foot(1).radius = 0.03;
-    robot.speedy.foot(2).radius = 0.03;
-    robot.speedy.phalanges(1).radius = 0.03;
+    robot.speedy.hip(1).radius = 0.015;
+    robot.speedy.hip(2).radius = 0.015;
+    robot.speedy.thigh(1).radius = 0.015;
+    robot.speedy.thigh(2).radius = 0.015;
+    robot.speedy.shank(1).radius = 0.015;
+    robot.speedy.shank(2).radius = 0.015;
+    robot.speedy.foot(1).radius = 0.015;
+    robot.speedy.foot(2).radius = 0.015;
+    robot.speedy.phalanges(1).radius = 0.015;
     robot.speedy.phalanges(2).radius = 0.03;
 
     % joint angle limits

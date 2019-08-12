@@ -2,6 +2,7 @@
 function [] = plotMotionData(data, task, saveFiguresToPDF)
 
     t                    = data.(task).time;
+    tUninterpolated      = data.(task).timeUninterpolated;
     base                 = data.(task).base; % base motion for each leg during its cycle
     base.fullTrajectory  = data.(task).fullTrajectory.base;
     force.fullTrajectory = data.(task).fullTrajectory.force;
@@ -103,25 +104,26 @@ function [] = plotMotionData(data, task, saveFiguresToPDF)
     minValue1 = []; maxValue1 = [];
     minValue2 = []; maxValue2 = [];
     minValue3 = []; maxValue3 = [];
+    
     for i = 1:legCount
         EEselection = EEnames(i,:);
         subplot(3,1,1)
         hold on
-            p(i) = plot(t, inertialEEposition.(EEselection)(:,1), lineColor{i}, 'DisplayName', EEselection);
+            p(i) = plot(tUninterpolated, inertialEEposition.(EEselection)(:,1), lineColor{i}, 'DisplayName', EEselection);
             title('End effector position x')
             xlabel('time [s]')    
             ylabel('EE x position relative to CoM starting point [m]')
             grid on
         subplot(3,1,2) 
         hold on
-            p(i) = plot(t, inertialEEposition.(EEselection)(:,2), lineColor{i}, 'DisplayName', EEselection);
+            p(i) = plot(tUninterpolated, inertialEEposition.(EEselection)(:,2), lineColor{i}, 'DisplayName', EEselection);
             title('End effector position y')
             xlabel('time [s]')    
             ylabel('EE y position relative to CoM starting point [m]')
             grid on
         subplot(3,1,3)
         hold on
-            p(i) = plot(t, inertialEEposition.(EEselection)(:,3), lineColor{i}, 'DisplayName', EEselection);
+            p(i) = plot(tUninterpolated, inertialEEposition.(EEselection)(:,3), lineColor{i}, 'DisplayName', EEselection);
             title('End effector position z')
             xlabel('time [s]')    
             ylabel('EE z position relative to CoM starting point [m]')
@@ -220,7 +222,7 @@ function [] = plotMotionData(data, task, saveFiguresToPDF)
         if data.(task).basicProperties.trajectory.averageStepsForCyclicalMotion
             plot(data.(task).fullTrajectory.r.EEdes.(EEselection)(startIndexFullTrajectory:endIndexFullTrajectory,1), data.(task).fullTrajectory.r.EEdes.(EEselection)(startIndexFullTrajectory:endIndexFullTrajectory,3), 'o', 'MarkerEdgeColor', '[0.5843 0.8157 0.9882]', 'MarkerFaceColor', '[ 0.5843 0.8157 0.9882]')
         end
-        plot(data.(task).(EEselection).r.EEdes(:,1), data.(task).(EEselection).r.EEdes(:,3), 'b', 'LineWidth', 1)
+        plot(data.(task).(EEselection).r.EEdes(:,1), data.(task).(EEselection).r.EEdes(:,3), 'k', 'LineWidth', 2)
         axis equal
         xlabel('x position [m]')
         ylabel('z position [m]')

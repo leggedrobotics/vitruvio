@@ -97,6 +97,15 @@ if linkCount > 2 && heuristic.torqueAngle.apply % Bounds on torsional spring at 
                   optimizationProperties.bounds.lowerBoundMultiplier.thetaLiftoff_des.*heuristic.torqueAngle.thetaLiftoff_des];  
 end
 
+% Extend end of bounds array with the bounds on spring constants for
+% springs in parallel with the joints
+if springInParallelWithJoints
+    for i = 1:linkCount+1  
+        upperBound(end+1) = optimizationProperties.bounds.upperBoundMultiplier.kSpringJoint.(jointNames(i,:))*kSpringJoint.(EEselection)(i);
+        lowerBound(end+1) = optimizationProperties.bounds.lowerBoundMultiplier.kSpringJoint.(jointNames(i,:))*kSpringJoint.(EEselection)(i);
+    end
+end
+
 % Ensure bounds ordered corrrectly such that lower bound <= upper bound.
 for i = 1:length(upperBound)
     if (lowerBound(i) > upperBound(i))
@@ -140,10 +149,26 @@ elseif linkCount == 4
                             'AFE transmission gear ratio', ...
                             'DFE transmission gear ratio'};
 end
-                        
+
+if springInParallelWithJoints
+    designParameterNames = [designParameterNames, ...
+                            {'torsional spring constant at HAA'}, ...
+                            {'torsional spring constant at HFE'}, ...
+                            {'torsional spring constant at KFE'}];
+    if linkCount > 2
+        designParameterNames = [designParameterNames, ...
+                                {'torsional spring constant at AFE'}]; 
+    end
+    if linkCount > 3
+        designParameterNames = [designParameterNames, ...
+                                {'torsional spring constant at DFE'}]; 
+    end
+end
+        
+
 if linkCount > 2 && heuristic.torqueAngle.apply
     designParameterNames = [designParameterNames, ...
-                            {'torsional spring constant', ...
+                            {'torsional spring constant AFE/DFE', ...
                             'liftoff angle'}];
 end
 
@@ -160,10 +185,16 @@ fprintf('Optimized leg design parameters :')
 disp(legDesignParameters);
 
 %% Save optimized parameters
-linkLengths = legDesignParameters(1:linkCount+1);
-hipAttachmentOffset = legDesignParameters(linkCount+2);
-transmissionGearRatio = legDesignParameters(linkCount+3:2*linkCount+3);
-
+jointCount = linkCount+1;
+linkLengths = legDesignParameters(1:jointCount);
+hipAttachmentOffset = legDesignParameters(jointCount+1);
+transmissionGearRatio = legDesignParameters(jointCount+2:2*jointCount+1);
+if springInParallelWithJoints
+    kSpringJointOpt.(EEselection) = legDesignParameters(2*jointCount+2:3*jointCount+1);
+else
+    kSpringJointOpt.(EEselection) = [0 0 0 0 0];
+end
+    
 if linkCount > 2 && heuristic.torqueAngle.apply
     springOpt.kTorsionalSpring = legDesignParameters(end-1);
     springOpt.thetaLiftoff_des = legDesignParameters(end);
@@ -220,8 +251,7 @@ end
 
 %% Build rigid body model
 tempLeg.base = Leg.base;
-optimized = true;
-tempLeg.(EEselection).rigidBodyModel = buildRobotRigidBodyModel(actuatorProperties, actuateJointDirectly, hipAttachmentOffset, linkCount, robotProperties, tempLeg, meanCyclicMotionHipEE, EEselection, numberOfLoopRepetitions, viewVisualization, hipParalleltoBody, dataExtraction, optimized, saveFiguresToPDF);
+tempLeg.(EEselection).rigidBodyModel = buildRobotRigidBodyModel(actuatorProperties, actuateJointDirectly, hipAttachmentOffset, linkCount, robotProperties, tempLeg, meanCyclicMotionHipEE, EEselection, hipParalleltoBody);
 
 %% Get joint velocities and accelerations using finite difference
 % finite difference to compute qdot
@@ -233,6 +263,7 @@ for j = 1:length(Leg.(EEselection).qdot(1,:))
     tempLeg.(EEselection).qdot(:,j) = smooth(tempLeg.(EEselection).qdot(:,j));
     tempLeg.(EEselection).qdotdot(:,j) = smooth(tempLeg.(EEselection).qdotdot(:,j));
 end
+
 %% Inverse dynamics
 tempLeg.(EEselection).jointTorque = inverseDynamics(EEselection, tempLeg, meanCyclicMotionHipEE, linkCount);
 % Smoothen result using moving average
@@ -243,16 +274,20 @@ end
 %% Get active and passive torques for spring modeled in parallel with joint
 if springInParallelWithJoints
     q0SpringJoint.(EEselection) = mean(tempLeg.(EEselection).q(:,1:end-1)); % Set undeformed spring position to mean position. This can be updated in optimizer.
-    [tempLeg.activeTorqueOpt, tempLeg.passiveTorqueOpt] = getActiveAndPassiveTorque(kSpringJoint, q0SpringJoint, tempLeg, EEselection, linkCount);
+    [tempLeg.activeTorqueOpt, tempLeg.passiveTorqueOpt] = getActiveAndPassiveTorque(kSpringJointOpt, q0SpringJoint, tempLeg, EEselection, linkCount);
     tempLeg.activePowerOpt  = tempLeg.activeTorqueOpt  .* tempLeg.(EEselection).qdot(:,1:end-1);
     tempLeg.passivePowerOpt = tempLeg.passiveTorqueOpt .* tempLeg.(EEselection).qdot(:,1:end-1);
 else
-    tempLeg.activeTorqueOpt = tempLeg.jointTorqueOpt;
-    tempLeg.passiveTorqueOpt = 0;
+    tempLeg.activeTorqueOpt = tempLeg.(EEselection).jointTorque;
+    tempLeg.passiveTorqueOpt = zeros(size(tempLeg.activeTorqueOpt));
 end  
 
 %% Get joint power for optimal design
 tempLeg.(EEselection).jointPower = tempLeg.(EEselection).jointTorque .* tempLeg.(EEselection).qdot(:,1:end-1);
+if ~springInParallelWithJoints
+    tempLeg.activePowerOpt  = tempLeg.(EEselection).jointPower;
+    tempLeg.passivePowerOpt = zeros(size(tempLeg.activePowerOpt));
+end
 
 %% Get actuator torque and speed as result of gearing between actuator and joint
 % This is the required output torque and speed from the actuator to produce
@@ -263,7 +298,7 @@ for j = 1:linkCount+1
     transmissionGearRatio = robotProperties.transmissionGearRatioOpt.(jointNames(j,:))(selectFrontHind);
     tempLeg.(EEselection).actuatorq(:,j)      = transmissionGearRatio * tempLeg.(EEselection).q(:,j);
     tempLeg.(EEselection).actuatorqdot(:,j)   = transmissionGearRatio * tempLeg.(EEselection).qdot(:,j);
-    tempLeg.(EEselection).actuatorTorque(:,j) = (1/transmissionGearRatio) * tempLeg.(EEselection).jointTorque(:,j);
+    tempLeg.(EEselection).actuatorTorque(:,j) = (1/transmissionGearRatio) * tempLeg.activeTorqueOpt(:,j);
 end
 
 %% Get link mass for optimal design
@@ -298,6 +333,8 @@ end
 [tempLeg.(EEselection).mechEnergy, tempLeg.metaParameters.mechEnergyPerCycle.(EEselection), tempLeg.(EEselection).elecEnergy, tempLeg.metaParameters.elecEnergyPerCycle.(EEselection)]  = computeEnergyConsumption(tempLeg.(EEselection).jointPower, tempLeg.(EEselection).electricalPower, dt);
  tempLeg.metaParameters.mechEnergyPerCycleTotal.(EEselection) = sum(tempLeg.metaParameters.mechEnergyPerCycle.(EEselection)(end,:));
  tempLeg.metaParameters.elecEnergyPerCycleTotal.(EEselection) = sum(tempLeg.metaParameters.elecEnergyPerCycle.(EEselection)(end,:));  
+
+ [mechEnergyActiveOpt, mechEnergyPerCycleActiveOpt, ~, ~]  = computeEnergyConsumption(tempLeg.activePowerOpt, tempLeg.(EEselection).electricalPower, dt);
 
 %% Return the results of the optimization
 optimizationResults.linkLengthsOpt = linkLengths;
@@ -338,3 +375,6 @@ optimizationResults.activeTorqueOpt = tempLeg.activeTorqueOpt;
 optimizationResults.activePowerOpt = tempLeg.activePowerOpt;
 optimizationResults.passiveTorqueOpt = tempLeg.passiveTorqueOpt;
 optimizationResults.passivePowerOpt = tempLeg.passivePowerOpt;
+optimizationResults.kSpringJointOpt = kSpringJointOpt.(EEselection);
+optimizationResults.mechEnergyActiveOpt = mechEnergyActiveOpt;
+optimizationResults.mechEnergyPerCycleActiveOpt = mechEnergyPerCycleActiveOpt;

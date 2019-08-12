@@ -67,7 +67,7 @@ for i = 1:legCount
     meanCyclicMotionHipEE.(EEselection).position = mean(cyclicMotionHipEE.(EEselection).position(:,:,samplingStart:samplingEnd),3);
     meanCyclicMotionHipEE.(EEselection).force    = mean(cyclicMotionHipEE.(EEselection).force(:,:,samplingStart:samplingEnd),3);    
     
-    % average rotation matrix of body in inertia frame
+    % average rotation matrix of body in inertia frametemp3
     cyclicC_IBody.(EEselection) = cyclicC_IBody.(EEselection)(:,:,:,samplingStart:samplingEnd);
     meanCyclicC_IBody.(EEselection) = mean(cyclicC_IBody.(EEselection),4);
     

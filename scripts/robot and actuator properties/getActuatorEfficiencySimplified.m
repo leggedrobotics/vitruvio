@@ -7,10 +7,10 @@ function [efficiency, efficiencyMapPlot] = getActuatorEfficiencySimplified(actua
     [torqueMax, qdotMax, mechPowerMax, ~, gearRatio, efficiencyMinMotor, efficiencyMaxMotor] = getActuatorProperties(actuatorName{1});
 
     % base speed and torque for normalization of power loss terms
-    qdotBase   = 0.8*qdotMax;
-    torqueBase = 0.8*torqueMax;
+    qdotBase   = 0.3*qdotMax;
+    torqueBase = 1.2*torqueMax;
     
-    efficiencyLossGearing = 0.05;
+    efficiencyLossGearing = 0;
     efficiencyMax = efficiencyMaxMotor - efficiencyLossGearing;
     stepSize = 0.1;
 
@@ -67,26 +67,46 @@ function [efficiency, efficiencyMapPlot] = getActuatorEfficiencySimplified(actua
     P_loss23 = (torque/torqueBase).^2 .* (qdot/qdotBase).^3; 
     P_loss33 = (torque/torqueBase).^3 .* (qdot/qdotBase).^3;     
 
-    k00 = 0.1;
-    k10 = 0.1;
-    k20 = 1;
-    k30 = 0.1;
+    k00 = 0.003;
+    k10 = -0.0065;
+    k20 = 0.12;
+    k30 = 0.02;
     
-    k01 = 0.1;
-    k11 = 0.01;
-    k21 = 0.5;
-    k31 = 0.5;
+    k01 = 0.0175;
+    k11 = 0.002;
+    k21 = 0.005;
+    k31 = 0.05;
     
-    k02 = 0.1;
-    k12 = 0.1;
-    k22 = 0.2;
-    k32 = 0.2;
+    k02 = 0.002;
+    k12 = 0.025;
+    k22 = -0.001;
+    k32 = 0.1;
     
-    k03 = 0.01;
-    k13 = 0.1;
-    k23 = 0.1;
-    k33 = 0.1;
-    
+    k03 = 0.0006;
+    k13 = 0;
+    k23 = 0;
+    k33 = 0;%0.01;
+%     
+%     k00 = 0.002;
+%     k10 = -0.065;
+%     k20 = 0.697;
+%     k30 = 0.942;
+%     
+%     k01 = 0.175;
+%     k11 = 0.577;
+%     k21 = -1.043;
+%     k31 = 0;
+%     
+%     k02 = 0.181;
+%     k12 = -0.542;
+%     k22 = 1;
+%     k32 = 0;
+%     
+%     k03 = 0.443;
+%     k13 = 0;
+%     k23 = 0;
+%     k33 = 10;
+%    
     P_loss = k00 * P_loss00 + ...
              k10 * P_loss10 + ...
              k20 * P_loss20 + ...
@@ -117,7 +137,7 @@ function [efficiency, efficiencyMapPlot] = getActuatorEfficiencySimplified(actua
     
     %% Save values for efficiency plot
     % Remove efficiency values beyond the max power limit to make plot
-    % clearer. NaN region is white on contourf plot.
+    % clearer. NaN region is white on contourf p lot.
     efficiencyMap = efficiency;
     for i = 1:length(qdot)
         for j = 1:length(torque)

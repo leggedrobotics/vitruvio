@@ -60,24 +60,25 @@ function [electricalPower, operatingPointEfficiency] = computeElectricalPowerInp
     % Get the index in efficiency map which corresponds to the qdot, torque values
     qdotRatio   = qdot./qdotMax; % Each column of qdot divided by corresponding qdotMax value for that actuator
     torqueRatio = torque./torqueMax;
-    powerRatio  = qdot.*torque ./ powerMax;
+    powerRatio  = qdot.*torque./powerMax;
     
     % qdotIndex and torqueIndex have length qdot and torque.
-    qdotIndex   = floor(qdotRatio .* lengthEfficiencyMap); % indexes columns in efficiency map
-    torqueIndex = floor(torqueRatio .* lengthEfficiencyMap); % indexes rows in efficiency map
+    qdotIndex   = floor(abs(qdotRatio .* lengthEfficiencyMap)); % indexes columns in efficiency map
+    torqueIndex = floor(abs(torqueRatio .* lengthEfficiencyMap)); % indexes rows in efficiency map
     qdotIndex(qdotIndex<1)     = 1; % Set minimum index values to 1
     torqueIndex(torqueIndex<1) = 1;
     
     % Get efficiency at operating point for each joint and each time step
     for i = 1:linkCount+1 % joint [HAA, HFE, KFE, (AFE), (DFE)]                                              
         for j = 1:length(torqueIndex(:,i)) % time step  
-            if torqueRatio(j,i)*qdotRatio(j,i) < 0 % Set efficiency for Quadruant II and IV to the minimum value.
+            % Set efficiency for Quadruant II and IV to the minimum value.
+            if torqueRatio(j,i)*qdotRatio(j,i) < 0 
                 operatingPointEfficiency(j,i) = efficiencyMin.(actuator{i});
             else
                 % Now looking at Quadrant I and III.
                 % Set efficiency in regions outside of actuator limits to
-                % mininum efficiency.
-                if torqueRatio(j,i) > 1 || qdotRatio(j,i) > 1 || powerRatio(j,i) > 1
+                % mininum efficiency to penalize exceding the limits.
+                if abs(torqueRatio(j,i)) > 1 || abs(qdotRatio(j,i)) > 1 || abs(powerRatio(j,i)) > 1
                     operatingPointEfficiency(j,i) = efficiencyMin.(actuator{i});
                 else 
                     operatingPointEfficiency(j,i) = actuatorEfficiency.(actuator{i})(torqueIndex(j,i),qdotIndex(j,i));

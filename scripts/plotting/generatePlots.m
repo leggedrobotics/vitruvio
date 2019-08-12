@@ -36,4 +36,4 @@ if viewPlots.efficiencyMap
     plotEfficiencyMapWithOperatingPoints(data, task, saveFiguresToPDF)
 end
 %% Generate data table in command window
-%tabulateResults(data, task)
+tabulateResults(data, task)
