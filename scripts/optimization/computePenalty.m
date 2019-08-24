@@ -19,7 +19,6 @@ function penalty = computePenalty(actuatorProperties, imposeJointLimits, heurist
         thetaLiftoff_des = heuristic.torqueAngle.thetaLiftoff_des;
     end
 
-
     tempLeg.base = Leg.base;
 
     % Update robot properties with newly computed leg design parameters, unit in meters
@@ -395,17 +394,23 @@ function penalty = computePenalty(actuatorProperties, imposeJointLimits, heurist
         torqueLimitPenalty = 0; speedLimitPenalty = 0; powerLimitPenalty = 0;
 
         if imposeJointLimits.maxTorque && any(maxActuatorTorque > maxTorqueLimit)
-            torqueLimitPenalty = 5;
-           % disp('Exceeded torque limit')
+            torqueViolation = (maxActuatorTorque(1:jointCount) - maxTorqueLimit(1:jointCount))./maxTorqueLimit(1:jointCount); % violation of limit in percent
+            torqueViolation(torqueViolation<0)=0;
+            torqueLimitPenalty = sum(torqueViolation);
+            %disp('Exceeded torque limit')
         end
 
         if imposeJointLimits.maxqdot && any(maxActuatorqdot > maxqdotLimit)
-            speedLimitPenalty = 5;
+            speedViolation = (maxActuatorqdot(1:jointCount) - maxqdotLimit(1:jointCount))./maxqdotLimit(1:jointCount);
+            speedViolation(speedViolation<0)=0;
+            speedLimitPenalty = sum(speedViolation);
             %disp('Exceeded speed limit')
         end
 
         if imposeJointLimits.maxPower && any(maxJointPower > maxPowerLimit)
-            powerLimitPenalty = 5;
+            powerViolation = (maxJointPower(1:jointCount) - maxPowerLimit(1:jointCount))./maxPowerLimit(1:jointCount);
+            powerViolation(powerViolation<0)=0;
+            powerLimitPenalty = sum(powerViolation);            
             %disp('Exceeded power limit')
         end
 
@@ -436,7 +441,7 @@ function penalty = computePenalty(actuatorProperties, imposeJointLimits, heurist
                 lowestJoint(i,1) =  min(jointHeight);
             end              
             % Apply penalty if the lowest joint is ever too close to the ground                 
-            if any(lowestJoint - groundHeight(1:length(lowestJoint)) < 0.1)
+            if any(lowestJoint - groundHeight(1:length(lowestJoint)) < 0)
                 jointBelowGroundPenalty = 10;
             else
                 jointBelowGroundPenalty = 0;

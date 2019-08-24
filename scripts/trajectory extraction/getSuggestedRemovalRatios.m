@@ -16,23 +16,23 @@ suggestedRemovalRatioEnd.yourTrajectoryData   = 0.1;
 suggestedRemovalRatioStart.universalTrot = 0.1;
 suggestedRemovalRatioEnd.universalTrot   = 0.1;
 
-suggestedRemovalRatioStart.universalStairs = 0.4;
-suggestedRemovalRatioEnd.universalStairs   = 0.1;
+suggestedRemovalRatioStart.universalStairs = 0;%0.3;
+suggestedRemovalRatioEnd.universalStairs   = 0;%0.3;
 
 suggestedRemovalRatioStart.speedyGallop = 0.3;
 suggestedRemovalRatioEnd.speedyGallop   = 0.3;
 
 suggestedRemovalRatioStart.speedyStairs = 0.2;
-suggestedRemovalRatioEnd.speedyStairs   = 0.2;
+suggestedRemovalRatioEnd.speedyStairs   = 0;
 
 suggestedRemovalRatioStart.massivoWalk = 0.2;
 suggestedRemovalRatioEnd.massivoWalk   = 0.1;
 
 suggestedRemovalRatioStart.massivoStairs = 0.1;
-suggestedRemovalRatioEnd.massivoStairs   = 0.6;
+suggestedRemovalRatioEnd.massivoStairs   = 0;
 
 suggestedRemovalRatioStart.centaurStairs = 0.1;
-suggestedRemovalRatioEnd.centaurStairs   = 0.6;
+suggestedRemovalRatioEnd.centaurStairs   = 0;
 
 suggestedRemovalRatioStart.centaurWalk = 0.2;
 suggestedRemovalRatioEnd.centaurWalk   = 0.1;
@@ -58,8 +58,8 @@ suggestedRemovalRatioEnd.ANYmalTrotVersatilityStep   = 0.1;
 suggestedRemovalRatioStart.ANYmalBearTrot = 0.3;
 suggestedRemovalRatioEnd.ANYmalBearTrot   = 0.3;
 
-suggestedRemovalRatioStart.ANYmalBearTrotSwing5 = 0.3;
-suggestedRemovalRatioEnd.ANYmalBearTrotSwing5   = 0.3;
+suggestedRemovalRatioStart.ANYmalBearTrotSwing5 = 0.2; %0.3;
+suggestedRemovalRatioEnd.ANYmalBearTrotSwing5   = 0; %0.3;
 
 suggestedRemovalRatioStart.ANYmalBearSlowTrot = 0.3;
 suggestedRemovalRatioEnd.ANYmalBearSlowTrot   = 0.3;
@@ -73,8 +73,11 @@ suggestedRemovalRatioEnd.ANYmalBearElongatedTrot = 0.1;
 suggestedRemovalRatioStart.ANYmalBearFlyingTrot2 = 0.3;
 suggestedRemovalRatioEnd.ANYmalBearFlyingTrot2  = 0.3;
 
-suggestedRemovalRatioStart.vitruvianBipedWalkOnSpot = 0.2;
-suggestedRemovalRatioEnd.vitruvianBipedWalkOnSpot   = 0.2;
+suggestedRemovalRatioStart.vitruvianBipedWalkOnSpot = 0;%0.2;
+suggestedRemovalRatioEnd.vitruvianBipedWalkOnSpot   = 0;%0.2;
+
+suggestedRemovalRatioStart.vitruvianBipedHop = 0;%0.1;
+suggestedRemovalRatioEnd.vitruvianBipedHop   = 0;%0.1;
 
 removalRatioStart = suggestedRemovalRatioStart.(taskSelection);
 removalRatioEnd = suggestedRemovalRatioEnd.(taskSelection);

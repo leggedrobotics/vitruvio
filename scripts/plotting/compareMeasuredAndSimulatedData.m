@@ -1,14 +1,15 @@
+clc
 clear X
 warning('off','all')
 
 % compare measured and simulated results
-selectDataFile = 'ANYmalBearSlowTrotMeasured.mat';
+selectDataFile = 'ANYmalBearFastTrotMeasured.mat';
 ANYmalMeasuredData  = load(selectDataFile);
 savePDF = false;
 lineWidth = 2;
 % Simulated data
 robot = 'ANYmalBear'; 
-task  = 'slowTrot';
+task  = 'trotSwing5';
 
 % Set axis limits
 qAxisLimitsFastTrot = [-0.6, 0.6];

@@ -22,9 +22,9 @@ function [J_P, C_0EE, r_H_01, r_H_02, r_H_03, r_H_04, r_H_05, r_H_0EE]  = jointT
   % Rotation about y in inertial frame to align hip attachment with body
   % rotation about y. The rotation about the body x and z are neglected but
   % assumed small for forward motion on even terrain.
-  T_0H = [cos(rotBodyY), 0, sin(rotBodyY), 0;
+  T_0H = [cos(-rotBodyY), 0, sin(-rotBodyY), 0;
          0,              1, 0,             0;
-        -sin(rotBodyY),  0, cos(rotBodyY), 0;
+        -sin(-rotBodyY),  0, cos(-rotBodyY), 0;
          0,              0, 0,             1];
      
   % transformation from nominal HAA point with coord. sys aligned with body frame to HAA frame   

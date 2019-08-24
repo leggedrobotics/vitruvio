@@ -35,6 +35,8 @@ function robot = buildRobotRigidBodyModel(actuatorProperties, actuateJointDirect
 
     % Rotation about x by -pi/2 to align z with inertial y. Rotation about this
     % z gives the angle of attack of the base 
+    T_base = eye(4);
+    
     T_body = [1, 0, 0, hipAttachmentOffsetX;
               0, 0, 1,  0;
               0, -1, 0, hipAttachmentOffsetZ;
@@ -87,12 +89,15 @@ function robot = buildRobotRigidBodyModel(actuatorProperties, actuateJointDirect
              0, 0, 1, 0;
              0, 0, 0, 1];
     end
+    
     %% Create and assemble rigid bodies
     % Create a rigid body tree object to build the robot.
     robot = robotics.RigidBodyTree('DataFormat', 'row');
 
     % Create bodies and joints 
+    body00 = robotics.RigidBody('body00'); % rigid connection to base frame
     body0 = robotics.RigidBody('body0');
+    
     body1 = robotics.RigidBody('body1'); % hip
     body2 = robotics.RigidBody('body2'); % thigh
     body3 = robotics.RigidBody('body3'); % shank
@@ -104,6 +109,7 @@ function robot = buildRobotRigidBodyModel(actuatorProperties, actuateJointDirect
            body6 = robotics.RigidBody('body6'); % EE
     end
 
+    jnt00 = robotics.Joint('jnt00','fixed'); 
     jnt0 = robotics.Joint('jnt0','revolute'); % body rotation about y in inertial frame
     jnt1 = robotics.Joint('jnt1','revolute'); % HAA
     jnt2 = robotics.Joint('jnt2','revolute'); % HFE
@@ -118,6 +124,7 @@ function robot = buildRobotRigidBodyModel(actuatorProperties, actuateJointDirect
            jnt6 = robotics.Joint('jnt6','fixed');    % EE
     end
 
+    body00.Mass = 0;      
     body0.Mass = 0;      
     body1.Mass = robotProperties.hip(selectFrontHind).mass;    % hip  
     body2.Mass = robotProperties.thigh(selectFrontHind).mass;  % thigh
@@ -146,6 +153,7 @@ function robot = buildRobotRigidBodyModel(actuatorProperties, actuateJointDirect
     I_DFE       = [0 0 0 0 0 0];
 
     %% Assign the inertia values to the inertia properties for the links and end effectors
+    body00.Inertia = [0 0 0 0 0 0]; % base    
     body0.Inertia = [0 0 0 0 0 0]; % base    
     body1.Inertia =  I_hip;     
     body2.Inertia =  I_thigh; 
@@ -211,6 +219,7 @@ function robot = buildRobotRigidBodyModel(actuatorProperties, actuateJointDirect
     %% Set joint transforms
     % joint transforms these are only translations and rotations to align rotation
     % z with joint rotation axis. The joint positions are specified in the config array.   
+    setFixedTransform(jnt00, T_base);
     setFixedTransform(jnt0, T_body);
     setFixedTransform(jnt1, T_HAA);
     setFixedTransform(jnt2, T_HFEattachment);
@@ -222,7 +231,8 @@ function robot = buildRobotRigidBodyModel(actuatorProperties, actuateJointDirect
         setFixedTransform(jnt5, T_AFE);    
         setFixedTransform(jnt6, T_DFE);            
     end
-
+    
+    body00.Joint = jnt00;
     body0.Joint = jnt0;
     body1.Joint = jnt1;
     body2.Joint = jnt2;
@@ -236,7 +246,8 @@ function robot = buildRobotRigidBodyModel(actuatorProperties, actuateJointDirect
     end
 
     %% Specify connections between bodies
-    addBody(robot, body0,'base');  % attachment of HAA
+    addBody(robot, body00,'base');  % base
+    addBody(robot, body0,'body00');  % attachment of HAA
     addBody(robot, body1,'body0'); % hip
     addBody(robot, body2,'body1'); % thigh
     addBody(robot, body3,'body2'); % shank

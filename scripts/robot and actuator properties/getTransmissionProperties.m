@@ -5,10 +5,10 @@ function  [transmissionMass, transmissionGearRatio] = getTransmissionProperties(
 % For example, if there is a chain transmission to remotely actuate the AFE 
 % joint, the mass of this chain is applied to the shank, thigh and hip.
 
-    % Look up these values. Also scale based on torque?
-    transmissionDensity.chain = 0.0001; % kg/m
-    transmissionDensity.belt  = 0.0001; % kg/m
-    transmissionDensity.cable = 0.0001; % kg/m
+    % Set the mass density depending on the belt/cable/chain that is used
+    transmissionDensity.chain = 0.015; % kg/m
+    transmissionDensity.belt  = 0.015; % kg/m Maedler belt T2.5
+    transmissionDensity.cable = 0.001; % kg/m
 
     % There is never a transmission mass for the hip because there is no
     % link distance over which the transmission is applied.

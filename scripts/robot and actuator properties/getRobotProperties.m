@@ -74,6 +74,11 @@ function robotProperties = getRobotProperties(robotSelection, transmissionMethod
     % an optimization parameter and is initially set to the hip length such
     % that HFE is at the location specified above by nomHipPos.
      robot.yourRobot.hipOffset(1) = robot.yourRobot.hip(1).length;
+     
+     % Base dimensions used for visualization - visualized as a box
+     robot.yourRobot.baseWidth  = 0.2;
+     robot.yourRobot.baseLength = 0.8;
+     robot.yourRobot.baseHeight = 0.8;
 %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%    
 
     %% ANYmal
@@ -148,8 +153,12 @@ function robotProperties = getRobotProperties(robotSelection, transmissionMethod
      robot.ANYmal.hipOffset(1) = robot.ANYmal.hip(1).length;
      robot.ANYmal.hipOffset(2) = robot.ANYmal.hip(2).length;
      
+     % Base dimensions used for visualization - visualized as a box
+     robot.ANYmal.baseLength = 0.8;
+     robot.ANYmal.baseWidth  = 0.4;
+     robot.ANYmal.baseHeight = 0.2;
      
-    %% ANYmal Bear
+     %% ANYmal Bear
     robot.ANYmalBear.mass.total = 38.8; 
     robot.ANYmalBear.legCount   = 4;
     
@@ -165,7 +174,7 @@ function robotProperties = getRobotProperties(robotSelection, transmissionMethod
     robot.ANYmalBear.EE(2).mass = 0.1402;
 
     % offset from CoM to base hip attachment for each leg.
-    robot.ANYmalBear.xNom(1) = 0.43; %0.4; % 0.44; 
+    robot.ANYmalBear.xNom(1) = 0.43;
     robot.ANYmalBear.xNom(2) = 0.43; 
     robot.ANYmalBear.yNom(1) = 0.112;%0.112;
     robot.ANYmalBear.yNom(2) = 0.112;%0.112;
@@ -180,10 +189,10 @@ function robotProperties = getRobotProperties(robotSelection, transmissionMethod
     % fore, hind
     robot.ANYmalBear.hip(1).length = 0.112;
     robot.ANYmalBear.hip(2).length = 0.112;
-    robot.ANYmalBear.thigh(1).length = 0.22; %0.25;
-    robot.ANYmalBear.thigh(2).length = 0.22; %0.25;
-    robot.ANYmalBear.shank(1).length = 0.25; %0.33; % 0.3045;
-    robot.ANYmalBear.shank(2).length = 0.25; %0.33; % 0.3045;
+    robot.ANYmalBear.thigh(1).length = 0.25;
+    robot.ANYmalBear.thigh(2).length = 0.25;
+    robot.ANYmalBear.shank(1).length = 0.33; % 0.3045;
+    robot.ANYmalBear.shank(2).length = 0.33; % 0.3045;
     robot.ANYmalBear.foot(1).length = 0.16;
     robot.ANYmalBear.foot(2).length = 0.16;
     robot.ANYmalBear.phalanges(1).length = 0.1;
@@ -220,35 +229,40 @@ function robotProperties = getRobotProperties(robotSelection, transmissionMethod
     % that HFE is at the location specified above by nomHipPos.
     % Keep HAA at 0.225 from CoM to match ANYmal geometry
      robot.ANYmalBear.hipOffset(1) = robot.ANYmalBear.xNom(1)-0.225; %robot.ANYmalBear.hip(1).length + 0.1;
-     robot.ANYmalBear.hipOffset(2) = robot.ANYmalBear.xNom(1)-0.225; %robot.ANYmalBear.hip(2).length + 0.1;
+     robot.ANYmalBear.hipOffset(2) = robot.ANYmalBear.xNom(1)-0.225; %robot.ANYmalBear.xNom(1)-0.225; %robot.ANYmalBear.hip(2).length + 0.1;
+     
+     % Base dimensions used for visualization - visualized as a box
+     robot.ANYmalBear.baseLength = 0.8;
+     robot.ANYmalBear.baseWidth  = 0.4;
+     robot.ANYmalBear.baseHeight = 0.2;     
      
      %% Vitruvian Biped
-    robot.vitruvianBiped.mass.total = 2.6423; 
+    robot.vitruvianBiped.mass.total = 2.21; 
     robot.vitruvianBiped.legCount   = 2;
     
     % Density of each link kg/m^3
-    robot.vitruvianBiped.legDensity.hip(1)       = 1060;    
-    robot.vitruvianBiped.legDensity.thigh(1)     = 1060;  
-    robot.vitruvianBiped.legDensity.shank(1)     = 1060; 
-    robot.vitruvianBiped.legDensity.foot(1)      = 1060;  
-    robot.vitruvianBiped.legDensity.phalanges(1) = 1060; 
+    robot.vitruvianBiped.legDensity.hip(1)       = 1004;    
+    robot.vitruvianBiped.legDensity.thigh(1)     = 1117.3;  
+    robot.vitruvianBiped.legDensity.shank(1)     = 1004; 
+    robot.vitruvianBiped.legDensity.foot(1)      = 1004;  
+    robot.vitruvianBiped.legDensity.phalanges(1) = 1004; 
     
     % End effector mass
-    robot.vitruvianBiped.EE(1).mass = 0.025;
+    robot.vitruvianBiped.EE(1).mass = 0.0025;
 
     % offset from CoM to HAA for each leg.
-    robot.vitruvianBiped.xNom(1) = 0.02212;
-    robot.vitruvianBiped.yNom(1) = 0.1;
-    robot.vitruvianBiped.zNom = 0.015; % offset from CoM to HAA in z direction. Positive value means HAA above CoM.
+    robot.vitruvianBiped.xNom(1) = 0.05;
+    robot.vitruvianBiped.yNom(1) = 0.085;
+    robot.vitruvianBiped.zNom = 0.03; % offset from CoM to HAA in z direction. Positive value means HAA above CoM.
     
-    robot.vitruvianBiped.nomHipPos.LF = [ robot.vitruvianBiped.xNom(1),  robot.vitruvianBiped.yNom(1), robot.vitruvianBiped.zNom];
-    robot.vitruvianBiped.nomHipPos.RF = [ robot.vitruvianBiped.xNom(1), -robot.vitruvianBiped.yNom(1), robot.vitruvianBiped.zNom];
+    robot.vitruvianBiped.nomHipPos.LF = [robot.vitruvianBiped.xNom(1),  robot.vitruvianBiped.yNom(1), robot.vitruvianBiped.zNom];
+    robot.vitruvianBiped.nomHipPos.RF = [robot.vitruvianBiped.xNom(1), -robot.vitruvianBiped.yNom(1), robot.vitruvianBiped.zNom];
 
     % link lengths [m]
     % fore, hind
     robot.vitruvianBiped.hip(1).length = 0.0001;
-    robot.vitruvianBiped.thigh(1).length = 0.2;
-    robot.vitruvianBiped.shank(1).length = 0.2;
+    robot.vitruvianBiped.thigh(1).length = 0.1936;
+    robot.vitruvianBiped.shank(1).length = 0.25;
     robot.vitruvianBiped.foot(1).length = 0.05;
     robot.vitruvianBiped.phalanges(1).length = 0.05;
 
@@ -277,9 +291,14 @@ function robotProperties = getRobotProperties(robotSelection, transmissionMethod
     % Hip offset. This shifts HAA along the body x direction. It is
     % an optimization parameter and is initially set to the hip length such
     % that HFE is at the location specified above by nomHipPos.
-     robot.vitruvianBiped.hipOffset(1) = robot.vitruvianBiped.hip(1).length;
+     robot.vitruvianBiped.hipOffset(1) = 0.05; % opt run with0.05;;
+
+     % Base dimensions used for visualization - visualized as a box
+     robot.vitruvianBiped.baseLength = 0.08;
+     robot.vitruvianBiped.baseWidth  = 0.15;
+     robot.vitruvianBiped.baseHeight = 0.08;
      
-    %% Universal
+     %% Universal
     robot.universal.mass.total = 39.53; % (with payload). This value is only used in computing CoT.
     robot.universal.legCount = 4;
     
@@ -295,8 +314,8 @@ function robotProperties = getRobotProperties(robotSelection, transmissionMethod
     robot.universal.EE(2).mass = 0.1923;    
 
     % Offset from CoM to each hip
-    robot.universal.xNom(1) = 0.34;
-    robot.universal.xNom(2) = 0.34;
+    robot.universal.xNom(1) = 0.4;
+    robot.universal.xNom(2) = 0.4;
     robot.universal.yNom(1) = 0.19;
     robot.universal.yNom(2) = 0.19;
     robot.universal.zNom = 0; % offset from CoM to hip attachment
@@ -350,8 +369,13 @@ function robotProperties = getRobotProperties(robotSelection, transmissionMethod
     % Hip offset. This shifts HAA along the body x direction. It is
     % an optimization parameter and is initially set to the hip length such
     % that HFE is at the location specified above by nomHipPos.
-     robot.universal.hipOffset(1) = robot.universal.hip(1).length;
-     robot.universal.hipOffset(2) = robot.universal.hip(2).length;
+     robot.universal.hipOffset(1) = robot.universal.xNom(1)-0.225;
+     robot.universal.hipOffset(2) = robot.universal.xNom(1)-0.225;
+     
+     % Base dimensions used for visualization - visualized as a box
+     robot.universal.baseWidth  = 0.4;
+     robot.universal.baseLength = 0.9;
+     robot.universal.baseHeight = 0.2;
      
     %% Speedy 
     robot.speedy.mass.total = 22.52;
@@ -426,7 +450,12 @@ function robotProperties = getRobotProperties(robotSelection, transmissionMethod
      robot.speedy.hipOffset(1) = robot.speedy.hip(1).length;
      robot.speedy.hipOffset(2) = robot.speedy.hip(2).length;
 
-    %% Massivo 
+     % Base dimensions used for visualization - visualized as a box
+     robot.speedy.baseLength = 0.7;
+     robot.speedy.baseWidth  = 0.2;
+     robot.speedy.baseHeight = 0.2;
+     
+     %% Massivo 
     robot.massivo.mass.total = 80;
     robot.massivo.legCount   = 4;
     
@@ -499,6 +528,11 @@ function robotProperties = getRobotProperties(robotSelection, transmissionMethod
      robot.massivo.hipOffset(1) = 0; %robot.massivo.hip(1).length;
      robot.massivo.hipOffset(2) = 0; %-robot.massivo.hip(2).length;
      
+     % Base dimensions used for visualization - visualized as a box
+     robot.massivo.baseLength = 0.7;
+     robot.massivo.baseWidth  = 0.7;
+     robot.massivo.baseHeight = 0.1;
+     
     %% Centaur 
     robot.centaur.mass.total = 80;
     robot.centaur.legCount   = 4;
@@ -532,26 +566,26 @@ function robotProperties = getRobotProperties(robotSelection, transmissionMethod
     % fore, hind
     robot.centaur.hip(1).length = 0.15;
     robot.centaur.hip(2).length = 0.15;
-    robot.centaur.thigh(1).length = 0.5;
-    robot.centaur.thigh(2).length = 0.5;
-    robot.centaur.shank(1).length = 0.5;
-    robot.centaur.shank(2).length = 0.5;
+    robot.centaur.thigh(1).length = 0.35;
+    robot.centaur.thigh(2).length = 0.35;
+    robot.centaur.shank(1).length = 0.4;
+    robot.centaur.shank(2).length = 0.4;
     robot.centaur.foot(1).length = 0.05;
     robot.centaur.foot(2).length = 0.05;
     robot.centaur.phalanges(1).length = 0.05;
     robot.centaur.phalanges(2).length = 0.05;
 
     % link radius [m]
-    robot.centaur.hip(1).radius = 0.015;
-    robot.centaur.hip(2).radius = 0.015;
-    robot.centaur.thigh(1).radius = 0.015;
-    robot.centaur.thigh(2).radius = 0.015;
-    robot.centaur.shank(1).radius = 0.015;
-    robot.centaur.shank(2).radius = 0.015;
-    robot.centaur.foot(1).radius = 0.015;
-    robot.centaur.foot(2).radius = 0.015;
-    robot.centaur.phalanges(1).radius = 0.015;
-    robot.centaur.phalanges(2).radius = 0.015;
+    robot.centaur.hip(1).radius = 0.02;
+    robot.centaur.hip(2).radius = 0.02;
+    robot.centaur.thigh(1).radius = 0.02;
+    robot.centaur.thigh(2).radius = 0.02;
+    robot.centaur.shank(1).radius = 0.02;
+    robot.centaur.shank(2).radius = 0.02;
+    robot.centaur.foot(1).radius = 0.02;
+    robot.centaur.foot(2).radius = 0.02;
+    robot.centaur.phalanges(1).radius = 0.02;
+    robot.centaur.phalanges(2).radius = 0.02;
 
     % joint angle limits
     % q1 HAA, q2 HFE, q3 KFE, q4 AFE
@@ -569,9 +603,14 @@ function robotProperties = getRobotProperties(robotSelection, transmissionMethod
     % Hip offset. This shifts HAA along the body x direction. It is
     % an optimization parameter and is initially set to the hip length such
     % that HFE is at the location specified above by nomHipPos.
-     robot.centaur.hipOffset(1) = robot.centaur.hip(1).length;
-     robot.centaur.hipOffset(2) = robot.centaur.hip(2).length;    
+     robot.centaur.hipOffset(1) = 0;%robot.centaur.hip(1).length;
+     robot.centaur.hipOffset(2) = 0;%robot.centaur.hip(2).length;    
     
+     % Base dimensions used for visualization - visualized as a box
+     robot.centaur.baseLength = 0.7;
+     robot.centaur.baseWidth  = 0.7;
+     robot.centaur.baseHeight = 0.1;
+     
     %% Mini 
     robot.mini.mass.total = 10;
     robot.mini.legCount   = 4;
@@ -643,8 +682,13 @@ function robotProperties = getRobotProperties(robotSelection, transmissionMethod
     % that HFE is at the location specified above by nomHipPos.
      robot.mini.hipOffset(1) = robot.mini.hip(1).length;
      robot.mini.hipOffset(2) = robot.mini.hip(2).length;    
-    
-    %% defaultHopper 
+     
+     % Base dimensions used for visualization - visualized as a box
+     robot.mini.baseLength = 0.4;
+     robot.mini.baseWidth  = 0.2;
+     robot.mini.baseHeight = 0.1;
+     
+     %% defaultHopper 
     robot.defaultHopper.mass.total = 10;
     robot.defaultHopper.legCount   = 1;
     
@@ -698,8 +742,89 @@ function robotProperties = getRobotProperties(robotSelection, transmissionMethod
     % that HAA is at the location specified above by nomHipPos.
      robot.defaultHopper.hipOffset(1) = robot.defaultHopper.hip(1).length;
      
+     % Base dimensions used for visualization - visualized as a box
+     robot.defaultHopper.baseLength = 0.15;
+     robot.defaultHopper.baseWidth  = 0.15;
+     robot.defaultHopper.baseHeight = 0.15;
      
-    %% Compute link mass and inertia for selected robot
+     %% Vertex 
+    robot.vertex.mass.total = 137.38238487;
+    robot.vertex.legCount   = 4;
+
+    % Density of each link
+    robot.vertex.legDensity.hip(1)       = 249.4;   robot.vertex.legDensity.hip(2)       = 249.4;
+    robot.vertex.legDensity.thigh(1)     = 249.4;   robot.vertex.legDensity.thigh(2)     = 249.4;
+    robot.vertex.legDensity.shank(1)     = 249.4;     robot.vertex.legDensity.shank(2)     = 249.4;
+    robot.vertex.legDensity.foot(1)      = 249.4;     robot.vertex.legDensity.foot(2)      = 249.4;
+    robot.vertex.legDensity.phalanges(1) = 249.4;     robot.vertex.legDensity.phalanges(2) = 249.4;
+    
+    % End effector mass
+    robot.vertex.EE(1).mass = 0.5;
+    robot.vertex.EE(2).mass = 0.5;
+    
+    robot.vertex.xNom(1) = 0.00397544;
+    robot.vertex.xNom(2) = 0.23602456;
+    robot.vertex.yNom(1) = 0.175;
+    robot.vertex.yNom(2) = 0.175;
+    robot.vertex.zNom = -0.08858490;
+
+    % row order:    LF LH RF RH
+    % column order: x, y, z
+    robot.vertex.nomHipPos.LF = [robot.vertex.xNom(1), robot.vertex.yNom(1), robot.vertex.zNom];
+    robot.vertex.nomHipPos.LH = [-robot.vertex.xNom(2), robot.vertex.yNom(2), robot.vertex.zNom];
+    robot.vertex.nomHipPos.RF = [robot.vertex.xNom(1), -robot.vertex.yNom(1), robot.vertex.zNom];
+    robot.vertex.nomHipPos.RH = [-robot.vertex.xNom(2), -robot.vertex.yNom(2), robot.vertex.zNom];
+
+    % link lengths [m]
+    % fore, hind
+    robot.vertex.hip(1).length = 0.05;
+    robot.vertex.hip(2).length = 0.05;
+    robot.vertex.thigh(1).length = 0.45;
+    robot.vertex.thigh(2).length = 0.45;
+    robot.vertex.shank(1).length = 0.45;
+    robot.vertex.shank(2).length = 0.45;
+    robot.vertex.foot(1).length = 0.05;
+    robot.vertex.foot(2).length = 0.05;
+    robot.vertex.phalanges(1).length = 0.05;
+    robot.vertex.phalanges(2).length = 0.05;
+
+    % link radius [m]
+    robot.vertex.hip(1).radius = 0.0276;
+    robot.vertex.hip(2).radius = 0.0276;
+    robot.vertex.thigh(1).radius = 0.0276;
+    robot.vertex.thigh(2).radius = 0.0276;
+    robot.vertex.shank(1).radius = 0.0276;
+    robot.vertex.shank(2).radius = 0.0276;
+    robot.vertex.foot(1).radius = 0.03;
+    robot.vertex.foot(2).radius = 0.03;
+    robot.vertex.phalanges(1).radius = 0.03;
+    robot.vertex.phalanges(2).radius = 0.03;
+
+    % joint angle limits
+    % q1 HAA, q2 HFE, q3 KFE, q4 AFE
+    robot.vertex.q1.minAngle = -pi;
+    robot.vertex.q1.maxAngle = pi;
+    robot.vertex.q2.minAngle = -pi/2;
+    robot.vertex.q2.maxAngle = pi/2;
+    robot.vertex.q3.minAngle = -pi;
+    robot.vertex.q3.maxAngle = pi;
+    robot.vertex.q4.minAngle = -pi;
+    robot.vertex.q4.maxAngle = pi;
+    robot.vertex.q5.minAngle = -pi;
+    robot.vertex.q5.maxAngle = pi;
+
+    % Hip offset. This shifts HAA along the body x direction. It is
+    % an optimization parameter and is initially set to the hip length such
+    % that HFE is at the location specified above by nomHipPos.
+     robot.vertex.hipOffset(1) = 0; %robot.vertex.hip(1).length;
+     robot.vertex.hipOffset(2) = 0; %robot.vertex.hip(2).length;    
+    
+     % Base dimensions used for visualization - visualized as a box
+     robot.vertex.baseLength = 0.7;
+     robot.vertex.baseWidth  = 0.4;
+     robot.vertex.baseHeight = 0.2;
+     
+     %% Compute link mass and inertia for selected robot
     
     % Additional mass due to transmission
     [transmissionMass, transmissionGearRatio] = getTransmissionProperties(transmissionMethod, actuateJointDirectly, robot, robotSelection, jointNames, linkNames, linkCount);

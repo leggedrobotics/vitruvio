@@ -18,7 +18,7 @@ function [maxTorqueLimit, maxqdotLimit, maxPowerLimit, actuatorMass, gearRatio, 
         maxqdotLimit   = 8.2;  % [rad/s] 
         maxPowerLimit  = 20;  % [W] Not sure about this value 
         actuatorMass   = 0.126;  % [kg]
-        gearRatio      = 50; % Incorrect value
+        gearRatio      = 200;
         efficiencyMinMotor = 0.1;  
         efficiencyMaxMotor = 0.95; % motor efficiency before gearing losses        
     end

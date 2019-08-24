@@ -1,78 +1,111 @@
-function [] = visualizeRobot(linkCount, robotProperties, Leg, meanCyclicMotionHipEE, EEselection, robotVisualization, dataExtraction, optimized, saveFiguresToPDF, fileName) 
-    EEnames     = Leg.basicProperties.EEnames;
-    jointNames  = Leg.basicProperties.jointNames;
-    legCount    = Leg.basicProperties.legCount;
-    robot       = Leg.(EEselection).rigidBodyModel;
-    bodyHeight  = 0.2;
+%function [] = visualizeRobot(linkCount, robotProperties, Leg, meanCyclicMotionHipEE, EEselection, robotVisualization, dataExtraction, optimized, saveFiguresToPDF, fileName) 
+ function visualizeRobot(results, classSelection, task, EEselection, fileName, robotVisualization, optimized) 
+
+    EEnames     = results.(classSelection).(task).basicProperties.EEnames;
+    jointNames  = results.(classSelection).(task).basicProperties.jointNames;
+    legCount    = results.(classSelection).(task).basicProperties.legCount;
+    linkCount    = results.(classSelection).(task).basicProperties.linkCount;
+    robot       = results.(classSelection).(task).(EEselection).rigidBodyModel;
+    robotProperties = results.(classSelection).(task).robotProperties;
+    bodyLength  = robotProperties.baseLength;
+    bodyWidth   = robotProperties.baseWidth;
+    bodyHeight  = robotProperties.baseHeight;
     
+    % Axis limits - adjust manually based on size of robot
+    if robotVisualization.plotOneLeg
+        xlimit = [-0.6, 0.6];
+        ylimit = [-0.3, 0.3];
+        zlimit = [-0.7, 0.2];
+    else
+        xlimit = [-1, 1];
+        ylimit = [-0.65, 0.65];
+        zlimit = [0, results.(classSelection).(task).base.position.LF(end,3)+0.5];
+    end
+
     if strcmp(EEselection, 'LF') || strcmp(EEselection, 'RF')
         selectFrontHind = 1;
     else
         selectFrontHind = 2;
     end   
     
-    if dataExtraction.averageStepsForCyclicalMotion
-        finalPlottingIndex = length(Leg.(EEselection).q) - 2;
-    else
-        finalPlottingIndex = length(Leg.(EEselection).q);
-    end
+    finalPlottingIndex = length(results.(classSelection).(task).(EEselection).q) - 2;
 
     if robotVisualization.plotAllLegs
         finalPlottingIndex = [];
         for k = 1:legCount
-            finalPlottingIndex = min([finalPlottingIndex, length(Leg.(EEnames(k,:)).r.HAA)]);
+            finalPlottingIndex = min([finalPlottingIndex, length(results.(classSelection).(task).(EEnames(k,:)).r.HAA)]);
         end
     end
 
-    for i = 1:finalPlottingIndex
-        if (linkCount == 2) 
-            config(i,:) = [-meanCyclicMotionHipEE.body.eulerAngles.(EEselection)(i,2), ... %body rotation about inertial y
-                           Leg.(EEselection).q(i,1), ... % HAA
-                           Leg.(EEselection).q(i,2), ... % HFE
-                           Leg.(EEselection).q(i,3)]; % KFE
+    %% Get step positions for stairs
+    inertialFrameEEPosition = results.(classSelection).(task).inertialFrame.EEpositionTrimmed;
+    j = 0;
+    stepPosition = [0 0 0];
+    % Steps only plotted if motion is not averaged into cycles
+    if ~results.(classSelection).(task).basicProperties.trajectory.averageStepsForCyclicalMotion
+        for i = 1:finalPlottingIndex-1
+            for k = 1:legCount
+                if inertialFrameEEPosition.(EEnames(k,:))(i+1,3) == inertialFrameEEPosition.(EEnames(k,:))(i,3) && abs(inertialFrameEEPosition.(EEnames(k,:))(i,3)-inertialFrameEEPosition.(EEnames(k,:))(1,3)) > 0.03
+                    j=j+1;
+                    stepPosition(j,:) = [inertialFrameEEPosition.(EEnames(k,:))(i,1), inertialFrameEEPosition.(EEnames(k,:))(i,2), inertialFrameEEPosition.(EEnames(k,:))(i,3)];
+                end
+            end
+        end
 
-        elseif (linkCount == 3)    
-            config(i,:) = [-meanCyclicMotionHipEE.body.eulerAngles.(EEselection)(i,2), ... %body rotation about inertial y
-                           Leg.(EEselection).q(i,1), ... % HAA
-                           Leg.(EEselection).q(i,2), ... % HFE
-                           Leg.(EEselection).q(i,3), ... % KFE
-                           Leg.(EEselection).q(i,4)];    % AFE    
-        elseif (linkCount == 4)
-            config(i,:) = [-meanCyclicMotionHipEE.body.eulerAngles.(EEselection)(i,2), ... %body rotation about inertial y
-                           Leg.(EEselection).q(i,1), ... % HAA
-                           Leg.(EEselection).q(i,2), ... % HFE
-                           Leg.(EEselection).q(i,3), ... % KFE
-                           Leg.(EEselection).q(i,4), ... % AFE
-                           Leg.(EEselection).q(i,5)];    % DFE
+     if length(stepPosition(:,1))>1
+     stepPosition = unique(stepPosition, 'rows');
+        for i = 1:length(stepPosition(:,1))-1
+            if abs(stepPosition(i,3) - stepPosition(i+1,3)) < 0.01
+                stepPosition(i,:) = [0 0 0];
+            end
+        end
+     end
+        stepPosition = stepPosition(any(stepPosition,2),:);
+        if length(stepPosition) > 1 && abs(stepPosition(1,3)) < 0.01
+            stepPosition(1,:) = [];
         end
     end
     
-    groundCoordinatesX = [2 2 -2 -2]; % + meanCyclicMotionHipEE.(EEselection).position(:,1); % ground centered at EE position
-    groundCoordinatesY = [2 -2 -2 2]; % + meanCyclicMotionHipEE.(EEselection).position(:,2);
-    groundCoordinatesZ = -Leg.base.position.(EEselection)(:,3)*[1 1 1 1] - robotProperties.nomHipPos.(EEselection)(3);
-
+    %% Get joint positions
+    for i = 1:finalPlottingIndex
+        if (linkCount == 2) 
+            config(i,:) = [-results.(classSelection).(task).(EEselection).body.eulerAngles(i,2), ... %body rotation about inertial y
+                           results.(classSelection).(task).(EEselection).q(i,1), ... % HAA
+                           results.(classSelection).(task).(EEselection).q(i,2), ... % HFE
+                           results.(classSelection).(task).(EEselection).q(i,3)]; % KFE
+                       
+        elseif (linkCount == 3)    
+            config(i,:) = [-results.(classSelection).(task).(EEselection).body.eulerAngles(i,2), ... %body rotation about inertial y
+                           results.(classSelection).(task).(EEselection).q(i,1), ... % HAA
+                           results.(classSelection).(task).(EEselection).q(i,2), ... % HFE
+                           results.(classSelection).(task).(EEselection).q(i,3), ... % KFE
+                           results.(classSelection).(task).(EEselection).q(i,4)];    % AFE    
+        elseif (linkCount == 4)
+            config(i,:) = [-results.(classSelection).(task).(EEselection).body.eulerAngles(i,2), ... %body rotation about inertial y
+                           results.(classSelection).(task).(EEselection).q(i,1), ... % HAA
+                           results.(classSelection).(task).(EEselection).q(i,2), ... % HFE
+                           results.(classSelection).(task).(EEselection).q(i,3), ... % KFE
+                           results.(classSelection).(task).(EEselection).q(i,4), ... % AFE
+                           results.(classSelection).(task).(EEselection).q(i,5)];    % DFE
+        end
+    end
+    
+    % Flat ground
+    groundCoordinatesX = [2 2 -2 -2];
+    groundCoordinatesY = [2 -2 -2 2];
+    groundCoordinatesZ = -results.(classSelection).(task).base.position.(EEselection)(:,3)*[1 1 1 1];
+  
     %% Display robot visualization for one leg
         % define patch shift which allows for body visualization
-        if robotVisualization.plotOneLeg
-            if legCount > 2
-                bodyLength = 1.5*robotProperties.xNom(1);
-                bodyWidth = 2*robotProperties.yNom(1);
-            elseif legCount == 2
-                bodyLength = 0.2;
-                bodyWidth  = 2*robotProperties.yNom(1);  
-            elseif legCount == 1
-                bodyLength = 0.2;
-                bodyWidth  = 0.2;
-            end
-            
+        if robotVisualization.plotOneLeg         
             if strcmp(EEselection, 'LF')
-                patchShift = [0 0 0];
+                patchShift = [0.05, 0, 0];
             elseif strcmp(EEselection, 'LH')
-                patchShift = [bodyLength 0 0];
+                patchShift = [-0.05+bodyLength, 0, 0];
             elseif strcmp(EEselection, 'RF')
-                patchShift = [0 bodyWidth 0];
+                patchShift = [0.05, bodyWidth, 0];
             elseif strcmp(EEselection, 'RH')
-                patchShift = [bodyLength bodyWidth 0];
+                patchShift = [-0.05+bodyLength, bodyWidth, 0];
             end
         end
 
@@ -85,31 +118,22 @@ function [] = visualizeRobot(linkCount, robotProperties, Leg, meanCyclicMotionHi
                       
         f1 = figure('units','normalized','outerposition',[0 0 1 1]); 
         set(gcf,'color','w')
-        xlim([-0.4 0.4]);
-        ylim([-0.3 0.3]);
-        zlim([-0.6 0.2]);  
+        xlim([xlimit(1) xlimit(2)]);
+        ylim([ylimit(1) ylimit(2)]);
+        zlim([zlimit(1) zlimit(2)]);
         
-%         xlim([-0.5 0.5]);
-%         ylim([-0.25 0.25]);
-%         zlim([-0.6 0.3]);
-
         if robotVisualization.plotOneLeg      
         for j = 1:robotVisualization.numberOfStepsVisualized
             for i = 1:finalPlottingIndex
-                figure(f1);
-                % Leg visualization
+                
+                % Set frames = on to see the coordinate system of the leg
                 show(robot,config(i,:), 'Frames', 'off');
-                
-                xlim([-0.4 0.4]);
-                ylim([-0.3 0.3]);
-                zlim([-0.6 0.2]); 
-                
-%                 xlim([-0.5 0.5]);
-%                 ylim([-0.25 0.25]);
-%                 zlim([-0.6 0.3]);
+                xlim([xlimit(1) xlimit(2)]);
+                ylim([ylimit(1) ylimit(2)]);
+                zlim([zlimit(1) zlimit(2)]);
               
                 hold on
-                    if optimized && Leg.basicProperties.optimizedLegs.(EEselection)
+                    if optimized && results.(classSelection).(task).basicProperties.optimizedLegs.(EEselection)
                         title(['Optimized ', EEselection])
                     else
                         title(['Nominal ', EEselection])
@@ -136,42 +160,39 @@ function [] = visualizeRobot(linkCount, robotProperties, Leg, meanCyclicMotionHi
                 patch('Vertices',vert,'Faces',fac,'FaceColor','w', 'FaceAlpha', 0.2)
 
                     % Ground color dependent on phase
-                    if Leg.(EEselection).force(i,3) > 0 
-                        groundColor = 'r'; % stance
+                    if results.(classSelection).(task).(EEselection).force(i,3) > 0 
+                        EEColor = 'gray'; % stance
                     else 
-                        groundColor = 'b'; % swing
-                    end
+                        EEColor = 'white'; % swing
+                    end 
                     
-                    % Plot ground - currently only works for flat terrain
-                    patch(groundCoordinatesX(1,:), groundCoordinatesY(1,:), groundCoordinatesZ(i,:), groundColor, 'FaceAlpha', 0.5)
-
                     % Plot desired trajectory to observe tracking
-                    plot3(meanCyclicMotionHipEE.(EEselection).position(1:end-2,1), ...
-                          meanCyclicMotionHipEE.(EEselection).position(1:end-2,2), ...
-                          meanCyclicMotionHipEE.(EEselection).position(1:end-2,3),'k', 'LineWidth', 2)                    
+                    plot3(results.(classSelection).(task).(EEselection).r.EEdes(1:end-2,1), ...
+                          results.(classSelection).(task).(EEselection).r.EEdes(1:end-2,2), ...
+                          results.(classSelection).(task).(EEselection).r.EEdes(1:end-2,3),'k', 'LineWidth', 1)                    
                      
                       % Plot end effector sphere
-                        surf(xEE+Leg.(EEselection).r.EE(i,1),yEE+Leg.(EEselection).r.EE(i,2),zEE+Leg.(EEselection).r.EE(i,3), 'edgecolor','none')
-                        colormap('white');
+                        surf(xEE+results.(classSelection).(task).(EEselection).r.EE(i,1),yEE+results.(classSelection).(task).(EEselection).r.EE(i,2),zEE+results.(classSelection).(task).(EEselection).r.EE(i,3), 'edgecolor','none')
+                        colormap(EEColor);
 
                         % Plot links as cylinders
-                        if ~optimized
-                            rHAA = [Leg.(EEselection).r.HAA(i,1) Leg.(EEselection).r.HAA(i,2) Leg.(EEselection).r.HAA(i,3)];
-                            rHFE = [Leg.(EEselection).r.HFE(i,1) Leg.(EEselection).r.HFE(i,2) Leg.(EEselection).r.HFE(i,3)];
-                            rKFE = [Leg.(EEselection).r.KFE(i,1) Leg.(EEselection).r.KFE(i,2) Leg.(EEselection).r.KFE(i,3)];
-                            rAFE = [Leg.(EEselection).r.AFE(i,1) Leg.(EEselection).r.AFE(i,2) Leg.(EEselection).r.AFE(i,3)];
-                            rDFE = [Leg.(EEselection).r.DFE(i,1) Leg.(EEselection).r.DFE(i,2) Leg.(EEselection).r.DFE(i,3)];
-                            rEE  = [Leg.(EEselection).r.EE(i,1) Leg.(EEselection).r.EE(i,2) Leg.(EEselection).r.EE(i,3)];
+
+                        if optimized && results.(classSelection).(task).basicProperties.optimizedLegs.(EEselection) % If the selected leg has been optimized, use optimized link lengths
+                            rHAA = [results.(classSelection).(task).(EEselection).rOpt.HAA(i,1) results.(classSelection).(task).(EEselection).rOpt.HAA(i,2) results.(classSelection).(task).(EEselection).rOpt.HAA(i,3)];
+                            rHFE = [results.(classSelection).(task).(EEselection).rOpt.HFE(i,1) results.(classSelection).(task).(EEselection).rOpt.HFE(i,2) results.(classSelection).(task).(EEselection).rOpt.HFE(i,3)];
+                            rKFE = [results.(classSelection).(task).(EEselection).rOpt.KFE(i,1) results.(classSelection).(task).(EEselection).rOpt.KFE(i,2) results.(classSelection).(task).(EEselection).rOpt.KFE(i,3)];
+                            rAFE = [results.(classSelection).(task).(EEselection).rOpt.AFE(i,1) results.(classSelection).(task).(EEselection).rOpt.AFE(i,2) results.(classSelection).(task).(EEselection).rOpt.AFE(i,3)];
+                            rDFE = [results.(classSelection).(task).(EEselection).rOpt.DFE(i,1) results.(classSelection).(task).(EEselection).rOpt.DFE(i,2) results.(classSelection).(task).(EEselection).rOpt.DFE(i,3)];
+                            rEE  = [results.(classSelection).(task).(EEselection).r.EE(i,1) results.(classSelection).(task).(EEselection).r.EE(i,2) results.(classSelection).(task).(EEselection).r.EE(i,3)];
+                        else
+                            rHAA = [results.(classSelection).(task).(EEselection).r.HAA(i,1) results.(classSelection).(task).(EEselection).r.HAA(i,2) results.(classSelection).(task).(EEselection).r.HAA(i,3)];
+                            rHFE = [results.(classSelection).(task).(EEselection).r.HFE(i,1) results.(classSelection).(task).(EEselection).r.HFE(i,2) results.(classSelection).(task).(EEselection).r.HFE(i,3)];
+                            rKFE = [results.(classSelection).(task).(EEselection).r.KFE(i,1) results.(classSelection).(task).(EEselection).r.KFE(i,2) results.(classSelection).(task).(EEselection).r.KFE(i,3)];
+                            rAFE = [results.(classSelection).(task).(EEselection).r.AFE(i,1) results.(classSelection).(task).(EEselection).r.AFE(i,2) results.(classSelection).(task).(EEselection).r.AFE(i,3)];
+                            rDFE = [results.(classSelection).(task).(EEselection).r.DFE(i,1) results.(classSelection).(task).(EEselection).r.DFE(i,2) results.(classSelection).(task).(EEselection).r.DFE(i,3)];
+                            rEE  = [results.(classSelection).(task).(EEselection).r.EE(i,1) results.(classSelection).(task).(EEselection).r.EE(i,2) results.(classSelection).(task).(EEselection).r.EE(i,3)];
                         end
-                        if optimized && Leg.basicProperties.optimizedLegs.(EEselection) % If the selected leg has been optimized, use optimized link lengths
-                            rHAA = [Leg.(EEselection).r.HAAOpt(i,1) Leg.(EEselection).r.HAAOpt(i,2) Leg.(EEselection).r.HAAOpt(i,3)];
-                            rHFE = [Leg.(EEselection).r.HFEOpt(i,1) Leg.(EEselection).r.HFEOpt(i,2) Leg.(EEselection).r.HFEOpt(i,3)];
-                            rKFE = [Leg.(EEselection).r.KFEOpt(i,1) Leg.(EEselection).r.KFEOpt(i,2) Leg.(EEselection).r.KFEOpt(i,3)];
-                            rAFE = [Leg.(EEselection).r.AFEOpt(i,1) Leg.(EEselection).r.AFEOpt(i,2) Leg.(EEselection).r.AFEOpt(i,3)];
-                            rDFE = [Leg.(EEselection).r.DFEOpt(i,1) Leg.(EEselection).r.DFEOpt(i,2) Leg.(EEselection).r.DFEOpt(i,3)];
-                            rEE  = [Leg.(EEselection).r.EE(i,1) Leg.(EEselection).r.EE(i,2) Leg.(EEselection).r.EE(i,3)];
-                        end
-                            
+                        
                         [x1,y1,z1] = cylinder2P(robotProperties.hip(selectFrontHind).radius, 20, rHAA,rHFE);
                         [x2,y2,z2] = cylinder2P(robotProperties.thigh(selectFrontHind).radius, 20,rHFE,rKFE);
                         [x3,y3,z3] = cylinder2P(robotProperties.shank(selectFrontHind).radius, 20,rKFE,rAFE);
@@ -208,22 +229,53 @@ function [] = visualizeRobot(linkCount, robotProperties, Leg, meanCyclicMotionHi
    end
         
   %% Plot all legs
-    if robotVisualization.plotAllLegs      
+  viewMultipleAngles = false;
+  if viewMultipleAngles
+      numberOfViewWindows = 3;
+  else
+      numberOfViewWindows = 1;
+  end
+  
+    if robotVisualization.plotAllLegs 
         for i = 1:finalPlottingIndex
-
-            figure(f1);
-            % Leg visualization
-            show(robot,config(i,:), 'Frames', 'off');
-
-            xlim([-0.5 0.5]);
-            ylim([-0.3 0.3]);
-            zlim([-0.6 0.4]); 
-
-            %xlim([-0.5 0.5]);
-            %ylim([-0.25 0.25]);
-            %zlim([-0.6 0.3]);
-
+            figure(f1); % iso view
+            for viewIndex = 1:numberOfViewWindows
+            if viewMultipleAngles
+                if viewIndex == 1 % Iso view
+                    subplot(2,2,[2 4])
+                    show(robot, config(i,:), 'Frames', 'off');
+                    view([-30 10])
+                    xlim([xlimit(1) xlimit(2)]);
+                    ylim([ylimit(1) ylimit(2)]);
+                    zlim([zlimit(1) zlimit(2)]);
+                elseif viewIndex == 2 % Top View
+                    subplot(2,2,1)
+                    show(robot, config(i,:), 'Frames', 'off');
+                    view([0 90])
+                    xlim([xlimit(1) xlimit(2)]);
+                    ylim([ylimit(1) ylimit(2)]);
+                    zlim([zlimit(1) zlimit(2)]);
+                else % Side view
+                    subplot(2,2,3)
+                    show(robot, config(i,:), 'Frames', 'off');
+                    view([0 0])
+                    xlim([xlimit(1) xlimit(2)]);
+                    ylim([ylimit(1) ylimit(2)]);
+                    zlim([0 zlimit(2)]);
+                end
+            else
+                show(robot, config(i,:), 'Frames', 'off');
+                view([-30 10])
+                xlim([xlimit(1) xlimit(2)]);
+                ylim([ylimit(1) ylimit(2)]);
+                zlim([zlimit(1) zlimit(2)]);         
+            end
+            
             hold on
+            
+            % Plot moving lines on ground to show robot movement speed
+            groundGridlines = linspace(-1,40,411) - results.(classSelection).(task).base.position.(EEselection)(i,1);
+            plot([groundGridlines(:),groundGridlines(:)],[-3,3], 'k')
 
                 %% Plot all legs  
                 if legCount > 2
@@ -235,27 +287,36 @@ function [] = visualizeRobot(linkCount, robotProperties, Leg, meanCyclicMotionHi
                     xNom.LF = robotProperties.xNom(1); yNom.LF = robotProperties.yNom(1); zNom.LF = robotProperties.zNom(1);
                     xNom.RF = robotProperties.xNom(1); yNom.RF = -robotProperties.yNom(1); zNom.RF = robotProperties.zNom(1);
                 end
-                    % Get coordinates for body patch
-                    if legCount > 2
-                    bodyLength = robotProperties.xNom(1) + robotProperties.xNom(2);
-                    bodyWidth  = robotProperties.yNom(1) + robotProperties.yNom(2);
-                    elseif legCount == 2
-                        bodyLength = 0.2;
-                        bodyWidth  = robotProperties.yNom(1) + robotProperties.yNom(1);
-                    elseif legCount == 1
-                        bodyLength = 0.2;
-                        bodyWidth  = 0.2; 
+                
+                % Apply body rotation to robot nominal positions so 
+                % multiple legs shown in correct position. Not
+                % necessary if plotting only one leg because the hip
+                % attachment frame is at origin.
+                for k = 1:legCount
+                    if strcmp(EEnames(k,:), 'LH') || strcmp(EEnames(k,:), 'RH')
+                        translationDirection = -1;
+                    else
+                        translationDirection = 1;
                     end
-                    patchShift = [robotProperties.xNom(1) robotProperties.yNom(1) 0];
-                     vert = patchShift + ...
-                           [0           0           -0.04;...
-                           -bodyLength  0           -0.04;...
-                           -bodyLength -bodyWidth   -0.04;...
-                            0          -bodyWidth   -0.04;...
-                            0           0            bodyHeight;...
-                           -bodyLength  0            bodyHeight;...
-                           -bodyLength -bodyWidth    bodyHeight;...
-                            0          -bodyWidth    bodyHeight];
+                    xNom.(EEnames(k,:)) = xNom.(EEnames(k,:))*(cos(-config(i,1)));
+                    zNom.(EEnames(k,:)) = zNom.(EEnames(k,:)) + translationDirection*xNom.LF*(sin(-config(i,1)));
+                end
+                
+                bodyCenterX = [];
+                for k = 1:legCount
+                    bodyCenterX = [bodyCenterX, xNom.(EEnames(k,:))];
+                end
+                bodyCenterX = mean(bodyCenterX);
+                
+                     vert = [-bodyCenterX/2 0 0] + ...
+                            [0.5*bodyLength,  0.5*bodyWidth, -0.04;...
+                            -0.5*bodyLength,  0.5*bodyWidth, -0.04;...
+                            -0.5*bodyLength, -0.5*bodyWidth, -0.04;...
+                             0.5*bodyLength, -0.5*bodyWidth, -0.04;...
+                             0.5*bodyLength,  0.5*bodyWidth, bodyHeight;...
+                            -0.5*bodyLength,  0.5*bodyWidth, bodyHeight;...
+                            -0.5*bodyLength, -0.5*bodyWidth, bodyHeight;...
+                             0.5*bodyLength, -0.5*bodyWidth, bodyHeight];
 
                     % Compute body rotation about y axis with elementary rotation matrix
                     bodyRotation = [cos(-config(i,1)), 0, sin(-config(i,1));
@@ -263,90 +324,102 @@ function [] = visualizeRobot(linkCount, robotProperties, Leg, meanCyclicMotionHi
                                    -sin(-config(i,1)), 0  cos(-config(i,1))];
 
                     % Apply body rotation to obtain new vertices
-                    vert = vert * bodyRotation;
+                    vert = vert*bodyRotation + [0,0,-groundCoordinatesZ(i,1)];
                     fac = [1 2 6 5;2 3 7 6;3 4 8 7;4 1 5 8;1 2 3 4;5 6 7 8];
+                   
                     % Plot body patch
                     patch('Vertices',vert,'Faces',fac,'FaceColor','w', 'FaceAlpha', 0.2)    
-                    
-                  % Get ground color dependent on phase
-                    if legCount > 1
-                        if Leg.LF.force(i,3) > 0 && Leg.RF.force(i,3) > 0 % Trot, all legs stance
-                            groundColor = 'm';
-                        elseif (Leg.LF.force(i,3) > 0 && Leg.RF.force(i,3) == 0) % Trot, LF/LH stance
-                            groundColor = 'r';
-                        else % Trot, LF/LH stance
-                            groundColor = 'b'; 
-                        end
-                    else
-                        if Leg.LF.force(i,3) > 0
-                            groundColor = 'r';
+
+                      % Get ground color dependent on phase
+                        if legCount > 1
+                            if results.(classSelection).(task).LF.force(i,3) > 0 && results.(classSelection).(task).RF.force(i,3) > 0 % Trot, all legs stance
+                                groundColor = 'c';
+                            elseif (results.(classSelection).(task).LF.force(i,3) > 0 && results.(classSelection).(task).RF.force(i,3) == 0) % Trot, LF/LH stance
+                                groundColor = 'c';
+                            else % Trot, LF/LH stance
+                                groundColor = 'c'; 
+                            end
                         else
-                            groundColor = 'b';
+                            if results.(classSelection).(task).LF.force(i,3) > 0
+                                groundColor = 'c';
+                            else
+                                groundColor = 'c';
+                            end
                         end
-                    end
-                    
-                    patch(groundCoordinatesX(1,:), groundCoordinatesY(1,:), groundCoordinatesZ(i,:), groundColor, 'FaceAlpha', 0.5)
-                    
+                        
+                        %% Plot ground and stairs
+                        patch(groundCoordinatesX(1,:), groundCoordinatesY(1,:), [0 0 0 0], groundColor, 'FaceAlpha', 0.5)
+                        
+                        for k = 1:legCount
+                            if results.(classSelection).(task).(EEnames(k,:)).force(i,3) > 0
+                                groundColorStairs.(EEnames(k,:)) = 'c';
+                            else
+                                groundColorStairs.(EEnames(k,:)) = 'c';
+                            end
+  
+                            for n = 1:length(stepPosition(:,1))
+                                patch((stepPosition(n,1)-results.(classSelection).(task).base.position.(EEselection)(i,1))+0.05*[5 5 -3 -3], stepPosition(n,2) + 3*[1 -1 -1 1], stepPosition(n,3)*[1 1 1 1], groundColorStairs.(EEnames(k,:)), 'FaceAlpha', 0.5)
+                            end
+                        end
+         
+                    %% Display links and end effectors
                     for k = 1:legCount
                         EEselection = EEnames(k,:);
                         
                         % Display end effectors as spheres
-                        surf(xNom.(EEselection)+xEE+Leg.(EEselection).r.EE(i,1),yNom.(EEselection)+yEE+Leg.(EEselection).r.EE(i,2),zNom.(EEselection)+zEE+Leg.(EEselection).r.EE(i,3), 'edgecolor','none')
+                        surf(xNom.(EEselection)+xEE+results.(classSelection).(task).(EEselection).r.EE(i,1),yNom.(EEselection)+yEE+results.(classSelection).(task).(EEselection).r.EE(i,2),zNom.(EEselection)+zEE+results.(classSelection).(task).(EEselection).r.EE(i,3)-groundCoordinatesZ(i,1), 'edgecolor','none')
                         colormap('white');
 
                           % Display links as cylinders
-                        if ~optimized || (optimized && ~Leg.basicProperties.optimizedLegs.(EEselection))
-                            rHAA = [xNom.(EEselection)+Leg.(EEselection).r.HAA(i,1), yNom.(EEselection)+Leg.(EEselection).r.HAA(i,2), zNom.(EEselection)+Leg.(EEselection).r.HAA(i,3)];
-                            rHFE = [xNom.(EEselection)+Leg.(EEselection).r.HFE(i,1), yNom.(EEselection)+Leg.(EEselection).r.HFE(i,2), zNom.(EEselection)+Leg.(EEselection).r.HFE(i,3)];
-                            rKFE = [xNom.(EEselection)+Leg.(EEselection).r.KFE(i,1), yNom.(EEselection)+Leg.(EEselection).r.KFE(i,2), zNom.(EEselection)+ Leg.(EEselection).r.KFE(i,3)];
-                            rAFE = [xNom.(EEselection)+Leg.(EEselection).r.AFE(i,1), yNom.(EEselection)+Leg.(EEselection).r.AFE(i,2), zNom.(EEselection)+ Leg.(EEselection).r.AFE(i,3)];
-                            rDFE = [xNom.(EEselection)+Leg.(EEselection).r.DFE(i,1), yNom.(EEselection)+Leg.(EEselection).r.DFE(i,2), zNom.(EEselection)+ Leg.(EEselection).r.DFE(i,3)];
-                            rEE  = [xNom.(EEselection)+Leg.(EEselection).r.EE(i,1),  yNom.(EEselection)+Leg.(EEselection).r.EE(i,2),  zNom.(EEselection)+Leg.(EEselection).r.EE(i,3)];
+                        if ~optimized || (optimized && ~results.(classSelection).(task).basicProperties.optimizedLegs.(EEselection))
+                            rHAA = [xNom.(EEselection)+results.(classSelection).(task).(EEselection).r.HAA(i,1), yNom.(EEselection)+results.(classSelection).(task).(EEselection).r.HAA(i,2), zNom.(EEselection)+results.(classSelection).(task).(EEselection).r.HAA(i,3)];
+                            rHFE = [xNom.(EEselection)+results.(classSelection).(task).(EEselection).r.HFE(i,1), yNom.(EEselection)+results.(classSelection).(task).(EEselection).r.HFE(i,2), zNom.(EEselection)+results.(classSelection).(task).(EEselection).r.HFE(i,3)];
+                            rKFE = [xNom.(EEselection)+results.(classSelection).(task).(EEselection).r.KFE(i,1), yNom.(EEselection)+results.(classSelection).(task).(EEselection).r.KFE(i,2), zNom.(EEselection)+ results.(classSelection).(task).(EEselection).r.KFE(i,3)];
+                            rAFE = [xNom.(EEselection)+results.(classSelection).(task).(EEselection).r.AFE(i,1), yNom.(EEselection)+results.(classSelection).(task).(EEselection).r.AFE(i,2), zNom.(EEselection)+ results.(classSelection).(task).(EEselection).r.AFE(i,3)];
+                            rDFE = [xNom.(EEselection)+results.(classSelection).(task).(EEselection).r.DFE(i,1), yNom.(EEselection)+results.(classSelection).(task).(EEselection).r.DFE(i,2), zNom.(EEselection)+ results.(classSelection).(task).(EEselection).r.DFE(i,3)];
+                            rEE  = [xNom.(EEselection)+results.(classSelection).(task).(EEselection).r.EE(i,1),  yNom.(EEselection)+results.(classSelection).(task).(EEselection).r.EE(i,2),  zNom.(EEselection)+results.(classSelection).(task).(EEselection).r.EE(i,3)];
                         end
-                        if optimized && Leg.basicProperties.optimizedLegs.(EEselection) % If the selected leg has been optimized, use optimized link lengths
-                            rHAA = [xNom.(EEselection)+Leg.(EEselection).rOpt.HAA(i,1), yNom.(EEselection)+Leg.(EEselection).rOpt.HAA(i,2), zNom.(EEselection)+ Leg.(EEselection).rOpt.HAA(i,3)];
-                            rHFE = [xNom.(EEselection)+Leg.(EEselection).rOpt.HFE(i,1), yNom.(EEselection)+Leg.(EEselection).rOpt.HFE(i,2), zNom.(EEselection)+ Leg.(EEselection).rOpt.HFE(i,3)];
-                            rKFE = [xNom.(EEselection)+Leg.(EEselection).rOpt.KFE(i,1), yNom.(EEselection)+Leg.(EEselection).rOpt.KFE(i,2), zNom.(EEselection)+ Leg.(EEselection).rOpt.KFE(i,3)];
-                            rAFE = [xNom.(EEselection)+Leg.(EEselection).rOpt.AFE(i,1), yNom.(EEselection)+Leg.(EEselection).rOpt.AFE(i,2), zNom.(EEselection)+ Leg.(EEselection).rOpt.AFE(i,3)];
-                            rDFE = [xNom.(EEselection)+Leg.(EEselection).rOpt.DFE(i,1), yNom.(EEselection)+Leg.(EEselection).rOpt.DFE(i,2), zNom.(EEselection)+ Leg.(EEselection).rOpt.DFE(i,3)];
-                            rEE  = [xNom.(EEselection)+Leg.(EEselection).rOpt.EE(i,1),  yNom.(EEselection)+Leg.(EEselection).r.EE(i,2),     zNom.(EEselection)+ Leg.(EEselection).r.EE(i,3)];
+                        if optimized && results.(classSelection).(task).basicProperties.optimizedLegs.(EEselection) % If the selected leg has been optimized, use optimized link lengths
+                            rHAA = [xNom.(EEselection)+results.(classSelection).(task).(EEselection).rOpt.HAA(i,1), yNom.(EEselection)+results.(classSelection).(task).(EEselection).rOpt.HAA(i,2), zNom.(EEselection)+ results.(classSelection).(task).(EEselection).rOpt.HAA(i,3)];
+                            rHFE = [xNom.(EEselection)+results.(classSelection).(task).(EEselection).rOpt.HFE(i,1), yNom.(EEselection)+results.(classSelection).(task).(EEselection).rOpt.HFE(i,2), zNom.(EEselection)+ results.(classSelection).(task).(EEselection).rOpt.HFE(i,3)];
+                            rKFE = [xNom.(EEselection)+results.(classSelection).(task).(EEselection).rOpt.KFE(i,1), yNom.(EEselection)+results.(classSelection).(task).(EEselection).rOpt.KFE(i,2), zNom.(EEselection)+ results.(classSelection).(task).(EEselection).rOpt.KFE(i,3)];
+                            rAFE = [xNom.(EEselection)+results.(classSelection).(task).(EEselection).rOpt.AFE(i,1), yNom.(EEselection)+results.(classSelection).(task).(EEselection).rOpt.AFE(i,2), zNom.(EEselection)+ results.(classSelection).(task).(EEselection).rOpt.AFE(i,3)];
+                            rDFE = [xNom.(EEselection)+results.(classSelection).(task).(EEselection).rOpt.DFE(i,1), yNom.(EEselection)+results.(classSelection).(task).(EEselection).rOpt.DFE(i,2), zNom.(EEselection)+ results.(classSelection).(task).(EEselection).rOpt.DFE(i,3)];
+                            rEE  = [xNom.(EEselection)+results.(classSelection).(task).(EEselection).rOpt.EE(i,1),  yNom.(EEselection)+results.(classSelection).(task).(EEselection).r.EE(i,2),     zNom.(EEselection)+ results.(classSelection).(task).(EEselection).r.EE(i,3)];
                         end
                         
                         [x1,y1,z1] = cylinder2P(robotProperties.hip(selectFrontHind).radius, 10, rHAA,rHFE);
                         [x2,y2,z2] = cylinder2P(robotProperties.thigh(selectFrontHind).radius, 10,rHFE,rKFE);
                         [x3,y3,z3] = cylinder2P(robotProperties.shank(selectFrontHind).radius, 10,rKFE,rAFE);
-                        surf(x1, y1, z1, 'edgecolor','none')
-                        surf(x2, y2, z2, 'edgecolor','none')
-                        surf(x3, y3, z3, 'edgecolor','none')   
+                        surf(x1, y1, z1- groundCoordinatesZ(i,1), 'edgecolor','none')
+                        surf(x2, y2, z2- groundCoordinatesZ(i,1), 'edgecolor','none')
+                        surf(x3, y3, z3- groundCoordinatesZ(i,1), 'edgecolor','none')   
                         
                         if linkCount > 2 
                             [x4,y4,z4] = cylinder2P(robotProperties.foot(selectFrontHind).radius, 10,rAFE,rDFE);
-                            surf(x4, y4, z4, 'edgecolor','none')
+                            surf(x4, y4, z4- groundCoordinatesZ(i,1), 'edgecolor','none')
                         end
                         
                         if linkCount == 4
                             [x5,y5,z5] = cylinder2P(robotProperties.phalanges(selectFrontHind).radius, 10,rDFE,rEE);
-                            surf(x5, y5, z5, 'edgecolor','none')
+                            surf(x5, y5, z5-groundCoordinatesZ(i,1), 'edgecolor','none')
                         end
                     end
-                   hold off 
-                               if mod(i,2) % Save every 2nd frame into gif
-              % Capture the plot as an image 
-              frame = getframe(f1); 
-              im = frame2im(frame); 
-              [imind,cm] = rgb2ind(im,256); 
-              % Write to the GIF File 
-              if i == 1 
-                  imwrite(imind,cm,fileName,'gif', 'Loopcount',inf); 
-              else 
-                  imwrite(imind,cm, fileName,'gif','WriteMode','append'); 
-              end 
-            end  
+                    hold off
                 end
-    end
-        % Save the figure to a pdf
-        warning off % warning for transparency in figure
-        if saveFiguresToPDF
-            export_fig results.pdf -nocrop -append
+                hold off 
+
+            if mod(i,3)==0 || i==1% Save every 3rd frame into gif
+                  % Capture f1 as image and save to .gif
+                  frame = getframe(f1); 
+                  im = frame2im(frame); 
+                  [imind,cm] = rgb2ind(im,256);
+                  if i == 1 
+                      imwrite(imind,cm,fileName,'gif', 'Loopcount',inf); 
+                  else 
+                      imwrite(imind,cm, fileName,'gif','WriteMode','append'); 
+                  end 
+            end  
         end
+    end
 end
