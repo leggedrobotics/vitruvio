@@ -54,7 +54,7 @@ function [jointPositions, r1, r2, r3, r4, r5, rEE] = inverseKinematics(heuristic
   for i = 1:length(meanCyclicMotionHipEE.(EEselection).position(:,1))
        % to keep system right handed, input body rotation as negative. A
        % negative value then means positive angle of attack.
-        rotBodyY = -meanCyclicMotionHipEE.body.eulerAngles.(EEselection)(i,2); % rotation of body about inertial y
+        rotBodyY = meanCyclicMotionHipEE.body.eulerAngles.(EEselection)(i,2); % rotation of body about inertial y
         it = 0; % reset iteration count
         lambda = 0.001; % damping factor -> values below lambda are set to zero in matrix inversion
         dr = r_H_0EE_des(i,:)' - r_H_0EE; % error vector

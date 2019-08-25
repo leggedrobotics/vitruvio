@@ -1,22 +1,24 @@
 %% Plot trajectory data
-function [] = plotMotionData(data, task)
+function [] = plotMotionData(data, task, saveFiguresToPDF)
 
     t                    = data.(task).time;
+    tUninterpolated      = data.(task).timeUninterpolated;
     base                 = data.(task).base; % base motion for each leg during its cycle
     base.fullTrajectory  = data.(task).fullTrajectory.base;
     force.fullTrajectory = data.(task).fullTrajectory.force;
     legCount             = data.(task).basicProperties.legCount;
-    linkCount             = data.(task).basicProperties.linkCount;
+    linkCount            = data.(task).basicProperties.linkCount;
     EEnames              = data.(task).basicProperties.EEnames;
     removalRatioStart    = data.(task).basicProperties.trajectory.removalRatioStart;
     removalRatioEnd      = data.(task).basicProperties.trajectory.removalRatioEnd;
-
+    inertialEEposition   = data.(task).inertialFrame.EEposition;
+    
     startIndexFullTrajectory = round(length(data.(task).fullTrajectory.r.EEdes.LF)*removalRatioStart);
     startIndexFullTrajectory(startIndexFullTrajectory<1) = 1;
     endIndexFullTrajectory = round(length(data.(task).fullTrajectory.r.EEdes.LF)*(1-removalRatioEnd));
 
     %% Base position and velocity in inertial frame with sampled rectange.
-    figure('units','normalized','outerposition',[0 0 1 1])
+    figure('name', 'Base position and velocity', 'units','normalized','outerposition',[0 0 1 1])
     set(gcf,'color','w')
     subplot(3,2,1);
     plot(t, base.fullTrajectory.position(:,1));
@@ -90,11 +92,55 @@ function [] = plotMotionData(data, task)
     rectanglePos.width      =  t(endIndexFullTrajectory - startIndexFullTrajectory);
     rectanglePos.height     = yBounds(2) - yBounds(1);
     rectangle('Position', [rectanglePos.bottomLeft(1), rectanglePos.bottomLeft(2), rectanglePos.width, rectanglePos.height], 'LineWidth', 0.5);            
+    if saveFiguresToPDF
+        export_fig results.pdf -nocrop -append
+    end
 
-    export_fig results.pdf -nocrop -append
-
+    
+    %% End effector position in inertial frame x vs t and z vs t
+    figure('name', 'End effector position inertial frame', 'units','normalized','outerposition',[0 0 1 1]) 
+    set(gcf,'color','w')
+    lineColor = {'b', 'g', 'r', 'c'};
+    minValue1 = []; maxValue1 = [];
+    minValue2 = []; maxValue2 = [];
+    minValue3 = []; maxValue3 = [];
+    
+    for i = 1:legCount
+        EEselection = EEnames(i,:);
+        subplot(3,1,1)
+        hold on
+            p(i) = plot(tUninterpolated, inertialEEposition.(EEselection)(:,1), lineColor{i}, 'DisplayName', EEselection);
+            title('End effector position x')
+            xlabel('time [s]')    
+            ylabel('EE x position relative to CoM starting point [m]')
+            grid on
+        subplot(3,1,2) 
+        hold on
+            p(i) = plot(tUninterpolated, inertialEEposition.(EEselection)(:,2), lineColor{i}, 'DisplayName', EEselection);
+            title('End effector position y')
+            xlabel('time [s]')    
+            ylabel('EE y position relative to CoM starting point [m]')
+            grid on
+        subplot(3,1,3)
+        hold on
+            p(i) = plot(tUninterpolated, inertialEEposition.(EEselection)(:,3), lineColor{i}, 'DisplayName', EEselection);
+            title('End effector position z')
+            xlabel('time [s]')    
+            ylabel('EE z position relative to CoM starting point [m]')
+            grid on
+    end
+    hold off
+           
+    if legCount > 1 % only display legend if there are multiple legs
+        lgd = legend(p);
+        lgd.FontSize = 14;
+    end
+    
+    if saveFiguresToPDF
+        export_fig results.pdf -nocrop -append
+    end
     %% End effector forces.
-    figure('units','normalized','outerposition',[0 0 1 1]) 
+    figure('name', 'End effector forces', 'units','normalized','outerposition',[0 0 1 1]) 
     set(gcf,'color','w')
     lineColor = {'b', 'g', 'r', 'c'};
     minValue1 = []; maxValue1 = [];
@@ -153,10 +199,11 @@ function [] = plotMotionData(data, task)
         lgd.FontSize = 14;
     end
     hold off
-    export_fig results.pdf -nocrop -append
-
+    if saveFiguresToPDF
+        export_fig results.pdf -nocrop -append
+    end
     %% Plot x vs z position of EE for the final trajectory (after trimming and averaging).
-    figure('units','normalized','outerposition',[0 0 1 1]) 
+    figure('name', 'EE trajectory relative to hip', 'units','normalized','outerposition',[0 0 1 1]) 
     set(gcf,'color','w')
     % Number of rows [1 2], number of columns [1 2]
     subplotRows = ceil(legCount/2);
@@ -175,7 +222,7 @@ function [] = plotMotionData(data, task)
         if data.(task).basicProperties.trajectory.averageStepsForCyclicalMotion
             plot(data.(task).fullTrajectory.r.EEdes.(EEselection)(startIndexFullTrajectory:endIndexFullTrajectory,1), data.(task).fullTrajectory.r.EEdes.(EEselection)(startIndexFullTrajectory:endIndexFullTrajectory,3), 'o', 'MarkerEdgeColor', '[0.5843 0.8157 0.9882]', 'MarkerFaceColor', '[ 0.5843 0.8157 0.9882]')
         end
-        plot(data.(task).(EEselection).r.EEdes(:,1), data.(task).(EEselection).r.EEdes(:,3), 'k', 'LineWidth', 1)
+        plot(data.(task).(EEselection).r.EEdes(:,1), data.(task).(EEselection).r.EEdes(:,3), 'k', 'LineWidth', 2)
         axis equal
         xlabel('x position [m]')
         ylabel('z position [m]')
@@ -183,5 +230,7 @@ function [] = plotMotionData(data, task)
         grid on
         hold off
     end
-    export_fig results.pdf -nocrop -append    
+    if saveFiguresToPDF
+        export_fig results.pdf -nocrop -append
+    end
 end

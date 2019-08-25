@@ -1,7 +1,7 @@
 % collects position of EE for each timestep from liftoff to next liftoff
 % for a subset of the cycles when the motion is steady and averages the result
 
-function [meanCyclicMotionHipEE, cyclicMotionHipEE, meanCyclicC_IBody, samplingStart, samplingEnd, meanBasePosition] = getHipEECyclicData(tLiftoff, relativeMotionHipEE, removalRatioStart, removalRatioEnd, dt, minStepCount, C_IBody, EEnames, trajectoryData, legCount)
+function [meanCyclicMotionHipEE, cyclicMotionHipEE, meanCyclicC_IBody, samplingStart, samplingEnd, meanBasePosition, inertialFramePosition] = getHipEECyclicData(tLiftoff, relativeMotionHipEE, removalRatioStart, removalRatioEnd, dt, minStepCount, C_IBody, EEnames, trajectoryData, legCount)
 %% Get the average number of points in step number i
 for i = 1:minStepCount-1 % because we consider future step, we can only count up until second last step
     % length of position vector from liftoff to subsequent liftoff (one
@@ -59,7 +59,7 @@ samplingEnd = round((1-removalRatioEnd)*minStepCount-1);
 % maximum ending index is number of steps captured in cyclicMotionHipEE
 samplingEnd(samplingEnd>length(cyclicMotionHipEE.(EEselection).position(1,1,:))) = length(cyclicMotionHipEE.(EEselection).position(1,1,:));
 
-% average of corresponding points in each cycle
+% Average of corresponding points in each cycle
 for i = 1:legCount
     EEselection = EEnames(i,:);
     
@@ -67,13 +67,15 @@ for i = 1:legCount
     meanCyclicMotionHipEE.(EEselection).position = mean(cyclicMotionHipEE.(EEselection).position(:,:,samplingStart:samplingEnd),3);
     meanCyclicMotionHipEE.(EEselection).force    = mean(cyclicMotionHipEE.(EEselection).force(:,:,samplingStart:samplingEnd),3);    
     
-    % average rotation matrix of body in inertia frame
+    % average rotation matrix of body in inertia frametemp3
     cyclicC_IBody.(EEselection) = cyclicC_IBody.(EEselection)(:,:,:,samplingStart:samplingEnd);
     meanCyclicC_IBody.(EEselection) = mean(cyclicC_IBody.(EEselection),4);
     
     % average rotation matrix of body in inertia frame    
     meanBasePosition.(EEselection) = mean(basePosition.(EEselection)(:,:,samplingStart:samplingEnd),3);
+    inertialFramePosition.(EEselection)  =  trajectoryData.(EEselection).position(samplingStart:samplingEnd,:);
 end
+
 
 %% Find point that completes cycle loop
 % Find point with minimum distance to the first point. This is where the

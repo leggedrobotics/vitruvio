@@ -22,19 +22,19 @@ function [J_P, C_0EE, r_H_01, r_H_02, r_H_03, r_H_04, r_H_05, r_H_0EE]  = jointT
   % Rotation about y in inertial frame to align hip attachment with body
   % rotation about y. The rotation about the body x and z are neglected but
   % assumed small for forward motion on even terrain.
-  T_0H = [cos(rotBodyY), 0, sin(rotBodyY), 0;
+  T_0H = [cos(-rotBodyY), 0, sin(-rotBodyY), 0;
          0,              1, 0,             0;
-        -sin(rotBodyY),  0, cos(rotBodyY), 0;
+        -sin(-rotBodyY),  0, cos(-rotBodyY), 0;
          0,              0, 0,             1];
      
-  % transformation from hip attachment frame to HAA frame   
+  % transformation from nominal HAA point with coord. sys aligned with body frame to HAA frame   
   % rotation about x of hip attachment frame (HAA rotation)
   T_H1 = [1, 0,          0,          hipAttachmentOffset;
           0, cos(q(1)), -sin(q(1)),  0;
           0, sin(q(1)),  cos(q(1)),  0;
           0, 0,          0,          1];
 
-  % transformation from HFE to HAA
+  % transformation from HAA to HFE
   % rotation about y, translation along hip link 
    if hipParalleltoBody == true
        T_12 = [cos(q(2)), 0,  sin(q(2)),  hipOffsetDirection*l_hip;
@@ -157,7 +157,7 @@ function [J_P, C_0EE, r_H_01, r_H_02, r_H_03, r_H_04, r_H_05, r_H_0EE]  = jointT
       n_6 = [0 0 0]'; % translation from distal joint to EE
   end
   
-  % return joint to position and joint to rotation matrix for IK algorithm
+  % Return joint to position and joint to rotation matrix for IK algorithm
   if (linkCount == 2)
       r_H_0EE = r_H_04; 
       C_0EE = T_04(1:3,1:3);
@@ -174,14 +174,14 @@ function [J_P, C_0EE, r_H_01, r_H_02, r_H_03, r_H_04, r_H_05, r_H_0EE]  = jointT
   end
   
   % Compute the position jacobian.
-  if (linkCount == 2)
+  if linkCount == 2
       J_P = [   cross(R_01*n_1, r_H_0EE - r_H_01) ...
                 cross(R_02*n_2, r_H_0EE - r_H_02) ...
                 cross(R_03*n_3, r_H_0EE - r_H_03) ...
                 cross(R_04*n_4, r_H_0EE - r_H_04) ...
              ];
   end
-  if (linkCount == 3)
+  if linkCount == 3
       J_P = [   cross(R_01*n_1, r_H_0EE - r_H_01) ...
                 cross(R_02*n_2, r_H_0EE - r_H_02) ...
                 cross(R_03*n_3, r_H_0EE - r_H_03) ...
@@ -189,7 +189,7 @@ function [J_P, C_0EE, r_H_01, r_H_02, r_H_03, r_H_04, r_H_05, r_H_0EE]  = jointT
                 cross(R_05*n_5, r_H_0EE - r_H_05) ...
              ];
   end
-  if (linkCount == 4)
+  if linkCount == 4
       J_P = [   cross(R_01*n_1, r_H_0EE - r_H_01) ...
                 cross(R_02*n_2, r_H_0EE - r_H_02) ...
                 cross(R_03*n_3, r_H_0EE - r_H_03) ...
