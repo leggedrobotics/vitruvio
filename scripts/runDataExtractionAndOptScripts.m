@@ -145,6 +145,7 @@ Leg.basicProperties.jointNames                               = jointNames(1:join
 Leg.basicProperties.trajectory.removalRatioStart             = removalRatioStart;
 Leg.basicProperties.trajectory.removalRatioEnd               = removalRatioEnd;
 Leg.basicProperties.trajectory.averageStepsForCyclicalMotion = dataExtraction.averageStepsForCyclicalMotion;
+Leg.basicProperties.configSelection                          = configSelection;
 for i = 1:legCount
     EEselection = EEnames(i,:);
     if strcmp(EEselection,'LF') || strcmp(EEselection,'RF')

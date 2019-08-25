@@ -1,6 +1,6 @@
 clear;
 close all;
-diary results
+diary commandWindowReadout
 
 %% Data extraction
 % if averageStepsForCyclicalMotion is true, the motion is segmented into individual steps which are averaged
@@ -11,7 +11,7 @@ dataExtraction.averageStepsForCyclicalMotion = false;
 dataExtraction.allowableDeviation = 0.1; % [m] Deviation between neighbouring points. If the deviation is larger, additional points are interpolated.
 
 %% Toggle leg properties: leg count, link count, configuration, direct/remote joint actuation, spider/serial leg
-legCount  = 4;                  % Accepts values from 1 to 4.
+legCount  = 2;                  % Accepts values from 1 to 4.
 linkCount = 2;                  % Accepts values from 2 to 4. [thigh, shank, foot, phalanges]. Hip link connects HAA and HFE but is not included in link count.
 configSelection = 'X';          % X or M
 
@@ -20,16 +20,16 @@ configSelection = 'X';          % X or M
 % actuator is assumed to be in the body.
 actuateJointDirectly.HAA = true; 
 actuateJointDirectly.HFE = true; 
-actuateJointDirectly.KFE = true;
+actuateJointDirectly.KFE = false;
 actuateJointDirectly.AFE = false;
 actuateJointDirectly.DFE = false;
 
 %% Select actuators for each joint
 % Select from: {ANYdrive, Neo, RoboDrive, Dynamixel, Other} or add a new actuator in
 % getActuatorProperties
-actuatorSelection.HAA = 'Neo'; 
-actuatorSelection.HFE = 'Neo'; 
-actuatorSelection.KFE = 'Neo';
+actuatorSelection.HAA = 'Dynamixel'; 
+actuatorSelection.HFE = 'Dynamixel'; 
+actuatorSelection.KFE = 'Dynamixel';
 actuatorSelection.AFE = 'Dynamixel'; 
 actuatorSelection.DFE = 'Dynamixel'; 
 
@@ -72,18 +72,19 @@ heuristic.torqueAngle.kTorsionalSpring = 50; % Spring constant for torsional spr
 
 %% Toggle trajectory plots and initial design viz
 saveFiguresToPDF             = false; % Figures are saved to results.pdf in current folder. This adds significant computation time.
-robotVisualization.view       = true; % initial leg design tracking trajectory plan
+
+robotVisualization.view       = false; % Visualization of nominal robot
 robotVisualization.plotOneLeg = false;
 robotVisualization.plotAllLegs = true; % If we don't average the trajectory, we can use this option to view all legs
+robotVisualization.torso     = false; % Also displays a torso at the front of the robot
 robotVisualization.numberOfStepsVisualized = 1;    % number of steps visualized for leg motion
 viewPlots.motionData         = false; % CoM position, speed. EE position and forces. Trajectory to be tracked.
 viewPlots.rangeOfMotionPlots = false; % range of motion of leg for given link lengths and angle limits
 viewPlots.efficiencyMap      = false; % actuator operating efficiency map
-viewPlots.jointDataPlot      = false; % angle, speed, torque, power, energy data
+viewPlots.jointDataPlot      = true; % angle, speed, torque, power, energy data
 viewPlots.metaParameterPlot  = false; % design parameters and key results plotted as pie charts
 
-% Optimization visualization
-optimizationProperties.viz.viewVisualization = true;
+optimizationProperties.viz.viewVisualization = false; %Visualization of optimized robot
 optimizationProperties.viz.numberOfCyclesVisualized = 1;
 optimizationProperties.viz.displayBestCurrentDesign = true; % display chart of current best leg design parameters while running ga
 
@@ -96,14 +97,14 @@ yourTrajectoryData = false;
 %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
 
 universalTrot    = false;
-universalStairs  = true;
-speedyStairs     = true;
-speedyGallop     = true;
-massivoWalk      = true;
-massivoStairs    = true;
-centaurWalk      = true;
-centaurStairs    = true;
-miniPronk        = true;
+universalStairs  = false;
+speedyStairs     = false;
+speedyGallop     = false;
+massivoWalk      = false;
+massivoStairs    = false;
+centaurWalk      = false;
+centaurStairs    = false;
+miniPronk        = false;
 ANYmalTrot       = false;
 defaultHopperHop = false;
 ANYmalSlowTrot2  = false;
@@ -116,23 +117,23 @@ ANYmalBearTrot2 = false; % Updated to match measured data
 ANYmalBearTrot3 = false; % Updated EE force splines
 
 ANYmalBearTrotSwing3    = false; 
-ANYmalBearTrotSwing5    = true; 
+ANYmalBearTrotSwing5    = false; 
 ANYmalBearElongatedTrot = false; 
-ANYmalBearPushup        = true;
-ANYmalBearSlowTrot      = true;
+ANYmalBearPushup        = false;
+ANYmalBearSlowTrot      = false;
 ANYmalBearSlowTrotIntermediateTorque = false;
 ANYmalBearFlyingTrot2 = false;
 
 vitruvianBipedPushupSquat = false;
 vitruvianBipedWalk        = false;
 vitruvianBipedHop         = false;
-vitruvianBipedFastWalk    = false;
+vitruvianBipedFastWalk    = true;
 
 vertexWalk = false;
 numberOfRepetitions = 0; % Number of times that leg is reoptimized. This allows for an easy check if the same optimal solution is found each time the optimization is run.
 
 %% Toggle optimization for each leg
-optimizationProperties.runOptimization = false; 
+optimizationProperties.runOptimization = true; 
 % select which legs are to be optimized
 optimizeLeg.LF = true; 
 optimizeLeg.RF = false; 
@@ -181,11 +182,11 @@ optimizationProperties.allowableExtension               = 0.95;   % [0 1] penali
 optimizationProperties.bounds.lowerBoundMultiplier.hipLength = 1;
 optimizationProperties.bounds.upperBoundMultiplier.hipLength = 1;
 
-optimizationProperties.bounds.lowerBoundMultiplier.thighLength = 0.5;
-optimizationProperties.bounds.upperBoundMultiplier.thighLength = 1.8;
+optimizationProperties.bounds.lowerBoundMultiplier.thighLength = 0.145/0.195;
+optimizationProperties.bounds.upperBoundMultiplier.thighLength = 0.145/0.195;
 
-optimizationProperties.bounds.lowerBoundMultiplier.shankLength = 0.5;
-optimizationProperties.bounds.upperBoundMultiplier.shankLength = 1.8;
+optimizationProperties.bounds.lowerBoundMultiplier.shankLength = 0.19575/0.25;
+optimizationProperties.bounds.upperBoundMultiplier.shankLength = 0.19575/0.25;
 
 optimizationProperties.bounds.lowerBoundMultiplier.footLength = 1;
 optimizationProperties.bounds.upperBoundMultiplier.footLength = 1;
@@ -211,7 +212,7 @@ optimizationProperties.bounds.lowerBoundMultiplier.transmissionGearRatio.HFE = 1
 optimizationProperties.bounds.upperBoundMultiplier.transmissionGearRatio.HFE = 1;
 
 optimizationProperties.bounds.lowerBoundMultiplier.transmissionGearRatio.KFE = 1;
-optimizationProperties.bounds.upperBoundMultiplier.transmissionGearRatio.KFE = 2;
+optimizationProperties.bounds.upperBoundMultiplier.transmissionGearRatio.KFE = 1;
 
 optimizationProperties.bounds.lowerBoundMultiplier.transmissionGearRatio.AFE = 1;
 optimizationProperties.bounds.upperBoundMultiplier.transmissionGearRatio.AFE = 1;

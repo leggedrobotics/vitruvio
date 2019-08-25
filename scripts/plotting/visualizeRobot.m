@@ -10,6 +10,7 @@
     bodyLength  = robotProperties.baseLength;
     bodyWidth   = robotProperties.baseWidth;
     bodyHeight  = robotProperties.baseHeight;
+    displayTorso = robotVisualization.torso;
     
     % Axis limits - adjust manually based on size of robot
     if robotVisualization.plotOneLeg
@@ -20,6 +21,9 @@
         xlimit = [-1, 1];
         ylimit = [-0.65, 0.65];
         zlimit = [0, results.(classSelection).(task).base.position.LF(end,3)+0.5];
+        if displayTorso
+            zlimit(2) = zlimit(2) + 0.4;
+        end
     end
 
     if strcmp(EEselection, 'LF') || strcmp(EEselection, 'RF')
@@ -52,19 +56,36 @@
             end
         end
 
-     if length(stepPosition(:,1))>1
-     stepPosition = unique(stepPosition, 'rows');
-        for i = 1:length(stepPosition(:,1))-1
-            if abs(stepPosition(i,3) - stepPosition(i+1,3)) < 0.01
-                stepPosition(i,:) = [0 0 0];
+        while any(abs(stepPosition(1:end-1,3)-stepPosition(2:end,3))<0.01)
+             if length(stepPosition(:,1))>1
+             stepPosition = unique(stepPosition, 'rows');
+                for i = 1:length(stepPosition(:,1))-1
+                    if abs(stepPosition(i+1,3) - stepPosition(i,3)) < 0.01
+                        stepPosition(i+1,:) = [0 0 0];
+                    end
+                end
+             end
+
+            stepPosition = stepPosition(any(stepPosition,2),:);
+            if length(stepPosition) > 1 && abs(stepPosition(1,3)) < 0.01
+                stepPosition(1,:) = [];
             end
         end
-     end
-        stepPosition = stepPosition(any(stepPosition,2),:);
-        if length(stepPosition) > 1 && abs(stepPosition(1,3)) < 0.01
-            stepPosition(1,:) = [];
+        % Final platform
+        platformCoordinates = 0;
+        if abs(inertialFrameEEPosition.(EEnames(k,:))(end,3)-inertialFrameEEPosition.(EEnames(k,:))(1,3))>0.03
+            if ~isempty(stepPosition)
+                platformStartPosition = stepPosition(end,1);
+                % Find last time EE was in contact and take the ground height
+                % at this time
+                footInContact = results.(classSelection).(task).LF.force(:,3);
+                lastContactIndex = find(abs(footInContact==0),1,'last');
+                platformHeight = inertialFrameEEPosition.LF(lastContactIndex,3);
+                platformCoordinates = [platformStartPosition, inertialFrameEEPosition.LF(end,2)-0.5*bodyWidth, platformHeight];
+                platformLength =  inertialFrameEEPosition.LF(lastContactIndex,1) - platformStartPosition + 0.5;
+            end
         end
-    end
+    
     
     %% Get joint positions
     for i = 1:finalPlottingIndex
@@ -128,6 +149,7 @@
                 
                 % Set frames = on to see the coordinate system of the leg
                 show(robot,config(i,:), 'Frames', 'off');
+                grid off
                 xlim([xlimit(1) xlimit(2)]);
                 ylim([ylimit(1) ylimit(2)]);
                 zlim([zlimit(1) zlimit(2)]);
@@ -193,20 +215,20 @@
                             rEE  = [results.(classSelection).(task).(EEselection).r.EE(i,1) results.(classSelection).(task).(EEselection).r.EE(i,2) results.(classSelection).(task).(EEselection).r.EE(i,3)];
                         end
                         
-                        [x1,y1,z1] = cylinder2P(robotProperties.hip(selectFrontHind).radius, 20, rHAA,rHFE);
-                        [x2,y2,z2] = cylinder2P(robotProperties.thigh(selectFrontHind).radius, 20,rHFE,rKFE);
-                        [x3,y3,z3] = cylinder2P(robotProperties.shank(selectFrontHind).radius, 20,rKFE,rAFE);
+                        [x1,y1,z1] = cylinder2P(robotProperties.hip(selectFrontHind).radius, 40, rHAA,rHFE);
+                        [x2,y2,z2] = cylinder2P(robotProperties.thigh(selectFrontHind).radius, 40,rHFE,rKFE);
+                        [x3,y3,z3] = cylinder2P(robotProperties.shank(selectFrontHind).radius, 40,rKFE,rAFE);
                         surf(x1, y1, z1, 'edgecolor','none')
                         surf(x2, y2, z2, 'edgecolor','none')
                         surf(x3, y3, z3, 'edgecolor','none')   
                         
                         if linkCount > 2 
-                            [x4,y4,z4] = cylinder2P(robotProperties.foot(selectFrontHind).radius, 20,rAFE,rDFE);
+                            [x4,y4,z4] = cylinder2P(robotProperties.foot(selectFrontHind).radius, 40,rAFE,rDFE);
                             surf(x4, y4, z4, 'edgecolor','none')
                         end
                         
                         if linkCount == 4
-                            [x5,y5,z5] = cylinder2P(robotProperties.phalanges(selectFrontHind).radius, 20,rDFE,rEE);
+                            [x5,y5,z5] = cylinder2P(robotProperties.phalanges(selectFrontHind).radius, 40,rDFE,rEE);
                             surf(x5, y5, z5, 'edgecolor','none')
                         end
                         
@@ -244,6 +266,7 @@
                 if viewIndex == 1 % Iso view
                     subplot(2,2,[2 4])
                     show(robot, config(i,:), 'Frames', 'off');
+                    grid off
                     view([-30 10])
                     xlim([xlimit(1) xlimit(2)]);
                     ylim([ylimit(1) ylimit(2)]);
@@ -251,6 +274,7 @@
                 elseif viewIndex == 2 % Top View
                     subplot(2,2,1)
                     show(robot, config(i,:), 'Frames', 'off');
+                    grid off
                     view([0 90])
                     xlim([xlimit(1) xlimit(2)]);
                     ylim([ylimit(1) ylimit(2)]);
@@ -258,6 +282,7 @@
                 else % Side view
                     subplot(2,2,3)
                     show(robot, config(i,:), 'Frames', 'off');
+                    grid off
                     view([0 0])
                     xlim([xlimit(1) xlimit(2)]);
                     ylim([ylimit(1) ylimit(2)]);
@@ -265,6 +290,7 @@
                 end
             else
                 show(robot, config(i,:), 'Frames', 'off');
+                grid off
                 view([-30 10])
                 xlim([xlimit(1) xlimit(2)]);
                 ylim([ylimit(1) ylimit(2)]);
@@ -275,7 +301,7 @@
             
             % Plot moving lines on ground to show robot movement speed
             groundGridlines = linspace(-1,40,411) - results.(classSelection).(task).base.position.(EEselection)(i,1);
-            plot([groundGridlines(:),groundGridlines(:)],[-3,3], 'k')
+            plot([groundGridlines(:),groundGridlines(:)],[-3,3], 'k', 'LineWidth', 0.5)
 
                 %% Plot all legs  
                 if legCount > 2
@@ -308,7 +334,7 @@
                 end
                 bodyCenterX = mean(bodyCenterX);
                 
-                     vert = [-bodyCenterX/2 0 0] + ...
+                     vert = [bodyCenterX 0 0] + ...
                             [0.5*bodyLength,  0.5*bodyWidth, -0.04;...
                             -0.5*bodyLength,  0.5*bodyWidth, -0.04;...
                             -0.5*bodyLength, -0.5*bodyWidth, -0.04;...
@@ -318,6 +344,7 @@
                             -0.5*bodyLength, -0.5*bodyWidth, bodyHeight;...
                              0.5*bodyLength, -0.5*bodyWidth, bodyHeight];
 
+                    vertTorso = vert;    
                     % Compute body rotation about y axis with elementary rotation matrix
                     bodyRotation = [cos(-config(i,1)), 0, sin(-config(i,1));
                                     0                  1, 0;
@@ -330,6 +357,26 @@
                     % Plot body patch
                     patch('Vertices',vert,'Faces',fac,'FaceColor','w', 'FaceAlpha', 0.2)    
 
+                    %% Torso for centaur robot
+                    if displayTorso
+                        torsoHeight = 0.49;
+                        torsoLength = 0.22;
+                        torsoWidth  = 0.28;
+                        vertTorso(:,2) = vertTorso(:,2) -0.3*vertTorso(:,2); % Make torso narrower
+                        vertTorso(1:4,3) = vertTorso(5:end,3); % shift torso up
+                        vertTorso(5:end,3) = vertTorso(5:end,3) + torsoHeight; % Extend torso height
+                        
+                        % Shift back of torso forward
+                        vertTorso(2,1) = vertTorso(1,1) - torsoLength;
+                        vertTorso(3,1) = vertTorso(1,1) - torsoLength;
+                        vertTorso(6,1) = vertTorso(1,1) - torsoLength;
+                        vertTorso(7,1) = vertTorso(1,1) - torsoLength;
+                        
+                        % Apply body rotation
+                        vertTorso = vertTorso*bodyRotation + [0,0,-groundCoordinatesZ(i,1)];
+                        patch('Vertices',vertTorso,'Faces',fac,'FaceColor','w', 'FaceAlpha', 0.2)    
+                    end
+                    %% Ground
                       % Get ground color dependent on phase
                         if legCount > 1
                             if results.(classSelection).(task).LF.force(i,3) > 0 && results.(classSelection).(task).RF.force(i,3) > 0 % Trot, all legs stance
@@ -348,7 +395,7 @@
                         end
                         
                         %% Plot ground and stairs
-                        patch(groundCoordinatesX(1,:), groundCoordinatesY(1,:), [0 0 0 0], groundColor, 'FaceAlpha', 0.5)
+                        patch(groundCoordinatesX(1,:), groundCoordinatesY(1,:), [0 0 0 0], groundColor, 'FaceAlpha', 0.5, 'LineStyle', 'none')
                         
                         for k = 1:legCount
                             if results.(classSelection).(task).(EEnames(k,:)).force(i,3) > 0
@@ -358,17 +405,21 @@
                             end
   
                             for n = 1:length(stepPosition(:,1))
-                                patch((stepPosition(n,1)-results.(classSelection).(task).base.position.(EEselection)(i,1))+0.05*[5 5 -3 -3], stepPosition(n,2) + 3*[1 -1 -1 1], stepPosition(n,3)*[1 1 1 1], groundColorStairs.(EEnames(k,:)), 'FaceAlpha', 0.5)
+                                patch(stepPosition(n,1)-results.(classSelection).(task).base.position.(EEselection)(i,1)+0.05*[5 5 -3 -3], stepPosition(n,2) + 3*[1 -1 -1 1], stepPosition(n,3)*[1 1 1 1], groundColorStairs.(EEnames(k,:)), 'FaceAlpha', 0.5, 'LineStyle', 'none')
                             end
                         end
-         
+                        
+                        % Plot final platform
+                        if platformCoordinates ~= 0
+                            patch((platformCoordinates(1,1)-results.(classSelection).(task).base.position.(EEselection)(i,1))+platformLength*[1 1 0 0], platformCoordinates(1,2)+2*[1 -1 -1 1], platformCoordinates(1,3)*[1 1 1 1], groundColorStairs.LF, 'FaceAlpha', 0.5, 'LineStyle', 'none');
+                        end
                     %% Display links and end effectors
                     for k = 1:legCount
                         EEselection = EEnames(k,:);
                         
                         % Display end effectors as spheres
                         surf(xNom.(EEselection)+xEE+results.(classSelection).(task).(EEselection).r.EE(i,1),yNom.(EEselection)+yEE+results.(classSelection).(task).(EEselection).r.EE(i,2),zNom.(EEselection)+zEE+results.(classSelection).(task).(EEselection).r.EE(i,3)-groundCoordinatesZ(i,1), 'edgecolor','none')
-                        colormap('white');
+                        colormap('white'); % colormap('white')
 
                           % Display links as cylinders
                         if ~optimized || (optimized && ~results.(classSelection).(task).basicProperties.optimizedLegs.(EEselection))

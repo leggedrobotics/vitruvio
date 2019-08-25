@@ -191,8 +191,8 @@ function robotProperties = getRobotProperties(robotSelection, transmissionMethod
     robot.ANYmalBear.hip(2).length = 0.112;
     robot.ANYmalBear.thigh(1).length = 0.25;
     robot.ANYmalBear.thigh(2).length = 0.25;
-    robot.ANYmalBear.shank(1).length = 0.33; % 0.3045;
-    robot.ANYmalBear.shank(2).length = 0.33; % 0.3045;
+    robot.ANYmalBear.shank(1).length = 0.33;
+    robot.ANYmalBear.shank(2).length = 0.33;
     robot.ANYmalBear.foot(1).length = 0.16;
     robot.ANYmalBear.foot(2).length = 0.16;
     robot.ANYmalBear.phalanges(1).length = 0.1;
@@ -232,8 +232,8 @@ function robotProperties = getRobotProperties(robotSelection, transmissionMethod
      robot.ANYmalBear.hipOffset(2) = robot.ANYmalBear.xNom(1)-0.225; %robot.ANYmalBear.xNom(1)-0.225; %robot.ANYmalBear.hip(2).length + 0.1;
      
      % Base dimensions used for visualization - visualized as a box
-     robot.ANYmalBear.baseLength = 0.8;
-     robot.ANYmalBear.baseWidth  = 0.4;
+     robot.ANYmalBear.baseLength = 0.6;
+     robot.ANYmalBear.baseWidth  = 0.3;
      robot.ANYmalBear.baseHeight = 0.2;     
      
      %% Vitruvian Biped
@@ -261,7 +261,7 @@ function robotProperties = getRobotProperties(robotSelection, transmissionMethod
     % link lengths [m]
     % fore, hind
     robot.vitruvianBiped.hip(1).length = 0.0001;
-    robot.vitruvianBiped.thigh(1).length = 0.1936;
+    robot.vitruvianBiped.thigh(1).length = 0.195;
     robot.vitruvianBiped.shank(1).length = 0.25;
     robot.vitruvianBiped.foot(1).length = 0.05;
     robot.vitruvianBiped.phalanges(1).length = 0.05;
@@ -331,12 +331,12 @@ function robotProperties = getRobotProperties(robotSelection, transmissionMethod
     % fore, hind
     robot.universal.hip(1).length = 0.14;
     robot.universal.hip(2).length = 0.14;
-    robot.universal.thigh(1).length = 0.4;
-    robot.universal.thigh(2).length = 0.4;
-    robot.universal.shank(1).length = 0.4;
-    robot.universal.shank(2).length = 0.4;
-    robot.universal.foot(1).length = 0.1;
-    robot.universal.foot(2).length = 0.1;
+    robot.universal.thigh(1).length = 0.4;%0.4;
+    robot.universal.thigh(2).length = 0.4;%0.4;
+    robot.universal.shank(1).length = 0.4;%0.4;
+    robot.universal.shank(2).length = 0.4;%0.4;
+    robot.universal.foot(1).length = 0.2;
+    robot.universal.foot(2).length = 0.2;
     robot.universal.phalanges(1).length = 0.05;
     robot.universal.phalanges(2).length = 0.1;
 
@@ -373,8 +373,8 @@ function robotProperties = getRobotProperties(robotSelection, transmissionMethod
      robot.universal.hipOffset(2) = robot.universal.xNom(1)-0.225;
      
      % Base dimensions used for visualization - visualized as a box
-     robot.universal.baseWidth  = 0.4;
-     robot.universal.baseLength = 0.9;
+     robot.universal.baseWidth  = 0.3;
+     robot.universal.baseLength = 0.75;
      robot.universal.baseHeight = 0.2;
      
     %% Speedy 
@@ -641,8 +641,8 @@ function robotProperties = getRobotProperties(robotSelection, transmissionMethod
 
     % link lengths [m]
     % fore, hind
-    robot.mini.hip(1).length = 0.15;
-    robot.mini.hip(2).length = 0.15;
+    robot.mini.hip(1).length = 0.08;
+    robot.mini.hip(2).length = 0.08;
     robot.mini.thigh(1).length = 0.14;
     robot.mini.thigh(2).length = 0.14;
     robot.mini.shank(1).length = 0.14;

@@ -14,7 +14,7 @@ suggestedRemovalRatioEnd.yourTrajectoryData   = 0.1;
 %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
 
 suggestedRemovalRatioStart.universalTrot = 0.1;
-suggestedRemovalRatioEnd.universalTrot   = 0.1;
+suggestedRemovalRatioEnd.universalTrot   = 0;
 
 suggestedRemovalRatioStart.universalStairs = 0;%0.3;
 suggestedRemovalRatioEnd.universalStairs   = 0;%0.3;
@@ -26,7 +26,7 @@ suggestedRemovalRatioStart.speedyStairs = 0.2;
 suggestedRemovalRatioEnd.speedyStairs   = 0;
 
 suggestedRemovalRatioStart.massivoWalk = 0.2;
-suggestedRemovalRatioEnd.massivoWalk   = 0.1;
+suggestedRemovalRatioEnd.massivoWalk   = 0;
 
 suggestedRemovalRatioStart.massivoStairs = 0.1;
 suggestedRemovalRatioEnd.massivoStairs   = 0;
@@ -35,13 +35,13 @@ suggestedRemovalRatioStart.centaurStairs = 0.1;
 suggestedRemovalRatioEnd.centaurStairs   = 0;
 
 suggestedRemovalRatioStart.centaurWalk = 0.2;
-suggestedRemovalRatioEnd.centaurWalk   = 0.1;
+suggestedRemovalRatioEnd.centaurWalk   = 0;
 
 suggestedRemovalRatioStart.miniPronk = 0.1;
-suggestedRemovalRatioEnd.miniPronk   = 0.1;
+suggestedRemovalRatioEnd.miniPronk   = 0;
 
 suggestedRemovalRatioStart.ANYmalTrot = 0.1;
-suggestedRemovalRatioEnd.ANYmalTrot   = 0.1;
+suggestedRemovalRatioEnd.ANYmalTrot   = 0;
 
 suggestedRemovalRatioStart.ANYmalSlowTrotAccurateMotion = 0;
 suggestedRemovalRatioEnd.ANYmalSlowTrotAccurateMotion   = 0;
@@ -73,11 +73,11 @@ suggestedRemovalRatioEnd.ANYmalBearElongatedTrot = 0.1;
 suggestedRemovalRatioStart.ANYmalBearFlyingTrot2 = 0.3;
 suggestedRemovalRatioEnd.ANYmalBearFlyingTrot2  = 0.3;
 
-suggestedRemovalRatioStart.vitruvianBipedWalkOnSpot = 0;%0.2;
-suggestedRemovalRatioEnd.vitruvianBipedWalkOnSpot   = 0;%0.2;
+suggestedRemovalRatioStart.vitruvianBipedWalkOnSpot = 0;
+suggestedRemovalRatioEnd.vitruvianBipedWalkOnSpot   = 0;
 
-suggestedRemovalRatioStart.vitruvianBipedHop = 0;%0.1;
-suggestedRemovalRatioEnd.vitruvianBipedHop   = 0;%0.1;
+suggestedRemovalRatioStart.vitruvianBipedHop = 0;
+suggestedRemovalRatioEnd.vitruvianBipedHop   = 0;
 
 removalRatioStart = suggestedRemovalRatioStart.(taskSelection);
 removalRatioEnd = suggestedRemovalRatioEnd.(taskSelection);

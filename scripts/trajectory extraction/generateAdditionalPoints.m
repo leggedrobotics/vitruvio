@@ -27,7 +27,7 @@ function [interpolatedPositionData, interpolatedVelocityData, interpolatedForceD
         tempBasePosition(2*i-1,:) = trajectoryData.base.position(i,:);
     end
     
-    for i = 1:length(length(Leg.inertialFrame.EEpositionTrimmed.(EEselection)))
+    for i = 1:length(Leg.inertialFrame.EEpositionTrimmed.(EEselection))
         tempEEPosition(2*i-1,:) = Leg.inertialFrame.EEpositionTrimmed.(EEselection)(i,:);
     end
 
