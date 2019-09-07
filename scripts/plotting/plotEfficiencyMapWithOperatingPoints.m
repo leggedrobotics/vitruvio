@@ -1,33 +1,33 @@
-function [] = plotEfficiencyMapWithOperatingPoints(classSelection, task, saveFiguresToPDF)
+function [] = plotEfficiencyMapWithOperatingPoints(classSelection, saveFiguresToPDF)
 
-    legCount          = classSelection.(task).basicProperties.legCount;
-    linkCount         = classSelection.(task).basicProperties.linkCount;
-    EEnames           = classSelection.(task).basicProperties.EEnames;
-    gearRatio         = classSelection.(task).actuatorProperties.gearRatio;
-    jointNames        = classSelection.(task).basicProperties.jointNames;
-    actuatorSelection = classSelection.(task).actuatorProperties.actuatorSelection;
-    dt                = classSelection.(task).time(2) - classSelection.(task).time(1); % sample time dt is constant across the whole motion
-    averageStepsForCyclicalMotion = classSelection.(task).basicProperties.trajectory.averageStepsForCyclicalMotion; % true or false statement indicating if steps were averaged or not
+    legCount          = classSelection.basicProperties.legCount;
+    linkCount         = classSelection.basicProperties.linkCount;
+    EEnames           = classSelection.basicProperties.EEnames;
+    gearRatio         = classSelection.actuatorProperties.gearRatio;
+    jointNames        = classSelection.basicProperties.jointNames;
+    actuatorSelection = classSelection.actuatorProperties.actuatorSelection;
+    dt                = classSelection.time(2) - classSelection.time(1); % sample time dt is constant across the whole motion
+    averageStepsForCyclicalMotion = classSelection.basicProperties.trajectory.averageStepsForCyclicalMotion; % true or false statement indicating if steps were averaged or not
  %% Read in qdot and torque values for nominal and optimized designs
  for i = 1:legCount
     EEselection = EEnames(i,:);
     % Optimized qdot and torque values
-    if classSelection.(task).basicProperties.optimizedLegs.(EEselection)      
+    if classSelection.basicProperties.optimizedLegs.(EEselection)      
         % Convert qdot and torque values from joint level to motor level.
         for j = 1:linkCount+1
-            qdotMotorOpt.(EEselection)(:,j)   =  classSelection.(task).(EEselection).actuatorqdotOpt(:,j) *gearRatio.(jointNames(j,:));        
-            torqueMotorOpt.(EEselection)(:,j) =  classSelection.(task).(EEselection).actuatorTorqueOpt(:,j)/gearRatio.(jointNames(j,:));
+            qdotMotorOpt.(EEselection)(:,j)   =  classSelection.(EEselection).actuatorqdotOpt(:,j) *gearRatio.(jointNames(j,:));        
+            torqueMotorOpt.(EEselection)(:,j) =  classSelection.(EEselection).actuatorTorqueOpt(:,j)/gearRatio.(jointNames(j,:));
         end
     end
     % Nominal qdot and torque values
     for j = 1:linkCount+1 % joint count = linkCount+1
-        qdotMotor.(EEselection)(:,j)   = classSelection.(task).(EEselection).actuatorqdot(:,j)*gearRatio.(jointNames(j,:));        
-        torqueMotor.(EEselection)(:,j) = classSelection.(task).(EEselection).actuatorTorque(:,j)/gearRatio.(jointNames(j,:));
+        qdotMotor.(EEselection)(:,j)   = classSelection.(EEselection).actuatorqdot(:,j)*gearRatio.(jointNames(j,:));        
+        torqueMotor.(EEselection)(:,j) = classSelection.(EEselection).actuatorTorque(:,j)/gearRatio.(jointNames(j,:));
     end
     % Liftoff and touchdown timings for differentiation between swing and
     % stance phase in plot
-    tLiftoff.(EEselection)   = classSelection.(task).(EEselection).tLiftoff;
-    tTouchdown.(EEselection) = classSelection.(task).(EEselection).tTouchdown;
+    tLiftoff.(EEselection)   = classSelection.(EEselection).tLiftoff;
+    tTouchdown.(EEselection) = classSelection.(EEselection).tTouchdown;
     liftoffIndex.(EEselection) = round(tLiftoff.(EEselection)/dt) + 1;
     touchdownIndex.(EEselection) = round(tTouchdown.(EEselection)/dt) + 1;
     
@@ -49,11 +49,11 @@ function [] = plotEfficiencyMapWithOperatingPoints(classSelection, task, saveFig
 %% Read in the values for plotting the envelope and efficiency map for each actuator and convert to motor level using gear ratio
     for i = 1:linkCount+1
         actuator = actuatorSelection.(jointNames(i,:));
-        qdotEnvelope.(jointNames(i,:))         = classSelection.(task).efficiencyMap.(actuator).qdotEnvelope * gearRatio.(jointNames(i,:));
-        torqueEnvelope.(jointNames(i,:))       = classSelection.(task).efficiencyMap.(actuator).torqueEnvelope / gearRatio.(jointNames(i,:));  
-        qdotMap.(jointNames(i,:))              = classSelection.(task).efficiencyMap.(actuator).qdot * gearRatio.(jointNames(i,:));
-        torqueMap.(jointNames(i,:))            = classSelection.(task).efficiencyMap.(actuator).torque / gearRatio.(jointNames(i,:));  
-        efficiencyMapCropped.(jointNames(i,:)) = classSelection.(task).efficiencyMap.(actuator).efficiencyMapCropped;  
+        qdotEnvelope.(jointNames(i,:))         = classSelection.efficiencyMap.(actuator).qdotEnvelope * gearRatio.(jointNames(i,:));
+        torqueEnvelope.(jointNames(i,:))       = classSelection.efficiencyMap.(actuator).torqueEnvelope / gearRatio.(jointNames(i,:));  
+        qdotMap.(jointNames(i,:))              = classSelection.efficiencyMap.(actuator).qdot * gearRatio.(jointNames(i,:));
+        torqueMap.(jointNames(i,:))            = classSelection.efficiencyMap.(actuator).torque / gearRatio.(jointNames(i,:));  
+        efficiencyMapCropped.(jointNames(i,:)) = classSelection.efficiencyMap.(actuator).efficiencyMapCropped;  
     end
     
 %     if classSelection.trot.basicProperties.trajectory.averageStepsForCyclicalMotion  % if true, the points are averaged and we can differentiate swing and stance
@@ -93,7 +93,7 @@ function [] = plotEfficiencyMapWithOperatingPoints(classSelection, task, saveFig
                 if averageStepsForCyclicalMotion
                 pNomSwing  = plot(qdotMotor.(EEselection)(1:touchdownIndex.(EEselection),j), torqueMotor.(EEselection)(1:touchdownIndex.(EEselection),j),  lineTypeSwing, 'lineWidth', lineWidth, 'DisplayName', 'nominal leg, swing');
                 pNomStance = plot(qdotMotor.(EEselection)(touchdownIndex.(EEselection):end,j), torqueMotor.(EEselection)(touchdownIndex.(EEselection):end,j),  lineTypeStance, 'lineWidth', lineWidth, 'DisplayName', 'nominal leg, stance');
-                    if classSelection.(task).basicProperties.optimizedLegs.(EEselection)  
+                    if classSelection.basicProperties.optimizedLegs.(EEselection)  
                         pOptSwing  = plot(qdotMotorOpt.(EEselection)(1:touchdownIndex.(EEselection),j), torqueMotorOpt.(EEselection)(1:touchdownIndex.(EEselection),j),  lineTypeSwingOpt, 'lineWidth', lineWidth, 'DisplayName', 'optimized leg, swing');
                         pOptStance = plot(qdotMotorOpt.(EEselection)(touchdownIndex.(EEselection)(1):end,j), torqueMotorOpt.(EEselection)(touchdownIndex.(EEselection)(1):end,j),  lineTypeStanceOpt, 'lineWidth', lineWidth, 'DisplayName', 'optimized leg, stance');
                     end
@@ -101,14 +101,14 @@ function [] = plotEfficiencyMapWithOperatingPoints(classSelection, task, saveFig
                 else % If the steps are not averaged and differentiating swing/stance phase is more involved
                     if strcmp(startingPhase.(EEselection), 'stance') % Leg starts in stance phase
                         plot(qdotMotor.(EEselection)(1:liftoffIndex.(EEselection)(1),j), torqueMotor.(EEselection)(1:liftoffIndex.(EEselection)(1),j),  lineTypeStance, 'lineWidth', lineWidth, 'DisplayName', 'nominal leg, stance');
-                        if classSelection.(task).basicProperties.optimizedLegs.(EEselection)  
+                        if classSelection.basicProperties.optimizedLegs.(EEselection)  
                             plot(qdotMotorOpt.(EEselection)(1:liftoffIndex.(EEselection)(1),j), torqueMotorOpt.(EEselection)(1:liftoffIndex.(EEselection)(1),j),  lineTypeStanceOpt, 'lineWidth', lineWidth, 'DisplayName', 'optimized leg, stance');
                         end
                         for k = 1:length(liftoffIndex.(EEselection))
                             if k < min([length(liftoffIndex.(EEselection)), length(touchdownIndex.(EEselection))])
                                 pNomSwing  = plot(qdotMotor.(EEselection)(liftoffIndex.(EEselection)(k):touchdownIndex.(EEselection)(k),j), torqueMotor.(EEselection)(liftoffIndex.(EEselection)(k):touchdownIndex.(EEselection)(k),j),  lineTypeSwing, 'lineWidth', lineWidth, 'DisplayName', 'nominal leg, swing');
                                 pNomStance = plot(qdotMotor.(EEselection)(touchdownIndex.(EEselection)(k):liftoffIndex.(EEselection)(k+1),j), torqueMotor.(EEselection)(touchdownIndex.(EEselection)(k):liftoffIndex.(EEselection)(k+1),j),  lineTypeStance, 'lineWidth', lineWidth, 'DisplayName', 'nominal leg stance');
-                                if classSelection.(task).basicProperties.optimizedLegs.(EEselection)  
+                                if classSelection.basicProperties.optimizedLegs.(EEselection)  
                                     pOptSwing  = plot(qdotMotorOpt.(EEselection)(liftoffIndex.(EEselection)(k):touchdownIndex.(EEselection)(k),j), torqueMotorOpt.(EEselection)(liftoffIndex.(EEselection)(k):touchdownIndex.(EEselection)(k),j),  lineTypeSwingOpt, 'lineWidth', lineWidth, 'DisplayName', 'optimized leg, swing');
                                     pOptStance = plot(qdotMotorOpt.(EEselection)(touchdownIndex.(EEselection)(k):liftoffIndex.(EEselection)(k+1),j), torqueMotorOpt.(EEselection)(touchdownIndex.(EEselection)(k):liftoffIndex.(EEselection)(k+1),j),  lineTypeStanceOpt, 'lineWidth', lineWidth, 'DisplayName', 'optimized leg, stance');
                                 end
@@ -122,7 +122,7 @@ function [] = plotEfficiencyMapWithOperatingPoints(classSelection, task, saveFig
                             if k < min([length(liftoffIndex.(EEselection)), length(touchdownIndex.(EEselection))])
                                 pNomStance = plot(qdotMotor.(EEselection)(touchdownIndex.(EEselection)(k):liftoffIndex.(EEselection)(k),j), torqueMotor.(EEselection)(touchdownIndex.(EEselection)(k):liftoffIndex.(EEselection)(k),j),  lineTypeStance, 'lineWidth', lineWidth, 'DisplayName', 'nominal leg, stance');
                                 pNomSwing  = plot(qdotMotor.(EEselection)(liftoffIndex.(EEselection)(k):touchdownIndex.(EEselection)(k+1),j), torqueMotor.(EEselection)(liftoffIndex.(EEselection)(k):touchdownIndex.(EEselection)(k+1),j),  lineTypeSwing, 'lineWidth', lineWidth, 'DisplayName', 'nominal leg, swing');
-                                if classSelection.(task).basicProperties.optimizedLegs.(EEselection) 
+                                if classSelection.basicProperties.optimizedLegs.(EEselection) 
                                     pOptStance = plot(qdotMotorOpt.(EEselection)(touchdownIndex.(EEselection)(k):liftoffIndex.(EEselection)(k),j), torqueMotorOpt.(EEselection)(touchdownIndex.(EEselection)(k):liftoffIndex.(EEselection)(k),j),  lineTypeStanceOpt, 'lineWidth', lineWidth, 'DisplayName', 'optimized leg, stance');
                                     pOptSwing  = plot(qdotMotorOpt.(EEselection)(liftoffIndex.(EEselection)(k):touchdownIndex.(EEselection)(k+1),j), torqueMotorOpt.(EEselection)(liftoffIndex.(EEselection)(k):touchdownIndex.(EEselection)(k+1),j),  lineTypeSwingOpt, 'lineWidth', lineWidth, 'DisplayName', 'optimized leg, swing');
                                 end
@@ -132,12 +132,12 @@ function [] = plotEfficiencyMapWithOperatingPoints(classSelection, task, saveFig
 
                     if strcmp(endingPhase,'stance')
                         plot(qdotMotor.(EEselection)(touchdownIndex.(EEselection)(end):end,j), torqueMotor.(EEselection)(touchdownIndex.(EEselection)(end):end,j),  lineTypeStance, 'lineWidth', lineWidth, 'DisplayName', 'nominal leg, stance');
-                        if classSelection.(task).basicProperties.optimizedLegs.(EEselection) 
+                        if classSelection.basicProperties.optimizedLegs.(EEselection) 
                             plot(qdotMotorOpt.(EEselection)(touchdownIndex.(EEselection)(end):end,j), torqueMotorOpt.(EEselection)(touchdownIndex.(EEselection)(end):end,j),  lineTypeStanceOpt, 'lineWidth', lineWidth, 'DisplayName', 'optimized leg, stance');
                         end
                     else
                         plot(qdotMotor.(EEselection)(liftoffIndex.(EEselection)(end):end,j), torqueMotor.(EEselection)(liftoffIndex.(EEselection)(end):end,j),  lineTypeSwing, 'lineWidth', lineWidth, 'DisplayName', 'nominal leg, swing');                                
-                        if classSelection.(task).basicProperties.optimizedLegs.(EEselection) 
+                        if classSelection.basicProperties.optimizedLegs.(EEselection) 
                             plot(qdotMotorOpt.(EEselection)(liftoffIndex.(EEselection)(end):end,j), torqueMotorOpt.(EEselection)(liftoffIndex.(EEselection)(end):end,j),  lineTypeSwingOpt, 'lineWidth', lineWidth, 'DisplayName', 'optimized leg, swing');                                
                         end
                     end
@@ -147,7 +147,7 @@ function [] = plotEfficiencyMapWithOperatingPoints(classSelection, task, saveFig
                 xlabel('qdot [rad/s]')
                 ylabel('torque [Nm]')
                 
-                if classSelection.(task).basicProperties.optimizedLegs.(EEselection) 
+                if classSelection.basicProperties.optimizedLegs.(EEselection) 
                     legend([pNomStance pNomSwing pOptStance pOptSwing]) % Legend for optimized design
                 else
                     legend([pNomStance pNomSwing]) % Legend for nominal design

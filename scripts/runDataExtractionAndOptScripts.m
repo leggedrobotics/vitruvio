@@ -136,6 +136,7 @@ end
 
 %% Save robot basic properties
 Leg.basicProperties.classSelection                           = classSelection;
+Leg.basicProperties.task                                     = task;
 Leg.basicProperties.optimizedLegs                            = optimizeLeg;
 Leg.basicProperties.legCount                                 = legCount;
 Leg.basicProperties.linkCount                                = linkCount;
@@ -146,6 +147,8 @@ Leg.basicProperties.trajectory.removalRatioStart             = removalRatioStart
 Leg.basicProperties.trajectory.removalRatioEnd               = removalRatioEnd;
 Leg.basicProperties.trajectory.averageStepsForCyclicalMotion = dataExtraction.averageStepsForCyclicalMotion;
 Leg.basicProperties.configSelection                          = configSelection;
+
+
 for i = 1:legCount
     EEselection = EEnames(i,:);
     if strcmp(EEselection,'LF') || strcmp(EEselection,'RF')
@@ -392,6 +395,20 @@ for i = 1:legCount
     end
 end
 
+% %% FOR PROTOTYPE
+% % For KFE configuration of prototype
+% % Get HFE torque corresponding to prototype config 
+% % Remote KFE actuation with KFE fixed to thigh at the HFE axis
+% if isequal(Leg.basicProperties.classSelection, 'vitruvianBiped')
+%     transmissionMethod.KFEAnchoredToThigh = true;
+%     if transmissionMethod.KFEAnchoredToThigh
+%         for i = 1:legCount
+%             EEselection = EEnames(i,:);
+%             Leg.(EEselection).actuatorTorque(:,2) =  Leg.(EEselection).actuatorTorque(:,2) + Leg.(EEselection).actuatorTorque(:,3);
+%         end
+%     end
+% end
+
 %% Get efficiency map of actuator
 fprintf('Computing actuator efficiency map. \n');
 actuatorList = {actuatorSelection.HAA, actuatorSelection.HFE, actuatorSelection.KFE, actuatorSelection.AFE, actuatorSelection.DFE};
@@ -435,6 +452,7 @@ end
 fprintf('Computing meta parameters. \n');
 
 Leg.CoM.velocity = trajectoryData.base.velocity(floor(removalRatioStart*length(trajectoryData.base.velocity))+1:floor((1-removalRatioEnd)*length(trajectoryData.base.velocity)),:);
+Leg.CoM.meanVelocity = mean(Leg.CoM.velocity(:,1));
 Leg.metaParameters.CoT.total = 0; % initialize total cost of transport
 
 for i = 1:legCount
@@ -442,7 +460,8 @@ for i = 1:legCount
    
     % Cost of transport
     power = Leg.(EEselection).jointPower;
-    Leg.metaParameters.CoT.(EEselection) = getCostOfTransport(Leg, power, robotProperties);
+    v = Leg.CoM.meanVelocity;
+    Leg.metaParameters.CoT.(EEselection) = getCostOfTransport(v, power, robotProperties);
    
     % Add contribution of each leg to get the total CoT
     Leg.metaParameters.CoT.total = Leg.metaParameters.CoT.total + Leg.metaParameters.CoT.(EEselection); 
@@ -550,9 +569,49 @@ if optimizationProperties.runOptimization % master toggle in main
             Leg.(EEselection).mechEnergyPerCycleActiveOpt                    = optimizationResults.mechEnergyPerCycleActiveOpt;
             % compute CoT
              power = Leg.(EEselection).jointPowerOpt;
-             Leg.metaParameters.CoTOpt.(EEselection) = getCostOfTransport(Leg, power, robotProperties);
+             Leg.metaParameters.CoTOpt.(EEselection) = getCostOfTransport(v, power, robotProperties);
              Leg.metaParameters.powerQualityOpt.(EEselection) = computePowerQuality(power);
         end
     end
 end
-end
+
+%% For prototype analysis
+% if isequal(Leg.basicProperties.classSelection, 'vitruvianBiped')
+% % [polynomials64R, torquePoints64R, polynomialsXM540, torquePointsXM540] = DynamixelPerformanceGraphs;
+%     EEselection = 'RF';
+% %% FOR PROTOTYPE
+% % For KFE configuration of prototype
+% % Get HFE torque corresponding to prototype config 
+% % Remote KFE actuation with KFE fixed to thigh at the HFE axis
+%     transmissionMethod.KFEAnchoredToThigh = true;
+%     if transmissionMethod.KFEAnchoredToThigh
+%         Leg.(EEselection).actuatorTorqueOpt(:,2) =  Leg.(EEselection).actuatorTorqueOpt(:,2) + Leg.(EEselection).actuatorTorqueOpt(:,3);
+%     end
+% 
+% % % Nominal design
+% % EEselection = EEnames(i,:);
+% % 
+% % figure()
+% % subplot(2,2,1)
+% % plot(torquePoints64R, polyval(polynomials64R,torquePoints64R), Leg.(EEselection).actuatorTorque(:,2), abs(Leg.(EEselection).actuatorqdot(:,2)))
+% % xlabel('Actuator Torque [Nm]')
+% % ylabel('Actuator Speed [rad/s]')
+% % title('HFE Nominal')
+% % subplot(2,2,2)
+% % plot(torquePointsXM540, polyval(polynomialsXM540,torquePointsXM540), Leg.(EEselection).actuatorTorque(:,3), abs(Leg.(EEselection).actuatorqdot(:,3)))
+% % xlabel('Actuator Torque [Nm]')
+% % ylabel('Actuator Speed [rad/s]')
+% % title('KFE Nominal')
+% % 
+% % % Optimized design
+% % subplot(2,2,3)
+% % plot(torquePoints64R, polyval(polynomials64R,torquePoints64R), Leg.(EEselection).actuatorTorqueOpt(:,2), abs(Leg.(EEselection).actuatorqdotOpt(:,2)))
+% % xlabel('Actuator Torque [Nm]')
+% % ylabel('Actuator Speed [rad/s]')
+% % title('HFE Optimized')
+% % subplot(2,2,4)
+% % plot(torquePointsXM540, polyval(polynomialsXM540,torquePointsXM540), Leg.(EEselection).actuatorTorqueOpt(:,3), abs(Leg.(EEselection).actuatorqdotOpt(:,3)))
+% % xlabel('Actuator Torque [Nm]')
+% % ylabel('Actuator Speed [rad/s]')
+% % title('KFE Optimized')
+% end

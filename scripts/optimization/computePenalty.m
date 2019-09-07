@@ -57,7 +57,7 @@ function penalty = computePenalty(actuatorProperties, imposeJointLimits, heurist
         qLiftoff.(EEselection) = 0; % if the heuristic does not apply
     end
 
-    %% Check maximum distance
+    %% Check maximum distance and skip if leg cannot reach trajectory
     % If max distance is beyond reach of the leg then penalize the design and
     % skip to the end. This simplifies things as does not consider body
     % rotation but should catch most cases and save computation time.
@@ -73,7 +73,7 @@ function penalty = computePenalty(actuatorProperties, imposeJointLimits, heurist
     distanceHFEToTrajectory = vecnorm(HFEPosition - meanCyclicMotionHipEE.(EEselection).position, 2, 2);
     maxDistanceHFEToTrajectory = max(distanceHFEToTrajectory);
     maxLegExtension = sum(linkLengths(2:end));
-
+    
     if maxDistanceHFEToTrajectory > maxLegExtension
         penalty = 100;
         %disp('Iteration skipped due to tracking error')
@@ -156,6 +156,7 @@ function penalty = computePenalty(actuatorProperties, imposeJointLimits, heurist
         W_maxTorque           = optimizationProperties.penaltyWeight.maxTorque;
         W_maxqdot             = optimizationProperties.penaltyWeight.maxqdot;
         W_maxPower            = optimizationProperties.penaltyWeight.maxPower;
+        W_mechCoT             = optimizationProperties.penaltyWeight.mechCoT;
         W_antagonisticPower   = optimizationProperties.penaltyWeight.antagonisticPower;
         allowableExtension    = optimizationProperties.allowableExtension; % as ratio of total possible extension
 
@@ -212,8 +213,10 @@ function penalty = computePenalty(actuatorProperties, imposeJointLimits, heurist
         totalElecEnergyInitial = 1;
         averageEfficiency = 1;
         averageEfficiencyInitial = 1;
-        antagonisticPower = 1;
+        antagonisticPower = 0;
         antagonisticPowerInitial = 1;
+        mechCoT = 0;
+        mechCoTInitial = 1;
         maximumExtensionPenalty = 0;
 
         %% Compute penalty terms      
@@ -287,6 +290,11 @@ function penalty = computePenalty(actuatorProperties, imposeJointLimits, heurist
             totalPower     = sum(sum(jointPower));
         end
 
+        if W_mechCoT>0
+            mechCoTInitial = Leg.metaParameters.CoT.(EEselection);
+            mechCoT = getCostOfTransport(Leg.CoM.meanVelocity, jointPower, robotProperties);
+        end
+        
         if W_totalMechEnergy>0
             if linkCount>2 && heuristic.torqueAngle.apply   
                 totalMechEnergyInitial = sum(Leg.(EEselection).mechEnergy(end,1:end-1)); % sum of mech energy consumed over all active joints during the motion
@@ -347,7 +355,59 @@ function penalty = computePenalty(actuatorProperties, imposeJointLimits, heurist
             antagonisticPowerInitial      = 0.5*(sum(sum(jointPowerInitial)) - sum(sum(abs(jointPowerInitial))));
             antagonisticPower             = 0.5*(sum(sum(jointPower)) - sum(sum(abs(jointPower))));
         end
-
+        
+        %% For KFE configuration of prototype (KFE fixed to thigh)
+        % HFE compensates for KFE torque
+        if isequal(Leg.basicProperties.classSelection, 'vitruvianBiped')
+            tempLeg.(EEselection).actuatorTorque(:,2) =  tempLeg.(EEselection).actuatorTorque(:,2) + tempLeg.(EEselection).actuatorTorque(:,3);
+        end
+        
+        %% If using Dynamixel 64R or XM540, we have more detailed torque,speed data for actuator limit considerations
+        totalDynamixelLimitViolationPenalty = 0; % initialize
+        usingDynamixelActuators = false; % initialize as false
+        for i = 1:jointCount 
+            if strcmp('Dynamixel64R', actuatorSelection.(jointSelection)) || strcmp('DynamixelXM540', actuatorSelection.(jointSelection))
+                usingDynamixelActuators = true; % set to true if any of the joints use Dynamixel 64R or XM540
+            end
+        end
+        if usingDynamixelActuators
+            [polynomials64R, torquePoints64R, polynomialsXM540, torquePointsXM540] = DynamixelPerformanceGraphs; % compute performance graph values once
+            for i = 1:jointCount
+                    jointSelection = jointNames(i,:);
+                    if strcmp('Dynamixel64R', actuatorSelection.(jointSelection))
+                        maxActuatorqdotValues.(jointSelection) = polyval(polynomials64R,tempLeg.(EEselection).actuatorTorque(:,i));
+                    elseif strcmp('DynamixelXM540', actuatorSelection.(jointSelection))
+                        maxActuatorqdotValues.(jointSelection) = polyval(polynomialsXM540,tempLeg.(EEselection).actuatorTorque(:,i));
+                    end
+                    % Set a tolerance on how close the speed can get to limit before it is penalized
+                    if strcmp('Dynamixel64R', actuatorSelection.(jointSelection))
+                        noLoadSpeed = polyval(polynomials64R,0);
+                        DynamixelSpeedTol = 0.05*noLoadSpeed; 
+                    else
+                        noLoadSpeed = polyval(polynomialsXM540,0);
+                        DynamixelSpeedTol = 0.05*noLoadSpeed;
+                    end
+                    % Determine if the max speed is ever violated and penalize the
+                    % magnitude of the violation
+                    if any(abs(tempLeg.(EEselection).actuatorqdot(:,i)) - abs(maxActuatorqdotValues.(jointSelection)) > DynamixelSpeedTol)
+                        % Determine magnitude and index of maximum
+                        % violation
+                        [maxDynamixelLimitViolation,indexOfMaxDynamixelLimitViolation] = max(abs(tempLeg.(EEselection).actuatorqdot(:,i)) - abs(maxActuatorqdotValues.(jointSelection)),[],1);
+                        if strcmp('Dynamixel64R', actuatorSelection.(jointSelection))
+                            polynomials = polynomials64R;
+                        else
+                            polynomials = polynomialsXM540;
+                        end
+                        weightDynamixelSpeedPenalty = 10;
+                        % Penalize magnitude of violation / actuator limit
+                        % at the point of max violation
+                        DynamixelLimitViolationPenalty.(jointSelection) = weightDynamixelSpeedPenalty * maxDynamixelLimitViolation / polyval(polynomials, tempLeg.(EEselection).actuatorTorque(indexOfMaxDynamixelLimitViolation,i));
+                    else 
+                        DynamixelLimitViolationPenalty.(jointSelection) = 0;
+                    end            
+            end
+            totalDynamixelLimitViolationPenalty = totalDynamixelLimitViolationPenalty + DynamixelLimitViolationPenalty.(jointSelection);
+        end
         %% Soft constraints due to actuator limits
         % get the maximum actuator torque speed and power for each joint
         % after applying transmission ratios
@@ -393,29 +453,28 @@ function penalty = computePenalty(actuatorProperties, imposeJointLimits, heurist
         % initialize penalties for exceeding actuator limits
         torqueLimitPenalty = 0; speedLimitPenalty = 0; powerLimitPenalty = 0;
 
-        if imposeJointLimits.maxTorque && any(maxActuatorTorque > maxTorqueLimit)
+        if imposeJointLimits.maxTorque && any(maxActuatorTorque > imposeJointLimits.limitingValue * maxTorqueLimit)
             torqueViolation = (maxActuatorTorque(1:jointCount) - maxTorqueLimit(1:jointCount))./maxTorqueLimit(1:jointCount); % violation of limit in percent
             torqueViolation(torqueViolation<0)=0;
             torqueLimitPenalty = sum(torqueViolation);
-            %disp('Exceeded torque limit')
+           % disp('Exceeded torque limit')
         end
 
-        if imposeJointLimits.maxqdot && any(maxActuatorqdot > maxqdotLimit)
+        if imposeJointLimits.maxqdot && any(maxActuatorqdot > imposeJointLimits.limitingValue * maxqdotLimit)
             speedViolation = (maxActuatorqdot(1:jointCount) - maxqdotLimit(1:jointCount))./maxqdotLimit(1:jointCount);
             speedViolation(speedViolation<0)=0;
             speedLimitPenalty = sum(speedViolation);
-            %disp('Exceeded speed limit')
+           % disp('Exceeded speed limit')
         end
 
-        if imposeJointLimits.maxPower && any(maxJointPower > maxPowerLimit)
+        if imposeJointLimits.maxPower && any(maxJointPower > imposeJointLimits.limitingValue * maxPowerLimit)
             powerViolation = (maxJointPower(1:jointCount) - maxPowerLimit(1:jointCount))./maxPowerLimit(1:jointCount);
             powerViolation(powerViolation<0)=0;
             powerLimitPenalty = sum(powerViolation);            
-            %disp('Exceeded power limit')
+          % disp('Exceeded power limit')
         end
 
-        %% Compute constraint penalty terms
-        % TRACKING ERROR PENALTY
+        %% Tracking error penalty
         % impose tracking error penalty if any point has tracking error above an
         % allowable threshhold
         trackingError = meanCyclicMotionHipEE.(EEselection).position(1:length(tempLeg.(EEselection).r.EE),:)-tempLeg.(EEselection).r.EE;
@@ -426,7 +485,7 @@ function penalty = computePenalty(actuatorProperties, imposeJointLimits, heurist
             trackingErrorPenalty = 0;
         end
 
-        %% JOINT TOO CLOSE TO GROUND
+        %% Joint too close to ground
         % Requires us to bring in hipNomZ
         % For flat ground, ground height is the distance CoM z position.
             groundHeight = -Leg.base.position.(EEselection)(:,3);
@@ -447,7 +506,7 @@ function penalty = computePenalty(actuatorProperties, imposeJointLimits, heurist
                 jointBelowGroundPenalty = 0;
             end
 
-        %% KFE ABOVE HFE PENALTY - otherwise spider config preferred
+        %% KFE above HFE penalty - otherwise spider config preferred
         % find max z position of KFE and penalize if above origin
             for i = 1:length(tempLeg.(EEselection).r.HAA(:,3))
                 jointHeightHFE(i,1) = tempLeg.(EEselection).r.HFE(i,3);
@@ -481,7 +540,7 @@ function penalty = computePenalty(actuatorProperties, imposeJointLimits, heurist
                 lastJointInFrontOfEEPenalty = 0;
             end
 
-        % OVEREXTENSION PENALTY
+        %% Overextension penalty
             if optimizationProperties.penaltyWeight.maximumExtension % if true, calculate and penalize for overzealous extension
                 offsetHFE2EEdes = tempLeg.(EEselection).r.HFE - meanCyclicMotionHipEE.(EEselection).position(1:end-2,:); % offset from HFE to desired EE position at all time steps
                 maxOffsetHFE2EEdes = max(sqrt(sum(offsetHFE2EEdes.^2,2))); % max euclidian distance from HFE to desired EE position
@@ -492,7 +551,7 @@ function penalty = computePenalty(actuatorProperties, imposeJointLimits, heurist
                 end
             end
 
-        %% Compute penalty
+        %% Compute total penalty as sum of optimization goal related penalty terms and soft constraints
         penalty = W_totalTorque         * (totalTorque/totalTorqueInitial) + ...
                   W_totalTorqueHFE      * (totalTorqueHFE/totalTorqueHFEInitial) + ...
                   W_totalTorqueKFE      * (totalTorqueKFE/totalTorqueKFEInitial) + ...          
@@ -507,6 +566,7 @@ function penalty = computePenalty(actuatorProperties, imposeJointLimits, heurist
                   W_maxqdot             * (maxqdot/maxqdotInitial)         + ...
                   W_maxPower            * (maxPower/maxPowerInitial)     + ...
                   W_antagonisticPower   * (antagonisticPower/antagonisticPowerInitial)     + ... 
+                  W_mechCoT             * (mechCoT/mechCoTInitial)          + ...
                   W_totalMechEnergy     * (totalMechEnergy/totalMechEnergyInitial)     + ... 
                   W_totalElecEnergy     * (totalElecEnergy/totalElecEnergyInitial)     + ...
                   W_averageEfficiency   / (averageEfficiency/averageEfficiencyInitial)     + ... % minimize 1/efficiency
@@ -517,6 +577,7 @@ function penalty = computePenalty(actuatorProperties, imposeJointLimits, heurist
                   optimizationProperties.penaltyWeight.maximumExtension * maximumExtensionPenalty + ...
                   torqueLimitPenalty + ...
                   speedLimitPenalty  + ...
-                  powerLimitPenalty;
+                  powerLimitPenalty  + ...
+                  totalDynamixelLimitViolationPenalty;
     end
 end

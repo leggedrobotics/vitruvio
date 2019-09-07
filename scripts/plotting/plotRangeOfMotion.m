@@ -1,10 +1,10 @@
-function [] = plotRangeOfMotion(robotClass, task, saveFiguresToPDF)
+function [] = plotRangeOfMotion(data, saveFiguresToPDF)
 
-    legCount = robotClass.(task).basicProperties.legCount;
-    EEnames  = robotClass.(task).basicProperties.EEnames;
+    legCount = data.basicProperties.legCount;
+    EEnames  = data.basicProperties.EEnames;
 
     %% get reachable positions
-    reachablePositions = getRangeofMotion(robotClass, task);
+    reachablePositions = getRangeofMotion(data);
 
     %% Plot mean x vs z position with reachable positions
 
@@ -23,7 +23,7 @@ function [] = plotRangeOfMotion(robotClass, task, saveFiguresToPDF)
         subplot(subplotRows,subplotColumns,i)
         hold on
         plot(reachablePositions.(EEselection)(:,1),reachablePositions.(EEselection)(:,2), 'color', [0.5843 0.8157 0.9882])
-        plot(robotClass.(task).(EEselection).r.EEdes(:,1), robotClass.(task).(EEselection).r.EEdes(:,3), 'k', 'LineWidth', 1)
+        plot(data.(EEselection).r.EEdes(:,1), data.(EEselection).r.EEdes(:,3), 'k', 'LineWidth', 1)
         plot(0,0,'o')
         hold off
         axis equal

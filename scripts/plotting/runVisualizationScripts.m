@@ -1,6 +1,8 @@
-function runVisualizationScripts(robotVisualization, optimizationProperties, results, classSelection, task)
-EEnames = results.(classSelection).(task).basicProperties.EEnames;
-config = results.(classSelection).(task).basicProperties.configSelection;
+function runVisualizationScripts(robotVisualization, optimizationProperties, data)
+EEnames        = data.basicProperties.EEnames;
+config         = data.basicProperties.configSelection;
+classSelection = data.basicProperties.classSelection;
+task           = data.basicProperties.task;
 
 %% Nominal robot
   if robotVisualization.view 
@@ -11,29 +13,29 @@ config = results.(classSelection).(task).basicProperties.configSelection;
     if robotVisualization.plotAllLegs
         vizIndex = 1;
     elseif robotVisualization.plotOneLeg
-        vizIndex = results.(classSelection).(task).basicProperties.legCount;
+        vizIndex = data.basicProperties.legCount;
     end
     
     for i = 1:vizIndex
         EEselection = EEnames(i,:);
-        visualizeRobot(results, classSelection, task, EEselection, fileName, robotVisualization, optimized);
+        visualizeRobot(data, EEselection, fileName, robotVisualization, optimized);
     end
   end
     
 %% Optimized robot
-    if results.(classSelection).(task).optimizationProperties.runOptimization && optimizationProperties.viz.viewVisualization
+    if data.optimizationProperties.runOptimization && optimizationProperties.viz.viewVisualization
         fprintf('Visualizing optimized robot. \n');
         optimized = true;
         fileName = strcat('Optimized_', classSelection, '_',task, '_', config, '.gif'); % for gif of motion
         if robotVisualization.plotAllLegs
             vizIndex = 1;
         elseif robotVisualization.plotOneLeg
-            vizIndex = results.(classSelection).(task).basicProperties.legCount;
+            vizIndex = data.basicProperties.legCount;
         end
 
         for i = 1:vizIndex
             EEselection = EEnames(i,:);
-            visualizeRobot(results, classSelection, task, EEselection, fileName, robotVisualization, optimized);
+            visualizeRobot(data, EEselection, fileName, robotVisualization, optimized);
         end
     end
   end

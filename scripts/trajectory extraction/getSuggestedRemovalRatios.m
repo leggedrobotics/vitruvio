@@ -73,6 +73,10 @@ suggestedRemovalRatioEnd.ANYmalBearElongatedTrot = 0.1;
 suggestedRemovalRatioStart.ANYmalBearFlyingTrot2 = 0.3;
 suggestedRemovalRatioEnd.ANYmalBearFlyingTrot2  = 0.3;
 
+
+suggestedRemovalRatioStart.vitruvianBipedPushupSquat = 0;
+suggestedRemovalRatioEnd.vitruvianBipedPushupSquat   = 0.05;
+
 suggestedRemovalRatioStart.vitruvianBipedWalkOnSpot = 0;
 suggestedRemovalRatioEnd.vitruvianBipedWalkOnSpot   = 0;
 

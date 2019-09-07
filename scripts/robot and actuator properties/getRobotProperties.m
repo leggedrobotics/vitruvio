@@ -176,8 +176,8 @@ function robotProperties = getRobotProperties(robotSelection, transmissionMethod
     % offset from CoM to base hip attachment for each leg.
     robot.ANYmalBear.xNom(1) = 0.43;
     robot.ANYmalBear.xNom(2) = 0.43; 
-    robot.ANYmalBear.yNom(1) = 0.112;%0.112;
-    robot.ANYmalBear.yNom(2) = 0.112;%0.112;
+    robot.ANYmalBear.yNom(1) = 0.112;
+    robot.ANYmalBear.yNom(2) = 0.112;
     robot.ANYmalBear.zNom = 0; % offset from CoM to HAA in z direction. Positive value means HAA above CoM.
     
     robot.ANYmalBear.nomHipPos.LF = [ robot.ANYmalBear.xNom(1),  robot.ANYmalBear.yNom(1), robot.ANYmalBear.zNom];
@@ -261,7 +261,7 @@ function robotProperties = getRobotProperties(robotSelection, transmissionMethod
     % link lengths [m]
     % fore, hind
     robot.vitruvianBiped.hip(1).length = 0.0001;
-    robot.vitruvianBiped.thigh(1).length = 0.195;
+    robot.vitruvianBiped.thigh(1).length = 0.2;
     robot.vitruvianBiped.shank(1).length = 0.25;
     robot.vitruvianBiped.foot(1).length = 0.05;
     robot.vitruvianBiped.phalanges(1).length = 0.05;
@@ -373,7 +373,7 @@ function robotProperties = getRobotProperties(robotSelection, transmissionMethod
      robot.universal.hipOffset(2) = robot.universal.xNom(1)-0.225;
      
      % Base dimensions used for visualization - visualized as a box
-     robot.universal.baseWidth  = 0.3;
+     robot.universal.baseWidth  = 0.4;
      robot.universal.baseLength = 0.75;
      robot.universal.baseHeight = 0.2;
      

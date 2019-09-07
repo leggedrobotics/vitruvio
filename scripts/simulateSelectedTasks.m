@@ -2,414 +2,428 @@
 % the data for each robot and task in a struct robot.task
 EEnames = ['LF'; 'RF'; 'LH'; 'RH']; % For robots with fewer than 4 legs, a subset of these end effectors are used.
 
-for i = 1:numberOfRepetitions+1
-    fprintf('Optimization count: %3.0f \n', i)
+for optimizationNumber = 1:optimizationCount
+    fprintf('Optimization count: %3.0f \n', optimizationNumber)
     
     %%% Add your data file here %%%
     if yourTrajectoryData % toggle on or off in main
         dataSelection = 'yourTrajectoryData'; 
         classSelection = 'yourRobotClass';
         task = 'yourRobotTask';
-        results.(classSelection).(task)(i) = runDataExtractionAndOptScripts(actuatorSelection, dataExtraction, imposeJointLimits, heuristic, actuateJointDirectly, transmissionMethod, robotVisualization, linkCount, optimizeLeg, optimizationProperties, dataSelection, classSelection, configSelection, hipParalleltoBody, legCount, task, saveFiguresToPDF, springInParallelWithJoints, kSpringJoint, payload);        
-        results.(classSelection).(task)(i).metaParameters = orderfields(results.(classSelection).(task)(i).metaParameters);        
+        results.(classSelection).(task)(optimizationNumber) = runDataExtractionAndOptScripts(actuatorSelection, dataExtraction, imposeJointLimits, heuristic, actuateJointDirectly, transmissionMethod, robotVisualization, linkCount, optimizeLeg, optimizationProperties, dataSelection, classSelection, configSelection, hipParalleltoBody, legCount, task, saveFiguresToPDF, springInParallelWithJoints, kSpringJoint, payload);        
+        results.(classSelection).(task)(optimizationNumber).metaParameters = orderfields(results.(classSelection).(task)(optimizationNumber).metaParameters);        
         for j = 1:legCount
             EEselection = EEnames(j,:);
-            results.(classSelection).(task)(i).(EEselection) = orderfields(results.(classSelection).(task)(i).(EEselection));
+            results.(classSelection).(task)(optimizationNumber).(EEselection) = orderfields(results.(classSelection).(task)(optimizationNumber).(EEselection));
         end
-        generatePlots(viewPlots, results.(classSelection), task, optimizeLeg, saveFiguresToPDF);    
-        runVisualizationScripts(robotVisualization, optimizationProperties, results, classSelection, task);
+        generatePlots(viewPlots, results.(classSelection).(task)(optimizationNumber), task, optimizeLeg, saveFiguresToPDF);    
+        runVisualizationScripts(robotVisualization, optimizationProperties, results.(classSelection).(task)(optimizationNumber));
     end
     %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
    
-    if vitruvianBipedPushupSquat
-        dataSelection = 'vitruvianBipedPushupSquat'; 
+    if vitruvianBipedPushup
+        dataSelection = 'vitruvianBipedPushup'; 
         classSelection = 'vitruvianBiped';
-        task = 'pushupSquat';
-        results.(classSelection).(task)(i) = runDataExtractionAndOptScripts(actuatorSelection, dataExtraction, imposeJointLimits, heuristic, actuateJointDirectly, transmissionMethod, robotVisualization, linkCount, optimizeLeg, optimizationProperties, dataSelection, classSelection, configSelection, hipParalleltoBody, legCount, task, saveFiguresToPDF, springInParallelWithJoints, kSpringJoint, payload);        
-        results.(classSelection).(task)(i).metaParameters = orderfields(results.(classSelection).(task)(i).metaParameters);        
+        task = 'pushup';
+        results.(classSelection).(task)(optimizationNumber) = runDataExtractionAndOptScripts(actuatorSelection, dataExtraction, imposeJointLimits, heuristic, actuateJointDirectly, transmissionMethod, robotVisualization, linkCount, optimizeLeg, optimizationProperties, dataSelection, classSelection, configSelection, hipParalleltoBody, legCount, task, saveFiguresToPDF, springInParallelWithJoints, kSpringJoint, payload);        
+        results.(classSelection).(task)(optimizationNumber).metaParameters = orderfields(results.(classSelection).(task)(optimizationNumber).metaParameters);        
         for j = 1:legCount
             EEselection = EEnames(j,:);
-            results.(classSelection).(task)(i).(EEselection) = orderfields(results.(classSelection).(task)(i).(EEselection));
+            results.(classSelection).(task)(optimizationNumber).(EEselection) = orderfields(results.(classSelection).(task)(optimizationNumber).(EEselection));
         end
-        generatePlots(viewPlots, results.(classSelection), task, optimizeLeg, saveFiguresToPDF);    
-        runVisualizationScripts(robotVisualization, optimizationProperties, results, classSelection, task);
+        generatePlots(viewPlots, results.(classSelection).(task)(optimizationNumber), task, optimizeLeg, saveFiguresToPDF);    
+        runVisualizationScripts(robotVisualization, optimizationProperties, results.(classSelection).(task)(optimizationNumber));
+    end
+    
+    if vitruvianBipedPushupSquat2
+        dataSelection = 'vitruvianBipedPushupSquat2'; 
+        classSelection = 'vitruvianBiped';
+        task = 'pushupSquat2';
+        results.(classSelection).(task)(optimizationNumber) = runDataExtractionAndOptScripts(actuatorSelection, dataExtraction, imposeJointLimits, heuristic, actuateJointDirectly, transmissionMethod, robotVisualization, linkCount, optimizeLeg, optimizationProperties, dataSelection, classSelection, configSelection, hipParalleltoBody, legCount, task, saveFiguresToPDF, springInParallelWithJoints, kSpringJoint, payload);        
+        results.(classSelection).(task)(optimizationNumber).metaParameters = orderfields(results.(classSelection).(task)(optimizationNumber).metaParameters);        
+        for j = 1:legCount
+            EEselection = EEnames(j,:);
+            results.(classSelection).(task)(optimizationNumber).(EEselection) = orderfields(results.(classSelection).(task)(optimizationNumber).(EEselection));
+        end
+        generatePlots(viewPlots, results.(classSelection).(task)(optimizationNumber), task, optimizeLeg, saveFiguresToPDF);    
+        runVisualizationScripts(robotVisualization, optimizationProperties, results.(classSelection).(task)(optimizationNumber));
     end
    
     if vitruvianBipedHop
         dataSelection = 'vitruvianBipedHop'; 
         classSelection = 'vitruvianBiped';
         task = 'hop';
-        results.(classSelection).(task)(i) = runDataExtractionAndOptScripts(actuatorSelection, dataExtraction, imposeJointLimits, heuristic, actuateJointDirectly, transmissionMethod, robotVisualization, linkCount, optimizeLeg, optimizationProperties, dataSelection, classSelection, configSelection, hipParalleltoBody, legCount, task, saveFiguresToPDF, springInParallelWithJoints, kSpringJoint, payload);        
-        results.(classSelection).(task)(i).metaParameters = orderfields(results.(classSelection).(task)(i).metaParameters);        
+        results.(classSelection).(task)(optimizationNumber) = runDataExtractionAndOptScripts(actuatorSelection, dataExtraction, imposeJointLimits, heuristic, actuateJointDirectly, transmissionMethod, robotVisualization, linkCount, optimizeLeg, optimizationProperties, dataSelection, classSelection, configSelection, hipParalleltoBody, legCount, task, saveFiguresToPDF, springInParallelWithJoints, kSpringJoint, payload);        
+        results.(classSelection).(task)(optimizationNumber).metaParameters = orderfields(results.(classSelection).(task)(optimizationNumber).metaParameters);        
         for j = 1:legCount
             EEselection = EEnames(j,:);
-            results.(classSelection).(task)(i).(EEselection) = orderfields(results.(classSelection).(task)(i).(EEselection));
+            results.(classSelection).(task)(optimizationNumber).(EEselection) = orderfields(results.(classSelection).(task)(optimizationNumber).(EEselection));
         end
-        generatePlots(viewPlots, results.(classSelection), task, optimizeLeg, saveFiguresToPDF);    
-        runVisualizationScripts(robotVisualization, optimizationProperties, results, classSelection, task);
+        generatePlots(viewPlots, results.(classSelection).(task)(optimizationNumber), task, optimizeLeg, saveFiguresToPDF);    
+        runVisualizationScripts(robotVisualization, optimizationProperties, results.(classSelection).(task)(optimizationNumber));
     end
     
     if vitruvianBipedWalk
         dataSelection = 'vitruvianBipedWalk'; 
         classSelection = 'vitruvianBiped';
         task = 'walk';
-        results.(classSelection).(task)(i) = runDataExtractionAndOptScripts(actuatorSelection, dataExtraction, imposeJointLimits, heuristic, actuateJointDirectly, transmissionMethod, robotVisualization, linkCount, optimizeLeg, optimizationProperties, dataSelection, classSelection, configSelection, hipParalleltoBody, legCount, task, saveFiguresToPDF, springInParallelWithJoints, kSpringJoint, payload);        
-        results.(classSelection).(task)(i).metaParameters = orderfields(results.(classSelection).(task)(i).metaParameters);        
+        results.(classSelection).(task)(optimizationNumber) = runDataExtractionAndOptScripts(actuatorSelection, dataExtraction, imposeJointLimits, heuristic, actuateJointDirectly, transmissionMethod, robotVisualization, linkCount, optimizeLeg, optimizationProperties, dataSelection, classSelection, configSelection, hipParalleltoBody, legCount, task, saveFiguresToPDF, springInParallelWithJoints, kSpringJoint, payload);        
+        results.(classSelection).(task)(optimizationNumber).metaParameters = orderfields(results.(classSelection).(task)(optimizationNumber).metaParameters);        
         for j = 1:legCount
             EEselection = EEnames(j,:);
-            results.(classSelection).(task)(i).(EEselection) = orderfields(results.(classSelection).(task)(i).(EEselection));
+            results.(classSelection).(task)(optimizationNumber).(EEselection) = orderfields(results.(classSelection).(task)(optimizationNumber).(EEselection));
         end
-        generatePlots(viewPlots, results.(classSelection), task, optimizeLeg, saveFiguresToPDF);    
-        runVisualizationScripts(robotVisualization, optimizationProperties, results, classSelection, task);
+        generatePlots(viewPlots, results.(classSelection).(task)(optimizationNumber), task, optimizeLeg, saveFiguresToPDF);    
+        runVisualizationScripts(robotVisualization, optimizationProperties, results.(classSelection).(task)(optimizationNumber));
     end
     
     if vitruvianBipedFastWalk
         dataSelection = 'vitruvianBipedFastWalk'; 
         classSelection = 'vitruvianBiped';
         task = 'fastWalk';
-        results.(classSelection).(task)(i) = runDataExtractionAndOptScripts(actuatorSelection, dataExtraction, imposeJointLimits, heuristic, actuateJointDirectly, transmissionMethod, robotVisualization, linkCount, optimizeLeg, optimizationProperties, dataSelection, classSelection, configSelection, hipParalleltoBody, legCount, task, saveFiguresToPDF, springInParallelWithJoints, kSpringJoint, payload);        
-        results.(classSelection).(task)(i).metaParameters = orderfields(results.(classSelection).(task)(i).metaParameters);        
+        results.(classSelection).(task)(optimizationNumber) = runDataExtractionAndOptScripts(actuatorSelection, dataExtraction, imposeJointLimits, heuristic, actuateJointDirectly, transmissionMethod, robotVisualization, linkCount, optimizeLeg, optimizationProperties, dataSelection, classSelection, configSelection, hipParalleltoBody, legCount, task, saveFiguresToPDF, springInParallelWithJoints, kSpringJoint, payload);        
+        results.(classSelection).(task)(optimizationNumber).metaParameters = orderfields(results.(classSelection).(task)(optimizationNumber).metaParameters);        
         for j = 1:legCount
             EEselection = EEnames(j,:);
-            results.(classSelection).(task)(i).(EEselection) = orderfields(results.(classSelection).(task)(i).(EEselection));
+            results.(classSelection).(task)(optimizationNumber).(EEselection) = orderfields(results.(classSelection).(task)(optimizationNumber).(EEselection));
         end
-        generatePlots(viewPlots, results.(classSelection), task, optimizeLeg, saveFiguresToPDF);    
-        runVisualizationScripts(robotVisualization, optimizationProperties, results, classSelection, task);
+        generatePlots(viewPlots, results.(classSelection).(task)(optimizationNumber), task, optimizeLeg, saveFiguresToPDF);    
+        runVisualizationScripts(robotVisualization, optimizationProperties, results.(classSelection).(task)(optimizationNumber));
     end
     
     if universalTrot
         dataSelection = 'universalTrot'; 
         classSelection = 'universal';
         task = 'trot';
-        results.(classSelection).(task)(i) = runDataExtractionAndOptScripts(actuatorSelection, dataExtraction, imposeJointLimits, heuristic, actuateJointDirectly, transmissionMethod, robotVisualization, linkCount, optimizeLeg, optimizationProperties, dataSelection, classSelection, configSelection, hipParalleltoBody, legCount, task, saveFiguresToPDF, springInParallelWithJoints, kSpringJoint, payload);        
-        results.(classSelection).(task)(i).metaParameters = orderfields(results.(classSelection).(task)(i).metaParameters);        
+        results.(classSelection).(task)(optimizationNumber) = runDataExtractionAndOptScripts(actuatorSelection, dataExtraction, imposeJointLimits, heuristic, actuateJointDirectly, transmissionMethod, robotVisualization, linkCount, optimizeLeg, optimizationProperties, dataSelection, classSelection, configSelection, hipParalleltoBody, legCount, task, saveFiguresToPDF, springInParallelWithJoints, kSpringJoint, payload);        
+        results.(classSelection).(task)(optimizationNumber).metaParameters = orderfields(results.(classSelection).(task)(optimizationNumber).metaParameters);        
         for j = 1:legCount
             EEselection = EEnames(j,:);
-            results.(classSelection).(task)(i).(EEselection) = orderfields(results.(classSelection).(task)(i).(EEselection));
+            results.(classSelection).(task)(optimizationNumber).(EEselection) = orderfields(results.(classSelection).(task)(optimizationNumber).(EEselection));
         end
-        generatePlots(viewPlots, results.(classSelection), task, optimizeLeg, saveFiguresToPDF);    
-        runVisualizationScripts(robotVisualization, optimizationProperties, results, classSelection, task);
+        generatePlots(viewPlots, results.(classSelection).(task)(optimizationNumber), task, optimizeLeg, saveFiguresToPDF);    
+        runVisualizationScripts(robotVisualization, optimizationProperties, results.(classSelection).(task)(optimizationNumber));
     end
     
     if universalStairs
         dataSelection = 'universalStairs'; 
         classSelection = 'universal';
         task = 'stairs';
-        results.(classSelection).(task)(i) = runDataExtractionAndOptScripts(actuatorSelection, dataExtraction, imposeJointLimits, heuristic, actuateJointDirectly, transmissionMethod, robotVisualization, linkCount, optimizeLeg, optimizationProperties, dataSelection, classSelection, configSelection, hipParalleltoBody, legCount, task, saveFiguresToPDF, springInParallelWithJoints, kSpringJoint, payload);        
-        results.(classSelection).(task)(i).metaParameters = orderfields(results.(classSelection).(task)(i).metaParameters);        
+        results.(classSelection).(task)(optimizationNumber) = runDataExtractionAndOptScripts(actuatorSelection, dataExtraction, imposeJointLimits, heuristic, actuateJointDirectly, transmissionMethod, robotVisualization, linkCount, optimizeLeg, optimizationProperties, dataSelection, classSelection, configSelection, hipParalleltoBody, legCount, task, saveFiguresToPDF, springInParallelWithJoints, kSpringJoint, payload);        
+        results.(classSelection).(task)(optimizationNumber).metaParameters = orderfields(results.(classSelection).(task)(optimizationNumber).metaParameters);        
         for j = 1:legCount
             EEselection = EEnames(j,:);
-            results.(classSelection).(task)(i).(EEselection) = orderfields(results.(classSelection).(task)(i).(EEselection));
+            results.(classSelection).(task)(optimizationNumber).(EEselection) = orderfields(results.(classSelection).(task)(optimizationNumber).(EEselection));
         end
-        generatePlots(viewPlots, results.(classSelection), task, optimizeLeg, saveFiguresToPDF);    
-        runVisualizationScripts(robotVisualization, optimizationProperties, results, classSelection, task);
+        generatePlots(viewPlots, results.(classSelection).(task)(optimizationNumber), task, optimizeLeg, saveFiguresToPDF);    
+        runVisualizationScripts(robotVisualization, optimizationProperties, results.(classSelection).(task)(optimizationNumber));
     end
     
     if speedyGallop
         dataSelection = 'speedyGallop'; 
         classSelection = 'speedy';
         task = 'gallop';        
-        results.(classSelection).(task)(i) = runDataExtractionAndOptScripts(actuatorSelection, dataExtraction, imposeJointLimits, heuristic, actuateJointDirectly, transmissionMethod, robotVisualization, linkCount, optimizeLeg, optimizationProperties, dataSelection, classSelection, configSelection, hipParalleltoBody, legCount, task, saveFiguresToPDF, springInParallelWithJoints, kSpringJoint, payload);        
-        results.(classSelection).(task)(i).metaParameters = orderfields(results.(classSelection).(task)(i).metaParameters);        
+        results.(classSelection).(task)(optimizationNumber) = runDataExtractionAndOptScripts(actuatorSelection, dataExtraction, imposeJointLimits, heuristic, actuateJointDirectly, transmissionMethod, robotVisualization, linkCount, optimizeLeg, optimizationProperties, dataSelection, classSelection, configSelection, hipParalleltoBody, legCount, task, saveFiguresToPDF, springInParallelWithJoints, kSpringJoint, payload);        
+        results.(classSelection).(task)(optimizationNumber).metaParameters = orderfields(results.(classSelection).(task)(optimizationNumber).metaParameters);        
         for j = 1:legCount
             EEselection = EEnames(j,:);
-            results.(classSelection).(task)(i).(EEselection) = orderfields(results.(classSelection).(task)(i).(EEselection));
+            results.(classSelection).(task)(optimizationNumber).(EEselection) = orderfields(results.(classSelection).(task)(optimizationNumber).(EEselection));
         end
-        generatePlots(viewPlots, results.(classSelection), task, optimizeLeg, saveFiguresToPDF);    
-        runVisualizationScripts(robotVisualization, optimizationProperties, results, classSelection, task);
+        generatePlots(viewPlots, results.(classSelection).(task)(optimizationNumber), task, optimizeLeg, saveFiguresToPDF);    
+        runVisualizationScripts(robotVisualization, optimizationProperties, results.(classSelection).(task)(optimizationNumber));
     end
         
     if speedyStairs
         dataSelection = 'speedyStairs'; 
         classSelection = 'speedy';
         task = 'stairs';      
-        results.(classSelection).(task)(i) = runDataExtractionAndOptScripts(actuatorSelection, dataExtraction, imposeJointLimits, heuristic, actuateJointDirectly, transmissionMethod, robotVisualization, linkCount, optimizeLeg, optimizationProperties, dataSelection, classSelection, configSelection, hipParalleltoBody, legCount, task, saveFiguresToPDF, springInParallelWithJoints, kSpringJoint, payload);        
-        results.(classSelection).(task)(i).metaParameters = orderfields(results.(classSelection).(task)(i).metaParameters);        
+        results.(classSelection).(task)(optimizationNumber) = runDataExtractionAndOptScripts(actuatorSelection, dataExtraction, imposeJointLimits, heuristic, actuateJointDirectly, transmissionMethod, robotVisualization, linkCount, optimizeLeg, optimizationProperties, dataSelection, classSelection, configSelection, hipParalleltoBody, legCount, task, saveFiguresToPDF, springInParallelWithJoints, kSpringJoint, payload);        
+        results.(classSelection).(task)(optimizationNumber).metaParameters = orderfields(results.(classSelection).(task)(optimizationNumber).metaParameters);        
         for j = 1:legCount
             EEselection = EEnames(j,:);
-            results.(classSelection).(task)(i).(EEselection) = orderfields(results.(classSelection).(task)(i).(EEselection));
+            results.(classSelection).(task)(optimizationNumber).(EEselection) = orderfields(results.(classSelection).(task)(optimizationNumber).(EEselection));
         end
-        generatePlots(viewPlots, results.(classSelection), task, optimizeLeg, saveFiguresToPDF);    
-        runVisualizationScripts(robotVisualization, optimizationProperties, results, classSelection, task);
+        generatePlots(viewPlots, results.(classSelection).(task)(optimizationNumber), task, optimizeLeg, saveFiguresToPDF);    
+        runVisualizationScripts(robotVisualization, optimizationProperties, results.(classSelection).(task)(optimizationNumber));
     end
         
     if massivoWalk
         dataSelection = 'massivoWalk'; 
         classSelection = 'massivo';
         task = 'walk';        
-        results.(classSelection).(task)(i) = runDataExtractionAndOptScripts(actuatorSelection, dataExtraction, imposeJointLimits, heuristic, actuateJointDirectly, transmissionMethod, robotVisualization, linkCount, optimizeLeg, optimizationProperties, dataSelection, classSelection, configSelection, hipParalleltoBody, legCount, task, saveFiguresToPDF, springInParallelWithJoints, kSpringJoint, payload);        
-        results.(classSelection).(task)(i).metaParameters = orderfields(results.(classSelection).(task)(i).metaParameters);        
+        results.(classSelection).(task)(optimizationNumber) = runDataExtractionAndOptScripts(actuatorSelection, dataExtraction, imposeJointLimits, heuristic, actuateJointDirectly, transmissionMethod, robotVisualization, linkCount, optimizeLeg, optimizationProperties, dataSelection, classSelection, configSelection, hipParalleltoBody, legCount, task, saveFiguresToPDF, springInParallelWithJoints, kSpringJoint, payload);        
+        results.(classSelection).(task)(optimizationNumber).metaParameters = orderfields(results.(classSelection).(task)(optimizationNumber).metaParameters);        
         for j = 1:legCount
             EEselection = EEnames(j,:);
-            results.(classSelection).(task)(i).(EEselection) = orderfields(results.(classSelection).(task)(i).(EEselection));
+            results.(classSelection).(task)(optimizationNumber).(EEselection) = orderfields(results.(classSelection).(task)(optimizationNumber).(EEselection));
         end
-        generatePlots(viewPlots, results.(classSelection), task, optimizeLeg, saveFiguresToPDF);    
-        runVisualizationScripts(robotVisualization, optimizationProperties, results, classSelection, task);
+        generatePlots(viewPlots, results.(classSelection).(task)(optimizationNumber), task, optimizeLeg, saveFiguresToPDF);    
+        runVisualizationScripts(robotVisualization, optimizationProperties, results.(classSelection).(task)(optimizationNumber));
     end
         
     if massivoStairs
         dataSelection = 'massivoStairs'; 
         classSelection = 'massivo';
         task = 'stairs';        
-        results.(classSelection).(task)(i) = runDataExtractionAndOptScripts(actuatorSelection, dataExtraction, imposeJointLimits, heuristic, actuateJointDirectly, transmissionMethod, robotVisualization, linkCount, optimizeLeg, optimizationProperties, dataSelection, classSelection, configSelection, hipParalleltoBody, legCount, task, saveFiguresToPDF, springInParallelWithJoints, kSpringJoint, payload);        
-        results.(classSelection).(task)(i).metaParameters = orderfields(results.(classSelection).(task)(i).metaParameters);        
+        results.(classSelection).(task)(optimizationNumber) = runDataExtractionAndOptScripts(actuatorSelection, dataExtraction, imposeJointLimits, heuristic, actuateJointDirectly, transmissionMethod, robotVisualization, linkCount, optimizeLeg, optimizationProperties, dataSelection, classSelection, configSelection, hipParalleltoBody, legCount, task, saveFiguresToPDF, springInParallelWithJoints, kSpringJoint, payload);        
+        results.(classSelection).(task)(optimizationNumber).metaParameters = orderfields(results.(classSelection).(task)(optimizationNumber).metaParameters);        
         for j = 1:legCount
             EEselection = EEnames(j,:);
-            results.(classSelection).(task)(i).(EEselection) = orderfields(results.(classSelection).(task)(i).(EEselection));
+            results.(classSelection).(task)(optimizationNumber).(EEselection) = orderfields(results.(classSelection).(task)(optimizationNumber).(EEselection));
         end
-        generatePlots(viewPlots, results.(classSelection), task, optimizeLeg, saveFiguresToPDF);    
-        runVisualizationScripts(robotVisualization, optimizationProperties, results, classSelection, task);
+        generatePlots(viewPlots, results.(classSelection).(task)(optimizationNumber), task, optimizeLeg, saveFiguresToPDF);    
+        runVisualizationScripts(robotVisualization, optimizationProperties, results.(classSelection).(task)(optimizationNumber));
     end
         
     if centaurWalk
         dataSelection = 'centaurWalk'; 
         classSelection = 'centaur';
         task = 'walk';        
-        results.(classSelection).(task)(i) = runDataExtractionAndOptScripts(actuatorSelection, dataExtraction, imposeJointLimits, heuristic, actuateJointDirectly, transmissionMethod, robotVisualization, linkCount, optimizeLeg, optimizationProperties, dataSelection, classSelection, configSelection, hipParalleltoBody, legCount, task, saveFiguresToPDF, springInParallelWithJoints, kSpringJoint, payload);        
-        results.(classSelection).(task)(i).metaParameters = orderfields(results.(classSelection).(task)(i).metaParameters);        
+        results.(classSelection).(task)(optimizationNumber) = runDataExtractionAndOptScripts(actuatorSelection, dataExtraction, imposeJointLimits, heuristic, actuateJointDirectly, transmissionMethod, robotVisualization, linkCount, optimizeLeg, optimizationProperties, dataSelection, classSelection, configSelection, hipParalleltoBody, legCount, task, saveFiguresToPDF, springInParallelWithJoints, kSpringJoint, payload);        
+        results.(classSelection).(task)(optimizationNumber).metaParameters = orderfields(results.(classSelection).(task)(optimizationNumber).metaParameters);        
         for j = 1:legCount
             EEselection = EEnames(j,:);
-            results.(classSelection).(task)(i).(EEselection) = orderfields(results.(classSelection).(task)(i).(EEselection));
+            results.(classSelection).(task)(optimizationNumber).(EEselection) = orderfields(results.(classSelection).(task)(optimizationNumber).(EEselection));
         end
-        generatePlots(viewPlots, results.(classSelection), task, optimizeLeg, saveFiguresToPDF);    
-        runVisualizationScripts(robotVisualization, optimizationProperties, results, classSelection, task);
+        generatePlots(viewPlots, results.(classSelection).(task)(optimizationNumber), task, optimizeLeg, saveFiguresToPDF);    
+        runVisualizationScripts(robotVisualization, optimizationProperties, results.(classSelection).(task)(optimizationNumber));
     end
     
     if centaurStairs
         dataSelection = 'centaurStairs'; 
         classSelection = 'centaur';
         task = 'stairs';        
-        results.(classSelection).(task)(i) = runDataExtractionAndOptScripts(actuatorSelection, dataExtraction, imposeJointLimits, heuristic, actuateJointDirectly, transmissionMethod, robotVisualization, linkCount, optimizeLeg, optimizationProperties, dataSelection, classSelection, configSelection, hipParalleltoBody, legCount, task, saveFiguresToPDF, springInParallelWithJoints, kSpringJoint, payload);        
-        results.(classSelection).(task)(i).metaParameters = orderfields(results.(classSelection).(task)(i).metaParameters);        
+        results.(classSelection).(task)(optimizationNumber) = runDataExtractionAndOptScripts(actuatorSelection, dataExtraction, imposeJointLimits, heuristic, actuateJointDirectly, transmissionMethod, robotVisualization, linkCount, optimizeLeg, optimizationProperties, dataSelection, classSelection, configSelection, hipParalleltoBody, legCount, task, saveFiguresToPDF, springInParallelWithJoints, kSpringJoint, payload);        
+        results.(classSelection).(task)(optimizationNumber).metaParameters = orderfields(results.(classSelection).(task)(optimizationNumber).metaParameters);        
         for j = 1:legCount
             EEselection = EEnames(j,:);
-            results.(classSelection).(task)(i).(EEselection) = orderfields(results.(classSelection).(task)(i).(EEselection));
+            results.(classSelection).(task)(optimizationNumber).(EEselection) = orderfields(results.(classSelection).(task)(optimizationNumber).(EEselection));
         end
-        generatePlots(viewPlots, results.(classSelection), task, optimizeLeg, saveFiguresToPDF);    
-        runVisualizationScripts(robotVisualization, optimizationProperties, results, classSelection, task);
+        generatePlots(viewPlots, results.(classSelection).(task)(optimizationNumber), task, optimizeLeg, saveFiguresToPDF);    
+        runVisualizationScripts(robotVisualization, optimizationProperties, results.(classSelection).(task)(optimizationNumber));
     end
         
     if miniPronk
         dataSelection = 'miniPronk'; 
         classSelection = 'mini';
         task = 'pronk';        
-        results.(classSelection).(task)(i) = runDataExtractionAndOptScripts(actuatorSelection, dataExtraction, imposeJointLimits, heuristic, actuateJointDirectly, transmissionMethod, robotVisualization, linkCount, optimizeLeg, optimizationProperties, dataSelection, classSelection, configSelection, hipParalleltoBody, legCount, task, saveFiguresToPDF, springInParallelWithJoints, kSpringJoint, payload);        
-        results.(classSelection).(task)(i).metaParameters = orderfields(results.(classSelection).(task)(i).metaParameters);        
+        results.(classSelection).(task)(optimizationNumber) = runDataExtractionAndOptScripts(actuatorSelection, dataExtraction, imposeJointLimits, heuristic, actuateJointDirectly, transmissionMethod, robotVisualization, linkCount, optimizeLeg, optimizationProperties, dataSelection, classSelection, configSelection, hipParalleltoBody, legCount, task, saveFiguresToPDF, springInParallelWithJoints, kSpringJoint, payload);        
+        results.(classSelection).(task)(optimizationNumber).metaParameters = orderfields(results.(classSelection).(task)(optimizationNumber).metaParameters);        
         for j = 1:legCount
             EEselection = EEnames(j,:);
-            results.(classSelection).(task)(i).(EEselection) = orderfields(results.(classSelection).(task)(i).(EEselection));
+            results.(classSelection).(task)(optimizationNumber).(EEselection) = orderfields(results.(classSelection).(task)(optimizationNumber).(EEselection));
         end
-        generatePlots(viewPlots, results.(classSelection), task, optimizeLeg, saveFiguresToPDF);    
-        runVisualizationScripts(robotVisualization, optimizationProperties, results, classSelection, task);
+        generatePlots(viewPlots, results.(classSelection).(task)(optimizationNumber), task, optimizeLeg, saveFiguresToPDF);    
+        runVisualizationScripts(robotVisualization, optimizationProperties, results.(classSelection).(task)(optimizationNumber));
     end
 
     if ANYmalTrot
         dataSelection = 'ANYmalTrot'; 
         classSelection = 'ANYmal';
         task = 'trot';        
-        results.(classSelection).(task)(i) = runDataExtractionAndOptScripts(actuatorSelection, dataExtraction, imposeJointLimits, heuristic, actuateJointDirectly, transmissionMethod, robotVisualization, linkCount, optimizeLeg, optimizationProperties, dataSelection, classSelection, configSelection, hipParalleltoBody, legCount, task, saveFiguresToPDF, springInParallelWithJoints, kSpringJoint, payload);        
-        results.(classSelection).(task)(i).metaParameters = orderfields(results.(classSelection).(task)(i).metaParameters);        
+        results.(classSelection).(task)(optimizationNumber) = runDataExtractionAndOptScripts(actuatorSelection, dataExtraction, imposeJointLimits, heuristic, actuateJointDirectly, transmissionMethod, robotVisualization, linkCount, optimizeLeg, optimizationProperties, dataSelection, classSelection, configSelection, hipParalleltoBody, legCount, task, saveFiguresToPDF, springInParallelWithJoints, kSpringJoint, payload);        
+        results.(classSelection).(task)(optimizationNumber).metaParameters = orderfields(results.(classSelection).(task)(optimizationNumber).metaParameters);        
         for j = 1:legCount
             EEselection = EEnames(j,:);
-            results.(classSelection).(task)(i).(EEselection) = orderfields(results.(classSelection).(task)(i).(EEselection));
+            results.(classSelection).(task)(optimizationNumber).(EEselection) = orderfields(results.(classSelection).(task)(optimizationNumber).(EEselection));
         end
-        generatePlots(viewPlots, results.(classSelection), task, optimizeLeg, saveFiguresToPDF);    
-        runVisualizationScripts(robotVisualization, optimizationProperties, results, classSelection, task);
+        generatePlots(viewPlots, results.(classSelection).(task)(optimizationNumber), task, optimizeLeg, saveFiguresToPDF);    
+        runVisualizationScripts(robotVisualization, optimizationProperties, results.(classSelection).(task)(optimizationNumber));
     end
     
     if ANYmalSlowTrotAccurateMotion
         dataSelection = 'ANYmalSlowTrotAccurateMotion'; 
         classSelection = 'ANYmal';
         task = 'slowTrotAccurateMotion';        
-        results.(classSelection).(task)(i) = runDataExtractionAndOptScripts(actuatorSelection, dataExtraction, imposeJointLimits, heuristic, actuateJointDirectly, transmissionMethod, robotVisualization, linkCount, optimizeLeg, optimizationProperties, dataSelection, classSelection, configSelection, hipParalleltoBody, legCount, task, saveFiguresToPDF, springInParallelWithJoints, kSpringJoint, payload);        
-        results.(classSelection).(task)(i).metaParameters = orderfields(results.(classSelection).(task)(i).metaParameters);        
+        results.(classSelection).(task)(optimizationNumber) = runDataExtractionAndOptScripts(actuatorSelection, dataExtraction, imposeJointLimits, heuristic, actuateJointDirectly, transmissionMethod, robotVisualization, linkCount, optimizeLeg, optimizationProperties, dataSelection, classSelection, configSelection, hipParalleltoBody, legCount, task, saveFiguresToPDF, springInParallelWithJoints, kSpringJoint, payload);        
+        results.(classSelection).(task)(optimizationNumber).metaParameters = orderfields(results.(classSelection).(task)(optimizationNumber).metaParameters);        
         for j = 1:legCount
             EEselection = EEnames(j,:);
-            results.(classSelection).(task)(i).(EEselection) = orderfields(results.(classSelection).(task)(i).(EEselection));
+            results.(classSelection).(task)(optimizationNumber).(EEselection) = orderfields(results.(classSelection).(task)(optimizationNumber).(EEselection));
         end
-        generatePlots(viewPlots, results.(classSelection), task, optimizeLeg, saveFiguresToPDF);    
-        runVisualizationScripts(robotVisualization, optimizationProperties, results, classSelection, task);
+        generatePlots(viewPlots, results.(classSelection).(task)(optimizationNumber), task, optimizeLeg, saveFiguresToPDF);    
+        runVisualizationScripts(robotVisualization, optimizationProperties, results.(classSelection).(task)(optimizationNumber));
     end
     
     if ANYmalSlowTrot2
         dataSelection = 'ANYmalSlowTrot2'; 
         classSelection = 'ANYmal';
         task = 'slowTrot2';        
-        results.(classSelection).(task)(i) = runDataExtractionAndOptScripts(actuatorSelection, dataExtraction, imposeJointLimits, heuristic, actuateJointDirectly, transmissionMethod, robotVisualization, linkCount, optimizeLeg, optimizationProperties, dataSelection, classSelection, configSelection, hipParalleltoBody, legCount, task, saveFiguresToPDF, springInParallelWithJoints, kSpringJoint, payload);        
-        results.(classSelection).(task)(i).metaParameters = orderfields(results.(classSelection).(task)(i).metaParameters);        
+        results.(classSelection).(task)(optimizationNumber) = runDataExtractionAndOptScripts(actuatorSelection, dataExtraction, imposeJointLimits, heuristic, actuateJointDirectly, transmissionMethod, robotVisualization, linkCount, optimizeLeg, optimizationProperties, dataSelection, classSelection, configSelection, hipParalleltoBody, legCount, task, saveFiguresToPDF, springInParallelWithJoints, kSpringJoint, payload);        
+        results.(classSelection).(task)(optimizationNumber).metaParameters = orderfields(results.(classSelection).(task)(optimizationNumber).metaParameters);        
         for j = 1:legCount
             EEselection = EEnames(j,:);
-            results.(classSelection).(task)(i).(EEselection) = orderfields(results.(classSelection).(task)(i).(EEselection));
+            results.(classSelection).(task)(optimizationNumber).(EEselection) = orderfields(results.(classSelection).(task)(optimizationNumber).(EEselection));
         end
-        generatePlots(viewPlots, results.(classSelection), task, optimizeLeg, saveFiguresToPDF);    
-        runVisualizationScripts(robotVisualization, optimizationProperties, results, classSelection, task);
+        generatePlots(viewPlots, results.(classSelection).(task)(optimizationNumber), task, optimizeLeg, saveFiguresToPDF);    
+        runVisualizationScripts(robotVisualization, optimizationProperties, results.(classSelection).(task)(optimizationNumber));
     end
     
     if ANYmalFlyingTrot
         dataSelection = 'ANYmalFlyingTrot'; 
         classSelection = 'ANYmal';
         task = 'flyingTrot';        
-        results.(classSelection).(task)(i) = runDataExtractionAndOptScripts(actuatorSelection, dataExtraction, imposeJointLimits, heuristic, actuateJointDirectly, transmissionMethod, robotVisualization, linkCount, optimizeLeg, optimizationProperties, dataSelection, classSelection, configSelection, hipParalleltoBody, legCount, task, saveFiguresToPDF, springInParallelWithJoints, kSpringJoint, payload);        
-        results.(classSelection).(task)(i).metaParameters = orderfields(results.(classSelection).(task)(i).metaParameters);        
+        results.(classSelection).(task)(optimizationNumber) = runDataExtractionAndOptScripts(actuatorSelection, dataExtraction, imposeJointLimits, heuristic, actuateJointDirectly, transmissionMethod, robotVisualization, linkCount, optimizeLeg, optimizationProperties, dataSelection, classSelection, configSelection, hipParalleltoBody, legCount, task, saveFiguresToPDF, springInParallelWithJoints, kSpringJoint, payload);        
+        results.(classSelection).(task)(optimizationNumber).metaParameters = orderfields(results.(classSelection).(task)(optimizationNumber).metaParameters);        
         for j = 1:legCount
             EEselection = EEnames(j,:);
-            results.(classSelection).(task)(i).(EEselection) = orderfields(results.(classSelection).(task)(i).(EEselection));
+            results.(classSelection).(task)(optimizationNumber).(EEselection) = orderfields(results.(classSelection).(task)(optimizationNumber).(EEselection));
         end
-        generatePlots(viewPlots, results.(classSelection), task, optimizeLeg, saveFiguresToPDF);    
-        runVisualizationScripts(robotVisualization, optimizationProperties, results, classSelection, task);
+        generatePlots(viewPlots, results.(classSelection).(task)(optimizationNumber), task, optimizeLeg, saveFiguresToPDF);    
+        runVisualizationScripts(robotVisualization, optimizationProperties, results.(classSelection).(task)(optimizationNumber));
     end
     
     if ANYmalTrotVersatilityStep
         dataSelection = 'ANYmalTrotVersatilityStep'; 
         classSelection = 'ANYmal';
         task = 'trotVersatilityStep';        
-        results.(classSelection).(task)(i) = runDataExtractionAndOptScripts(actuatorSelection, dataExtraction, imposeJointLimits, heuristic, actuateJointDirectly, transmissionMethod, robotVisualization, linkCount, optimizeLeg, optimizationProperties, dataSelection, classSelection, configSelection, hipParalleltoBody, legCount, task, saveFiguresToPDF, springInParallelWithJoints, kSpringJoint, payload);        
-        results.(classSelection).(task)(i).metaParameters = orderfields(results.(classSelection).(task)(i).metaParameters);        
+        results.(classSelection).(task)(optimizationNumber) = runDataExtractionAndOptScripts(actuatorSelection, dataExtraction, imposeJointLimits, heuristic, actuateJointDirectly, transmissionMethod, robotVisualization, linkCount, optimizeLeg, optimizationProperties, dataSelection, classSelection, configSelection, hipParalleltoBody, legCount, task, saveFiguresToPDF, springInParallelWithJoints, kSpringJoint, payload);        
+        results.(classSelection).(task)(optimizationNumber).metaParameters = orderfields(results.(classSelection).(task)(optimizationNumber).metaParameters);        
         for j = 1:legCount
             EEselection = EEnames(j,:);
-            results.(classSelection).(task)(i).(EEselection) = orderfields(results.(classSelection).(task)(i).(EEselection));
+            results.(classSelection).(task)(optimizationNumber).(EEselection) = orderfields(results.(classSelection).(task)(optimizationNumber).(EEselection));
         end
-        generatePlots(viewPlots, results.(classSelection), task, optimizeLeg, saveFiguresToPDF);    
-        runVisualizationScripts(robotVisualization, optimizationProperties, results, classSelection, task);
+        generatePlots(viewPlots, results.(classSelection).(task)(optimizationNumber), task, optimizeLeg, saveFiguresToPDF);    
+        runVisualizationScripts(robotVisualization, optimizationProperties, results.(classSelection).(task)(optimizationNumber));
     end
     
     if ANYmalBearTrot
         dataSelection = 'ANYmalBearTrot'; 
         classSelection = 'ANYmalBear';
         task = 'trot';        
-        results.(classSelection).(task)(i) = runDataExtractionAndOptScripts(actuatorSelection, dataExtraction, imposeJointLimits, heuristic, actuateJointDirectly, transmissionMethod, robotVisualization, linkCount, optimizeLeg, optimizationProperties, dataSelection, classSelection, configSelection, hipParalleltoBody, legCount, task, saveFiguresToPDF, springInParallelWithJoints, kSpringJoint, payload);        
-        results.(classSelection).(task)(i).metaParameters = orderfields(results.(classSelection).(task)(i).metaParameters);        
+        results.(classSelection).(task)(optimizationNumber) = runDataExtractionAndOptScripts(actuatorSelection, dataExtraction, imposeJointLimits, heuristic, actuateJointDirectly, transmissionMethod, robotVisualization, linkCount, optimizeLeg, optimizationProperties, dataSelection, classSelection, configSelection, hipParalleltoBody, legCount, task, saveFiguresToPDF, springInParallelWithJoints, kSpringJoint, payload);        
+        results.(classSelection).(task)(optimizationNumber).metaParameters = orderfields(results.(classSelection).(task)(optimizationNumber).metaParameters);        
         for j = 1:legCount
             EEselection = EEnames(j,:);
-            results.(classSelection).(task)(i).(EEselection) = orderfields(results.(classSelection).(task)(i).(EEselection));
+            results.(classSelection).(task)(optimizationNumber).(EEselection) = orderfields(results.(classSelection).(task)(optimizationNumber).(EEselection));
         end
-        generatePlots(viewPlots, results.(classSelection), task, optimizeLeg, saveFiguresToPDF);    
-        runVisualizationScripts(robotVisualization, optimizationProperties, results, classSelection, task);
+        generatePlots(viewPlots, results.(classSelection).(task)(optimizationNumber), task, optimizeLeg, saveFiguresToPDF);    
+        runVisualizationScripts(robotVisualization, optimizationProperties, results.(classSelection).(task)(optimizationNumber));
     end
     
     if ANYmalBearPushup
         dataSelection = 'ANYmalBearPushup'; 
         classSelection = 'ANYmalBear';
         task = 'pushup';        
-        results.(classSelection).(task)(i) = runDataExtractionAndOptScripts(actuatorSelection, dataExtraction, imposeJointLimits, heuristic, actuateJointDirectly, transmissionMethod, robotVisualization, linkCount, optimizeLeg, optimizationProperties, dataSelection, classSelection, configSelection, hipParalleltoBody, legCount, task, saveFiguresToPDF, springInParallelWithJoints, kSpringJoint, payload);        
-        results.(classSelection).(task)(i).metaParameters = orderfields(results.(classSelection).(task)(i).metaParameters);        
+        results.(classSelection).(task)(optimizationNumber) = runDataExtractionAndOptScripts(actuatorSelection, dataExtraction, imposeJointLimits, heuristic, actuateJointDirectly, transmissionMethod, robotVisualization, linkCount, optimizeLeg, optimizationProperties, dataSelection, classSelection, configSelection, hipParalleltoBody, legCount, task, saveFiguresToPDF, springInParallelWithJoints, kSpringJoint, payload);        
+        results.(classSelection).(task)(optimizationNumber).metaParameters = orderfields(results.(classSelection).(task)(optimizationNumber).metaParameters);        
         for j = 1:legCount
             EEselection = EEnames(j,:);
-            results.(classSelection).(task)(i).(EEselection) = orderfields(results.(classSelection).(task)(i).(EEselection));
+            results.(classSelection).(task)(optimizationNumber).(EEselection) = orderfields(results.(classSelection).(task)(optimizationNumber).(EEselection));
         end
-        generatePlots(viewPlots, results.(classSelection), task, optimizeLeg, saveFiguresToPDF);    
-        runVisualizationScripts(robotVisualization, optimizationProperties, results, classSelection, task);
+        generatePlots(viewPlots, results.(classSelection).(task)(optimizationNumber), task, optimizeLeg, saveFiguresToPDF);    
+        runVisualizationScripts(robotVisualization, optimizationProperties, results.(classSelection).(task)(optimizationNumber));
     end
     if ANYmalBearTrot2
         dataSelection = 'ANYmalBearTrot2'; 
         classSelection = 'ANYmalBear';
         task = 'trot2';        
-        results.(classSelection).(task)(i) = runDataExtractionAndOptScripts(actuatorSelection, dataExtraction, imposeJointLimits, heuristic, actuateJointDirectly, transmissionMethod, robotVisualization, linkCount, optimizeLeg, optimizationProperties, dataSelection, classSelection, configSelection, hipParalleltoBody, legCount, task, saveFiguresToPDF, springInParallelWithJoints, kSpringJoint, payload);        
-        results.(classSelection).(task)(i).metaParameters = orderfields(results.(classSelection).(task)(i).metaParameters);        
+        results.(classSelection).(task)(optimizationNumber) = runDataExtractionAndOptScripts(actuatorSelection, dataExtraction, imposeJointLimits, heuristic, actuateJointDirectly, transmissionMethod, robotVisualization, linkCount, optimizeLeg, optimizationProperties, dataSelection, classSelection, configSelection, hipParalleltoBody, legCount, task, saveFiguresToPDF, springInParallelWithJoints, kSpringJoint, payload);        
+        results.(classSelection).(task)(optimizationNumber).metaParameters = orderfields(results.(classSelection).(task)(optimizationNumber).metaParameters);        
         for j = 1:legCount
             EEselection = EEnames(j,:);
-            results.(classSelection).(task)(i).(EEselection) = orderfields(results.(classSelection).(task)(i).(EEselection));
+            results.(classSelection).(task)(optimizationNumber).(EEselection) = orderfields(results.(classSelection).(task)(optimizationNumber).(EEselection));
         end
-        generatePlots(viewPlots, results.(classSelection), task, optimizeLeg, saveFiguresToPDF);    
-        runVisualizationScripts(robotVisualization, optimizationProperties, results, classSelection, task);
-    end 
+        generatePlots(viewPlots, results.(classSelection).(task)(optimizationNumber), task, optimizeLeg, saveFiguresToPDF);    
+        runVisualizationScripts(robotVisualization, optimizationProperties, results.(classSelection).(task)(optimizationNumber));
+    end
     
     if ANYmalBearTrot3
         dataSelection = 'ANYmalBearTrot3'; 
         classSelection = 'ANYmalBear';
         task = 'trot3';        
-        results.(classSelection).(task)(i) = runDataExtractionAndOptScripts(actuatorSelection, dataExtraction, imposeJointLimits, heuristic, actuateJointDirectly, transmissionMethod, robotVisualization, linkCount, optimizeLeg, optimizationProperties, dataSelection, classSelection, configSelection, hipParalleltoBody, legCount, task, saveFiguresToPDF, springInParallelWithJoints, kSpringJoint, payload);        
-        results.(classSelection).(task)(i).metaParameters = orderfields(results.(classSelection).(task)(i).metaParameters);        
+        results.(classSelection).(task)(optimizationNumber) = runDataExtractionAndOptScripts(actuatorSelection, dataExtraction, imposeJointLimits, heuristic, actuateJointDirectly, transmissionMethod, robotVisualization, linkCount, optimizeLeg, optimizationProperties, dataSelection, classSelection, configSelection, hipParalleltoBody, legCount, task, saveFiguresToPDF, springInParallelWithJoints, kSpringJoint, payload);        
+        results.(classSelection).(task)(optimizationNumber).metaParameters = orderfields(results.(classSelection).(task)(optimizationNumber).metaParameters);        
         for j = 1:legCount
             EEselection = EEnames(j,:);
-            results.(classSelection).(task)(i).(EEselection) = orderfields(results.(classSelection).(task)(i).(EEselection));
+            results.(classSelection).(task)(optimizationNumber).(EEselection) = orderfields(results.(classSelection).(task)(optimizationNumber).(EEselection));
         end
-        generatePlots(viewPlots, results.(classSelection), task, optimizeLeg, saveFiguresToPDF);    
-        runVisualizationScripts(robotVisualization, optimizationProperties, results, classSelection, task);
+        generatePlots(viewPlots, results.(classSelection).(task)(optimizationNumber), task, optimizeLeg, saveFiguresToPDF);    
+        runVisualizationScripts(robotVisualization, optimizationProperties, results.(classSelection).(task)(optimizationNumber));
     end
 
     if ANYmalBearElongatedTrot
         dataSelection = 'ANYmalBearElongatedTrot'; 
         classSelection = 'ANYmalBear';
         task = 'elongatedTrot';        
-        results.(classSelection).(task)(i) = runDataExtractionAndOptScripts(actuatorSelection, dataExtraction, imposeJointLimits, heuristic, actuateJointDirectly, transmissionMethod, robotVisualization, linkCount, optimizeLeg, optimizationProperties, dataSelection, classSelection, configSelection, hipParalleltoBody, legCount, task, saveFiguresToPDF, springInParallelWithJoints, kSpringJoint, payload);        
-        results.(classSelection).(task)(i).metaParameters = orderfields(results.(classSelection).(task)(i).metaParameters);        
+        results.(classSelection).(task)(optimizationNumber) = runDataExtractionAndOptScripts(actuatorSelection, dataExtraction, imposeJointLimits, heuristic, actuateJointDirectly, transmissionMethod, robotVisualization, linkCount, optimizeLeg, optimizationProperties, dataSelection, classSelection, configSelection, hipParalleltoBody, legCount, task, saveFiguresToPDF, springInParallelWithJoints, kSpringJoint, payload);        
+        results.(classSelection).(task)(optimizationNumber).metaParameters = orderfields(results.(classSelection).(task)(optimizationNumber).metaParameters);        
         for j = 1:legCount
             EEselection = EEnames(j,:);
-            results.(classSelection).(task)(i).(EEselection) = orderfields(results.(classSelection).(task)(i).(EEselection));
+            results.(classSelection).(task)(optimizationNumber).(EEselection) = orderfields(results.(classSelection).(task)(optimizationNumber).(EEselection));
         end
-        generatePlots(viewPlots, results.(classSelection), task, optimizeLeg, saveFiguresToPDF);    
-        runVisualizationScripts(robotVisualization, optimizationProperties, results, classSelection, task);
+        generatePlots(viewPlots, results.(classSelection).(task)(optimizationNumber), task, optimizeLeg, saveFiguresToPDF);    
+        runVisualizationScripts(robotVisualization, optimizationProperties, results.(classSelection).(task)(optimizationNumber));
     end
     
     if ANYmalBearTrotSwing3
         dataSelection = 'ANYmalBearTrotSwing3'; 
         classSelection = 'ANYmalBear';
         task = 'trotSwing3';        
-        results.(classSelection).(task)(i) = runDataExtractionAndOptScripts(actuatorSelection, dataExtraction, imposeJointLimits, heuristic, actuateJointDirectly, transmissionMethod, robotVisualization, linkCount, optimizeLeg, optimizationProperties, dataSelection, classSelection, configSelection, hipParalleltoBody, legCount, task, saveFiguresToPDF, springInParallelWithJoints, kSpringJoint, payload);        
-        results.(classSelection).(task)(i).metaParameters = orderfields(results.(classSelection).(task)(i).metaParameters);        
+        results.(classSelection).(task)(optimizationNumber) = runDataExtractionAndOptScripts(actuatorSelection, dataExtraction, imposeJointLimits, heuristic, actuateJointDirectly, transmissionMethod, robotVisualization, linkCount, optimizeLeg, optimizationProperties, dataSelection, classSelection, configSelection, hipParalleltoBody, legCount, task, saveFiguresToPDF, springInParallelWithJoints, kSpringJoint, payload);        
+        results.(classSelection).(task)(optimizationNumber).metaParameters = orderfields(results.(classSelection).(task)(optimizationNumber).metaParameters);        
         for j = 1:legCount
             EEselection = EEnames(j,:);
-            results.(classSelection).(task)(i).(EEselection) = orderfields(results.(classSelection).(task)(i).(EEselection));
+            results.(classSelection).(task)(optimizationNumber).(EEselection) = orderfields(results.(classSelection).(task)(optimizationNumber).(EEselection));
         end
-        generatePlots(viewPlots, results.(classSelection), task, optimizeLeg, saveFiguresToPDF);    
-        runVisualizationScripts(robotVisualization, optimizationProperties, results, classSelection, task);
+        generatePlots(viewPlots, results.(classSelection).(task)(optimizationNumber), task, optimizeLeg, saveFiguresToPDF);    
+        runVisualizationScripts(robotVisualization, optimizationProperties, results.(classSelection).(task)(optimizationNumber));
     end
     
     if ANYmalBearTrotSwing5
         dataSelection = 'ANYmalBearTrotSwing5'; 
         classSelection = 'ANYmalBear';
         task = 'trotSwing5';        
-        results.(classSelection).(task)(i) = runDataExtractionAndOptScripts(actuatorSelection, dataExtraction, imposeJointLimits, heuristic, actuateJointDirectly, transmissionMethod, robotVisualization, linkCount, optimizeLeg, optimizationProperties, dataSelection, classSelection, configSelection, hipParalleltoBody, legCount, task, saveFiguresToPDF, springInParallelWithJoints, kSpringJoint, payload);        
-        results.(classSelection).(task)(i).metaParameters = orderfields(results.(classSelection).(task)(i).metaParameters);        
+        results.(classSelection).(task)(optimizationNumber) = runDataExtractionAndOptScripts(actuatorSelection, dataExtraction, imposeJointLimits, heuristic, actuateJointDirectly, transmissionMethod, robotVisualization, linkCount, optimizeLeg, optimizationProperties, dataSelection, classSelection, configSelection, hipParalleltoBody, legCount, task, saveFiguresToPDF, springInParallelWithJoints, kSpringJoint, payload);        
+        results.(classSelection).(task)(optimizationNumber).metaParameters = orderfields(results.(classSelection).(task)(optimizationNumber).metaParameters);        
         for j = 1:legCount
             EEselection = EEnames(j,:);
-            results.(classSelection).(task)(i).(EEselection) = orderfields(results.(classSelection).(task)(i).(EEselection));
+            results.(classSelection).(task)(optimizationNumber).(EEselection) = orderfields(results.(classSelection).(task)(optimizationNumber).(EEselection));
         end
-        generatePlots(viewPlots, results.(classSelection), task, optimizeLeg, saveFiguresToPDF);    
-        runVisualizationScripts(robotVisualization, optimizationProperties, results, classSelection, task);
+        generatePlots(viewPlots, results.(classSelection).(task)(optimizationNumber), task, optimizeLeg, saveFiguresToPDF);    
+        runVisualizationScripts(robotVisualization, optimizationProperties, results.(classSelection).(task)(optimizationNumber));
     end
     
     if ANYmalBearSlowTrot
         dataSelection = 'ANYmalBearSlowTrot'; 
         classSelection = 'ANYmalBear';
         task = 'slowTrot';        
-        results.(classSelection).(task)(i) = runDataExtractionAndOptScripts(actuatorSelection, dataExtraction, imposeJointLimits, heuristic, actuateJointDirectly, transmissionMethod, robotVisualization, linkCount, optimizeLeg, optimizationProperties, dataSelection, classSelection, configSelection, hipParalleltoBody, legCount, task, saveFiguresToPDF, springInParallelWithJoints, kSpringJoint, payload);        
-        results.(classSelection).(task)(i).metaParameters = orderfields(results.(classSelection).(task)(i).metaParameters);        
+        results.(classSelection).(task)(optimizationNumber) = runDataExtractionAndOptScripts(actuatorSelection, dataExtraction, imposeJointLimits, heuristic, actuateJointDirectly, transmissionMethod, robotVisualization, linkCount, optimizeLeg, optimizationProperties, dataSelection, classSelection, configSelection, hipParalleltoBody, legCount, task, saveFiguresToPDF, springInParallelWithJoints, kSpringJoint, payload);        
+        results.(classSelection).(task)(optimizationNumber).metaParameters = orderfields(results.(classSelection).(task)(optimizationNumber).metaParameters);        
         for j = 1:legCount
             EEselection = EEnames(j,:);
-            results.(classSelection).(task)(i).(EEselection) = orderfields(results.(classSelection).(task)(i).(EEselection));
+            results.(classSelection).(task)(optimizationNumber).(EEselection) = orderfields(results.(classSelection).(task)(optimizationNumber).(EEselection));
         end
-        generatePlots(viewPlots, results.(classSelection), task, optimizeLeg, saveFiguresToPDF);    
-        runVisualizationScripts(robotVisualization, optimizationProperties, results, classSelection, task);
+        generatePlots(viewPlots, results.(classSelection).(task)(optimizationNumber), task, optimizeLeg, saveFiguresToPDF);    
+        runVisualizationScripts(robotVisualization, optimizationProperties, results.(classSelection).(task)(optimizationNumber));
     end
     
     if ANYmalBearSlowTrotIntermediateTorque
         dataSelection = 'ANYmalBearSlowTrotIntermediateTorque'; 
         classSelection = 'ANYmalBear';
         task = 'slowTrotIntermediateTorque';        
-        results.(classSelection).(task)(i) = runDataExtractionAndOptScripts(actuatorSelection, dataExtraction, imposeJointLimits, heuristic, actuateJointDirectly, transmissionMethod, robotVisualization, linkCount, optimizeLeg, optimizationProperties, dataSelection, classSelection, configSelection, hipParalleltoBody, legCount, task, saveFiguresToPDF, springInParallelWithJoints, kSpringJoint, payload);        
-        results.(classSelection).(task)(i).metaParameters = orderfields(results.(classSelection).(task)(i).metaParameters);        
+        results.(classSelection).(task)(optimizationNumber) = runDataExtractionAndOptScripts(actuatorSelection, dataExtraction, imposeJointLimits, heuristic, actuateJointDirectly, transmissionMethod, robotVisualization, linkCount, optimizeLeg, optimizationProperties, dataSelection, classSelection, configSelection, hipParalleltoBody, legCount, task, saveFiguresToPDF, springInParallelWithJoints, kSpringJoint, payload);        
+        results.(classSelection).(task)(optimizationNumber).metaParameters = orderfields(results.(classSelection).(task)(optimizationNumber).metaParameters);        
         for j = 1:legCount
             EEselection = EEnames(j,:);
-            results.(classSelection).(task)(i).(EEselection) = orderfields(results.(classSelection).(task)(i).(EEselection));
+            results.(classSelection).(task)(optimizationNumber).(EEselection) = orderfields(results.(classSelection).(task)(optimizationNumber).(EEselection));
         end
-        generatePlots(viewPlots, results.(classSelection), task, optimizeLeg, saveFiguresToPDF);    
-        runVisualizationScripts(robotVisualization, optimizationProperties, results, classSelection, task);
+        generatePlots(viewPlots, results.(classSelection).(task)(optimizationNumber), task, optimizeLeg, saveFiguresToPDF);    
+        runVisualizationScripts(robotVisualization, optimizationProperties, results.(classSelection).(task)(optimizationNumber));
     end
     
     if ANYmalBearFlyingTrot2
         dataSelection = 'ANYmalBearFlyingTrot2'; 
         classSelection = 'ANYmalBear';
         task = 'flyingTrot2';        
-        results.(classSelection).(task)(i) = runDataExtractionAndOptScripts(actuatorSelection, dataExtraction, imposeJointLimits, heuristic, actuateJointDirectly, transmissionMethod, robotVisualization, linkCount, optimizeLeg, optimizationProperties, dataSelection, classSelection, configSelection, hipParalleltoBody, legCount, task, saveFiguresToPDF, springInParallelWithJoints, kSpringJoint, payload);        
-        results.(classSelection).(task)(i).metaParameters = orderfields(results.(classSelection).(task)(i).metaParameters);        
+        results.(classSelection).(task)(optimizationNumber) = runDataExtractionAndOptScripts(actuatorSelection, dataExtraction, imposeJointLimits, heuristic, actuateJointDirectly, transmissionMethod, robotVisualization, linkCount, optimizeLeg, optimizationProperties, dataSelection, classSelection, configSelection, hipParalleltoBody, legCount, task, saveFiguresToPDF, springInParallelWithJoints, kSpringJoint, payload);        
+        results.(classSelection).(task)(optimizationNumber).metaParameters = orderfields(results.(classSelection).(task)(optimizationNumber).metaParameters);        
         for j = 1:legCount
             EEselection = EEnames(j,:);
-            results.(classSelection).(task)(i).(EEselection) = orderfields(results.(classSelection).(task)(i).(EEselection));
+            results.(classSelection).(task)(optimizationNumber).(EEselection) = orderfields(results.(classSelection).(task)(optimizationNumber).(EEselection));
         end
-        generatePlots(viewPlots, results.(classSelection), task, optimizeLeg, saveFiguresToPDF);    
-        runVisualizationScripts(robotVisualization, optimizationProperties, results, classSelection, task);
+        generatePlots(viewPlots, results.(classSelection).(task)(optimizationNumber), task, optimizeLeg, saveFiguresToPDF);    
+        runVisualizationScripts(robotVisualization, optimizationProperties, results.(classSelection).(task)(optimizationNumber));
     end
         
     
@@ -417,27 +431,27 @@ for i = 1:numberOfRepetitions+1
         dataSelection = 'defaultHopperHop'; 
         classSelection = 'defaultHopper';
         task = 'hop';        
-        results.(classSelection).(task)(i) = runDataExtractionAndOptScripts(actuatorSelection, dataExtraction, imposeJointLimits, heuristic, actuateJointDirectly, transmissionMethod, robotVisualization, linkCount, optimizeLeg, optimizationProperties, dataSelection, classSelection, configSelection, hipParalleltoBody, legCount, task, saveFiguresToPDF, springInParallelWithJoints, kSpringJoint, payload);        
-        results.(classSelection).(task)(i).metaParameters = orderfields(results.(classSelection).(task)(i).metaParameters);        
+        results.(classSelection).(task)(optimizationNumber) = runDataExtractionAndOptScripts(actuatorSelection, dataExtraction, imposeJointLimits, heuristic, actuateJointDirectly, transmissionMethod, robotVisualization, linkCount, optimizeLeg, optimizationProperties, dataSelection, classSelection, configSelection, hipParalleltoBody, legCount, task, saveFiguresToPDF, springInParallelWithJoints, kSpringJoint, payload);        
+        results.(classSelection).(task)(optimizationNumber).metaParameters = orderfields(results.(classSelection).(task)(optimizationNumber).metaParameters);        
         for j = 1:legCount
             EEselection = EEnames(j,:);
-            results.(classSelection).(task)(i).(EEselection) = orderfields(results.(classSelection).(task)(i).(EEselection));
+            results.(classSelection).(task)(optimizationNumber).(EEselection) = orderfields(results.(classSelection).(task)(optimizationNumber).(EEselection));
         end
-        generatePlots(viewPlots, results.(classSelection), task, optimizeLeg, saveFiguresToPDF);    
-        runVisualizationScripts(robotVisualization, optimizationProperties, results, classSelection, task);
+        generatePlots(viewPlots, results.(classSelection).(task)(optimizationNumber), task, optimizeLeg, saveFiguresToPDF);    
+        runVisualizationScripts(robotVisualization, optimizationProperties, results.(classSelection).(task)(optimizationNumber));
     end
     
     if vertexWalk
         dataSelection = 'vertexWalk'; 
         classSelection = 'vertex';
         task = 'walk';        
-        results.(classSelection).(task)(i) = runDataExtractionAndOptScripts(actuatorSelection, dataExtraction, imposeJointLimits, heuristic, actuateJointDirectly, transmissionMethod, robotVisualization, linkCount, optimizeLeg, optimizationProperties, dataSelection, classSelection, configSelection, hipParalleltoBody, legCount, task, saveFiguresToPDF, springInParallelWithJoints, kSpringJoint, payload);        
-        results.(classSelection).(task)(i).metaParameters = orderfields(results.(classSelection).(task)(i).metaParameters);        
+        results.(classSelection).(task)(optimizationNumber) = runDataExtractionAndOptScripts(actuatorSelection, dataExtraction, imposeJointLimits, heuristic, actuateJointDirectly, transmissionMethod, robotVisualization, linkCount, optimizeLeg, optimizationProperties, dataSelection, classSelection, configSelection, hipParalleltoBody, legCount, task, saveFiguresToPDF, springInParallelWithJoints, kSpringJoint, payload);        
+        results.(classSelection).(task)(optimizationNumber).metaParameters = orderfields(results.(classSelection).(task)(optimizationNumber).metaParameters);        
         for j = 1:legCount
             EEselection = EEnames(j,:);
-            results.(classSelection).(task)(i).(EEselection) = orderfields(results.(classSelection).(task)(i).(EEselection));
+            results.(classSelection).(task)(optimizationNumber).(EEselection) = orderfields(results.(classSelection).(task)(optimizationNumber).(EEselection));
         end
-        generatePlots(viewPlots, results.(classSelection), task, optimizeLeg, saveFiguresToPDF);    
-        runVisualizationScripts(robotVisualization, optimizationProperties, results, classSelection, task);
+        generatePlots(viewPlots, results.(classSelection).(task)(optimizationNumber), task, optimizeLeg, saveFiguresToPDF);    
+        runVisualizationScripts(robotVisualization, optimizationProperties, results.(classSelection).(task)(optimizationNumber));
     end
 end

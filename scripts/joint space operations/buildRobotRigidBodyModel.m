@@ -22,11 +22,22 @@ function robot = buildRobotRigidBodyModel(actuatorProperties, actuateJointDirect
     hipAttachmentOffsetX = hipAttachmentOffset*cos(meanCyclicMotionHipEE.body.eulerAngles.(EEselection)(1,2)); 
     hipAttachmentOffsetZ = hipAttachmentOffset*sin(meanCyclicMotionHipEE.body.eulerAngles.(EEselection)(1,2));  
 
-    l_hip   = robotProperties.hip(selectFrontHind).length; % offset from HAA to HFE
-    l_thigh = robotProperties.thigh(selectFrontHind).length;
-    l_shank = robotProperties.shank(selectFrontHind).length;
-    l_foot  = robotProperties.foot(selectFrontHind).length;
+    l_hip       = robotProperties.hip(selectFrontHind).length; % offset from HAA to HFE
+    l_thigh     = robotProperties.thigh(selectFrontHind).length;
+    l_shank     = robotProperties.shank(selectFrontHind).length;
+    l_foot      = robotProperties.foot(selectFrontHind).length;
     l_phalanges = robotProperties.phalanges(selectFrontHind).length;
+
+    m_hip       = robotProperties.hip(selectFrontHind).mass;
+    m_thigh     = robotProperties.thigh(selectFrontHind).mass;
+    m_shank     = robotProperties.shank(selectFrontHind).mass;
+    m_EE        = robotProperties.EE(selectFrontHind).mass;
+    if linkCount > 2
+        m_foot      = robotProperties.foot(selectFrontHind).mass;
+    end
+    if linkCount > 3
+        m_phalanges = robotProperties.phalanges(selectFrontHind).mass;
+    end
 
     %% Build the rigid body model 
     % The transformations describe rotations and translations. These align the 
@@ -125,26 +136,30 @@ function robot = buildRobotRigidBodyModel(actuatorProperties, actuateJointDirect
     end
 
     body00.Mass = 0;      
-    body0.Mass = 0;      
-    body1.Mass = robotProperties.hip(selectFrontHind).mass;    % hip  
-    body2.Mass = robotProperties.thigh(selectFrontHind).mass;  % thigh
-    body3.Mass = robotProperties.shank(selectFrontHind).mass;  % shank
-    body4.Mass = robotProperties.EE(selectFrontHind).mass;     % EE
+    body0.Mass  = 0;      
+    body1.Mass  = m_hip;    % hip  
+    body2.Mass  = m_thigh;  % thigh
+    body3.Mass  = m_shank;  % shank
+    body4.Mass  = m_EE;     % EE
     if (linkCount == 3)
-        body4.Mass = robotProperties.foot(selectFrontHind).mass; % overwrite EE with foot
-        body5.Mass = robotProperties.EE(selectFrontHind).mass;   % EE
+        body4.Mass = m_foot; % overwrite EE with foot
+        body5.Mass = m_EE;   % EE
     elseif (linkCount == 4)
-        body4.Mass = robotProperties.foot(selectFrontHind).mass;      % overwrite EE with foot
-        body5.Mass = robotProperties.phalanges(selectFrontHind).mass; % overwrite EE with phalanges
-        body6.Mass = robotProperties.EE(selectFrontHind).mass;        % EE
+        body4.Mass = m_foot;      % overwrite EE with foot
+        body5.Mass = m_phalanges; % overwrite EE with phalanges
+        body6.Mass = m_EE;        % EE
     end 
     
     %% Set inertia's to zero and instead provide point mass and position for each link/actuator/EE.
     I_hip       = [0 0 0 0 0 0];
-    I_thigh     = [0 0 0 0 0 0];
-    I_shank     = [0 0 0 0 0 0];
-    I_foot      = [0 0 0 0 0 0];
-    I_phalanges = [0 0 0 0 0 0];
+    I_thigh     = (1/3)*m_thigh*l_thigh*[0.0001 1 1 0 0 0];
+    I_shank     = (1/3)*m_shank*l_thigh*[0.0001 1 1 0 0 0];
+    if linkCount> 2
+        I_foot      = (1/3)*m_foot*l_thigh*[0.0001 1 1 0 0 0];
+    end
+    if linkCount > 3
+        I_phalanges = (1/3)*m_phalanges*l_thigh*[0.0001 1 1 0 0 0];
+    end
     I_EE        = [0 0 0 0 0 0];
     I_HAA       = [0 0 0 0 0 0];
     I_HFE       = [0 0 0 0 0 0];
@@ -157,7 +172,7 @@ function robot = buildRobotRigidBodyModel(actuatorProperties, actuateJointDirect
     body0.Inertia = [0 0 0 0 0 0]; % base    
     body1.Inertia =  I_hip;     
     body2.Inertia =  I_thigh; 
-    body3.Inertia =  I_shank + I_EE; % Try lumping IEE and shank?
+    body3.Inertia =  I_shank + I_EE;
     if linkCount == 2
         body4.Inertia = [0 0 0 0 0 0]; %I_EE;
     elseif linkCount == 3

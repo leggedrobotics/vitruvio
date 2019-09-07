@@ -1,21 +1,21 @@
 %% Plot trajectory data
-function [] = plotMotionData(data, task, saveFiguresToPDF)
+function [] = plotMotionData(data, saveFiguresToPDF)
 
-    t                    = data.(task).time;
-    tUninterpolated      = data.(task).timeUninterpolated;
-    base                 = data.(task).base; % base motion for each leg during its cycle
-    base.fullTrajectory  = data.(task).fullTrajectory.base;
-    force.fullTrajectory = data.(task).fullTrajectory.force;
-    legCount             = data.(task).basicProperties.legCount;
-    linkCount            = data.(task).basicProperties.linkCount;
-    EEnames              = data.(task).basicProperties.EEnames;
-    removalRatioStart    = data.(task).basicProperties.trajectory.removalRatioStart;
-    removalRatioEnd      = data.(task).basicProperties.trajectory.removalRatioEnd;
-    inertialEEposition   = data.(task).inertialFrame.EEposition;
+    t                    = data.time;
+    tUninterpolated      = data.timeUninterpolated;
+    base                 = data.base; % base motion for each leg during its cycle
+    base.fullTrajectory  = data.fullTrajectory.base;
+    force.fullTrajectory = data.fullTrajectory.force;
+    legCount             = data.basicProperties.legCount;
+    linkCount            = data.basicProperties.linkCount;
+    EEnames              = data.basicProperties.EEnames;
+    removalRatioStart    = data.basicProperties.trajectory.removalRatioStart;
+    removalRatioEnd      = data.basicProperties.trajectory.removalRatioEnd;
+    inertialEEposition   = data.inertialFrame.EEposition;
     
-    startIndexFullTrajectory = round(length(data.(task).fullTrajectory.r.EEdes.LF)*removalRatioStart);
+    startIndexFullTrajectory = round(length(data.fullTrajectory.r.EEdes.LF)*removalRatioStart);
     startIndexFullTrajectory(startIndexFullTrajectory<1) = 1;
-    endIndexFullTrajectory = round(length(data.(task).fullTrajectory.r.EEdes.LF)*(1-removalRatioEnd));
+    endIndexFullTrajectory = round(length(data.fullTrajectory.r.EEdes.LF)*(1-removalRatioEnd));
 
     %% Base position and velocity in inertial frame with sampled rectange.
     figure('name', 'Base position and velocity', 'units','normalized','outerposition',[0 0 1 1])
@@ -219,10 +219,10 @@ function [] = plotMotionData(data, task, saveFiguresToPDF)
         hold on
         % If we average the steps for cyclic motion also show the raw data
         % result
-        if data.(task).basicProperties.trajectory.averageStepsForCyclicalMotion
-            plot(data.(task).fullTrajectory.r.EEdes.(EEselection)(startIndexFullTrajectory:endIndexFullTrajectory,1), data.(task).fullTrajectory.r.EEdes.(EEselection)(startIndexFullTrajectory:endIndexFullTrajectory,3), 'o', 'MarkerEdgeColor', '[0.5843 0.8157 0.9882]', 'MarkerFaceColor', '[ 0.5843 0.8157 0.9882]')
+        if data.basicProperties.trajectory.averageStepsForCyclicalMotion
+            plot(data.fullTrajectory.r.EEdes.(EEselection)(startIndexFullTrajectory:endIndexFullTrajectory,1), data.fullTrajectory.r.EEdes.(EEselection)(startIndexFullTrajectory:endIndexFullTrajectory,3), 'o', 'MarkerEdgeColor', '[0.5843 0.8157 0.9882]', 'MarkerFaceColor', '[ 0.5843 0.8157 0.9882]')
         end
-        plot(data.(task).(EEselection).r.EEdes(:,1), data.(task).(EEselection).r.EEdes(:,3), 'k', 'LineWidth', 2)
+        plot(data.(EEselection).r.EEdes(:,1), data.(EEselection).r.EEdes(:,3), 'k', 'LineWidth', 2)
         axis equal
         xlabel('x position [m]')
         ylabel('z position [m]')
