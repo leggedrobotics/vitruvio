@@ -76,7 +76,7 @@ function [] = plotEfficiencyMapWithOperatingPoints(classSelection, saveFiguresTo
                 figure('name', figureName, 'DefaultAxesFontSize', 10, 'units','normalized','outerposition',[0 0 1 1])
                 set(gcf,'color','w')
                 hold on
-                caxis([0.6,1]);
+                %caxis([0.6,1]);
                 colormap(jet)
                 colorbar('eastoutside')
                 contourf(qdotMap.(jointNames(j,:)), torqueMap.(jointNames(j,:)), efficiencyMapCropped.(jointNames(j,:)), numberOfContours, 'lineColor', 'none','ShowText', 'on')
@@ -85,9 +85,9 @@ function [] = plotEfficiencyMapWithOperatingPoints(classSelection, saveFiguresTo
                 plot(qdotEnvelope.(jointNames(j,:)), torqueEnvelope.(jointNames(j,:)), 'k', 'lineWidth', lineWidth)
                 plot(qdotMap.(jointNames(j,:))(indqdotOpt), torqueMap.(jointNames(j,:))(indTorqueOpt), 'k*')
                 % Mirror plots to quadrant III where power is also positive
-                plot(-qdotEnvelope.(jointNames(j,:)), -torqueEnvelope.(jointNames(j,:)), 'k', 'lineWidth', lineWidth)
                 contourf(-qdotMap.(jointNames(j,:)), -torqueMap.(jointNames(j,:)), efficiencyMapCropped.(jointNames(j,:)), numberOfContours, 'lineColor', 'none')
                 plot(-qdotMap.(jointNames(j,:))(indqdotOpt), -torqueMap.(jointNames(j,:))(indTorqueOpt), 'k*')
+                plot(-qdotEnvelope.(jointNames(j,:)), -torqueEnvelope.(jointNames(j,:)), 'k', 'lineWidth', lineWidth)
 
                 %% Plot the operating point with differentiation between swing and stance phase           
                 if averageStepsForCyclicalMotion
@@ -160,4 +160,44 @@ function [] = plotEfficiencyMapWithOperatingPoints(classSelection, saveFiguresTo
                 end
              end
           end
+          
+          %% Plot efficiency points of Dynamixel for comparison in report
+%           [p64R, torque64R, pXM540, torqueXM540, speed64R, speedXM540, efficiency64R, efficiencyXM540] = DynamixelPerformanceGraphs;
+%           fontSize = 24;
+%           figure('name', 'Efficiency Map 64R for Report', 'DefaultAxesFontSize', 22, 'units','normalized','outerposition',[0 0 1 1])
+%           set(gcf,'color','w')
+%           set(gca,'FontSize',20)
+%           hold on
+%           contourf(qdotMap.HFE/gearRatio.HFE, torqueMap.HFE*gearRatio.HFE, efficiencyMapCropped.HFE, numberOfContours, 'lineColor', 'none','ShowText', 'on')
+%           colormap(jet)
+%           colorbar('eastoutside')
+%           scatter(speed64R(2:end-1), torque64R(2:end-1), 'k', 'filled');
+%           a = efficiency64R'; b = num2str(a); c = cellstr(b);
+%           dx = -0.1; dy = 0; % displacement so the text does not overlay the data points
+%           text(speed64R(2:end-1)+dx, torque64R(2:end-1)+dy, c, 'FontSize', fontSize);
+%           plot(qdotEnvelope.HFE/gearRatio.HFE, torqueEnvelope.HFE*gearRatio.HFE, 'k', 'lineWidth', lineWidth)
+%           title('Dynamixel MX-64R Efficiency Map Model')
+%           xlim([0, max(speed64R)]);
+%           ylim([0, max(torque64R)]);
+%           xlabel('Actuator Speed [rad/s]')
+%           ylabel('Actuator Torque [Nm]')
+%           
+%           hold off
+%           
+%           figure('name', 'Efficiency Map XM540 for Report', 'DefaultAxesFontSize', 24, 'units','normalized','outerposition',[0 0 1 1])
+%           set(gcf,'color','w')
+%           hold on
+%           contourf(qdotMap.KFE/gearRatio.KFE, torqueMap.KFE*gearRatio.KFE, efficiencyMapCropped.KFE, numberOfContours, 'lineColor', 'none','ShowText', 'on')
+%           colormap(jet)
+%           colorbar('eastoutside')
+%           scatter(speedXM540(2:end-1), torqueXM540(2:end-1), 'k', 'filled');
+%           a = efficiencyXM540'; b = num2str(a); c = cellstr(b);
+%           dx = -0.1; dy = 0; % displacement so the text does not overlay the data points
+%           text(speedXM540(2:end-1)+dx, torqueXM540(2:end-1)+dy, c, 'FontSize', fontSize);
+%           plot(qdotEnvelope.KFE/gearRatio.KFE, torqueEnvelope.KFE*gearRatio.KFE, 'k', 'lineWidth', lineWidth)
+%           title('Dynamixel XM540-W270 Efficiency Map Model')
+%           xlim([0, max(speedXM540)]);
+%           ylim([0, max(torqueXM540)]);
+%           xlabel('Actuator Speed [rad/s]')
+%           ylabel('Actuator Torque [Nm]')
 end

@@ -1,8 +1,8 @@
 clc
 close all
-plotOnePushup = true;
+plotOnePushup = false;
 
-nom = load('nom_pushup_adjusting_foot_position_3.mat');
+nom = load('nom_pushup_adjusting_foot_position_2.mat');
 opt = load('opt_pushup_no_counterweight.mat');
 sim = load('pushupSimulation.mat');
 
@@ -18,7 +18,7 @@ else
     forceSensorTimeAlignment = 0;
 end
 %% Approximate torque from current (improve mapping later)
-nom.torque_HFE = 1.036*nom.current_HFE; %1.254*nom.current_HFE;
+nom.torque_HFE = 1.036*nom.current_HFE;
 nom.torque_KFE = 2.2857*nom.current_KFE;
 
 opt.torque_HFE = 1.036*opt.current_HFE;
@@ -52,7 +52,7 @@ if plotOnePushup
     ylimKFE    = [-0.1 4];
     ylimSensor = [0 18];
 else
-    xlimit     = [370 420];
+    xlimit     = [200 420];
     ylimHFE    = [-0.1 4];
     ylimKFE    = [-0.1 4];
     ylimSensor = [0 18];

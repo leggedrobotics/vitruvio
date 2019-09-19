@@ -147,16 +147,7 @@ Leg.basicProperties.trajectory.removalRatioStart             = removalRatioStart
 Leg.basicProperties.trajectory.removalRatioEnd               = removalRatioEnd;
 Leg.basicProperties.trajectory.averageStepsForCyclicalMotion = dataExtraction.averageStepsForCyclicalMotion;
 Leg.basicProperties.configSelection                          = configSelection;
-
-
-for i = 1:legCount
-    EEselection = EEnames(i,:);
-    if strcmp(EEselection,'LF') || strcmp(EEselection,'RF')
-        Leg.(EEselection).hipAttachmentOffset = -robotProperties.hipOffset(1);
-    elseif strcmp(EEselection,'LH') || strcmp(EEselection,'RH')
-        Leg.(EEselection).hipAttachmentOffset = robotProperties.hipOffset(2);
-    end
-end
+Leg.basicProperties.hipParalleltoBody                        = hipParalleltoBody;
 
 % Read in transmission properties
 for i = 1:jointCount
@@ -301,7 +292,7 @@ if (heuristic.torqueAngle.apply == true) && (linkCount > 2)
     for i = 1:legCount
         EEselection = EEnames(i,:);
         % Use inverse kinematics to solve joint angles for first time step.
-        [qLiftoff.(EEselection)] = computeqLiftoffFinalJoint(heuristic, Leg.(EEselection).hipAttachmentOffset, linkCount, meanCyclicMotionHipEE, robotProperties, EEselection, configSelection, hipParalleltoBody);
+        [qLiftoff.(EEselection)] = computeqLiftoffFinalJoint(Leg, heuristic, Leg.(EEselection).hipAttachmentOffset, linkCount, meanCyclicMotionHipEE, robotProperties, EEselection, configSelection, hipParalleltoBody);
         EE_force = Leg.(EEselection).force(1,1:3);
         rotBodyY = -meanCyclicMotionHipEE.body.eulerAngles.(EEselection)(1,2); % rotation of body about inertial y
         qPrevious = qLiftoff.(EEselection);
@@ -314,15 +305,19 @@ end
 fprintf('Computing joint angles using inverse kinematics.\n');
 for i = 1:legCount
     EEselection = EEnames(i,:);
-    [Leg.(EEselection).q, Leg.(EEselection).r.HAA, Leg.(EEselection).r.HFE, Leg.(EEselection).r.KFE, Leg.(EEselection).r.AFE, Leg.(EEselection).r.DFE, Leg.(EEselection).r.EE]  = inverseKinematics(heuristic, qLiftoff, Leg.(EEselection).hipAttachmentOffset, linkCount, meanCyclicMotionHipEE, robotProperties, EEselection, dataSelection, configSelection, hipParalleltoBody);
+    [Leg.(EEselection).q, Leg.(EEselection).r.HAA, Leg.(EEselection).r.HFE, Leg.(EEselection).r.KFE, Leg.(EEselection).r.AFE, Leg.(EEselection).r.DFE, Leg.(EEselection).r.EE]  = inverseKinematics(Leg, heuristic, qLiftoff, meanCyclicMotionHipEE, EEselection);
      Leg.(EEselection).r.EEdes = meanCyclicMotionHipEE.(EEselection).position(1:end,:); % save desired EE position in the same struct for easy comparison
 end
 
 %% Build robot rigid body model
 fprintf('Creating and visualizing robot rigid body model. \n');
+gravitySwing  = [0 0 -9.81]; % During swing phase, apply gravity
+gravityStance = [0 0 0]; % Do not apply gravity term in stance as the end-effector forces already include the weight of the legs and additional gravity here would be double counting the gravitational weight on the joints
+
 for i = 1:legCount
     EEselection = EEnames(i,:);
-    Leg.(EEselection).rigidBodyModel = buildRobotRigidBodyModel(actuatorProperties, actuateJointDirectly, Leg.(EEselection).hipAttachmentOffset, linkCount, robotProperties, Leg, meanCyclicMotionHipEE, EEselection, hipParalleltoBody);
+    Leg.(EEselection).rigidBodyModelSwing = buildRobotRigidBodyModel(gravitySwing, actuatorProperties, actuateJointDirectly, linkCount, robotProperties, Leg, meanCyclicMotionHipEE, EEselection, hipParalleltoBody);
+    Leg.(EEselection).rigidBodyModelStance = buildRobotRigidBodyModel(gravityStance, actuatorProperties, actuateJointDirectly, linkCount, robotProperties, Leg, meanCyclicMotionHipEE, EEselection, hipParalleltoBody);
 end
 
 %% Get joint velocities with finite differences
@@ -332,17 +327,20 @@ for i = 1:legCount
     [Leg.(EEselection).qdot, Leg.(EEselection).qdotdot] = getJointVelocitiesUsingFiniteDifference(EEselection, Leg, dt);
     Leg.(EEselection).q = Leg.(EEselection).q(1:end-2,:); % remove the two supplementary points for position after solving for joint speed and acceleration 
     % Smoothen the velocity and acceleration data using moving average filter
-    for j = 1:length(Leg.(EEselection).qdot(1,:))
-        Leg.(EEselection).qdot(:,j) = smooth(Leg.(EEselection).qdot(:,j));
-        Leg.(EEselection).qdotdot(:,j) = smooth(Leg.(EEselection).qdotdot(:,j));
-    end
+%     for j = 1:length(Leg.(EEselection).qdot(1,:))
+%         Leg.(EEselection).qdot(:,j) = smooth(Leg.(EEselection).qdot(:,j));
+%         Leg.(EEselection).qdotdot(:,j) = smooth(Leg.(EEselection).qdotdot(:,j));
+%     end
 end
 
 %% Get joint torques using inverse dynamics
 fprintf('Computing joint torques using inverse dynamics. \n');
 for i = 1:legCount
     EEselection = EEnames(i,:);
-    Leg.(EEselection).jointTorque = inverseDynamics(EEselection, Leg, meanCyclicMotionHipEE, linkCount);
+    externalForce = Leg.(EEselection).force(:,1:3);
+    Leg.(EEselection).jointTorqueKinetic = getKineticJointTorques(externalForce, Leg, EEselection, meanCyclicMotionHipEE);
+    Leg.(EEselection).jointTorqueDynamic = inverseDynamics(EEselection, Leg, meanCyclicMotionHipEE, linkCount);
+    Leg.(EEselection).jointTorque = Leg.(EEselection).jointTorqueKinetic + Leg.(EEselection).jointTorqueDynamic;
     % Smoothen the torque data using moving average filter
     for j = 1:length(Leg.(EEselection).jointTorque(1,:))
         Leg.(EEselection).jointTorque(:,j) = smooth(Leg.(EEselection).jointTorque(:,j));
@@ -394,20 +392,6 @@ for i = 1:legCount
         Leg.(EEselection).actuatorTorque(:,j) = (1/transmissionGearRatio) * Leg.(EEselection).activeTorque(:,j);
     end
 end
-
-% %% FOR PROTOTYPE
-% % For KFE configuration of prototype
-% % Get HFE torque corresponding to prototype config 
-% % Remote KFE actuation with KFE fixed to thigh at the HFE axis
-% if isequal(Leg.basicProperties.classSelection, 'vitruvianBiped')
-%     transmissionMethod.KFEAnchoredToThigh = true;
-%     if transmissionMethod.KFEAnchoredToThigh
-%         for i = 1:legCount
-%             EEselection = EEnames(i,:);
-%             Leg.(EEselection).actuatorTorque(:,2) =  Leg.(EEselection).actuatorTorque(:,2) + Leg.(EEselection).actuatorTorque(:,3);
-%         end
-%     end
-% end
 
 %% Get efficiency map of actuator
 fprintf('Computing actuator efficiency map. \n');
@@ -520,7 +504,7 @@ if optimizationProperties.runOptimization % master toggle in main
         if optimizeLeg.(EEselection) % Toggle in main to select legs for optimization
             fprintf('\nInitiating optimization of link lengths for %s\n', EEselection);
              % Evolve leg and return joint data of optimized design
-            optimizationResults = evolveAndVisualizeOptimalLeg(actuatorProperties, imposeJointLimits, heuristic, actuateJointDirectly, Leg.(EEselection).hipAttachmentOffset, linkCount, optimizationProperties, EEselection, meanCyclicMotionHipEE, robotProperties, configSelection, dt, dataSelection, hipParalleltoBody, Leg, actuatorEfficiency, actuatorSelection, dataExtraction, jointNames, saveFiguresToPDF, springInParallelWithJoints, kSpringJoint, q0SpringJoint);
+            optimizationResults = evolveAndVisualizeOptimalLeg(actuatorProperties, imposeJointLimits, heuristic, actuateJointDirectly, linkCount, optimizationProperties, EEselection, meanCyclicMotionHipEE, robotProperties, configSelection, dt, dataSelection, hipParalleltoBody, Leg, actuatorEfficiency, actuatorSelection, dataExtraction, jointNames, saveFiguresToPDF, springInParallelWithJoints, kSpringJoint, q0SpringJoint);
 
             fprintf('Saving optimization results. \n');
             % Save all the results of the optimization
@@ -531,7 +515,6 @@ if optimizationProperties.runOptimization % master toggle in main
             Leg.(EEselection).rOpt                                           = optimizationResults.rOpt;
             Leg.(EEselection).jointPowerOpt                                  = optimizationResults.jointPowerOpt;
             Leg.(EEselection).linkLengthsOpt                                 = optimizationResults.linkLengthsOpt;
-            Leg.(EEselection).hipOffsetOpt                                   = optimizationResults.hipOffsetOpt;
             Leg.(EEselection).transmissionGearRatioOpt                       = optimizationResults.transmissionGearRatioOpt;
             Leg.(EEselection).penaltyMinOpt                                  = optimizationResults.penaltyMinOpt;
             Leg.metaParameters.elapsedTime.(EEselection)                     = optimizationResults.elapsedTime;
@@ -574,44 +557,3 @@ if optimizationProperties.runOptimization % master toggle in main
         end
     end
 end
-
-%% For prototype analysis
-% if isequal(Leg.basicProperties.classSelection, 'vitruvianBiped')
-% % [polynomials64R, torquePoints64R, polynomialsXM540, torquePointsXM540] = DynamixelPerformanceGraphs;
-%     EEselection = 'RF';
-% %% FOR PROTOTYPE
-% % For KFE configuration of prototype
-% % Get HFE torque corresponding to prototype config 
-% % Remote KFE actuation with KFE fixed to thigh at the HFE axis
-%     transmissionMethod.KFEAnchoredToThigh = true;
-%     if transmissionMethod.KFEAnchoredToThigh
-%         Leg.(EEselection).actuatorTorqueOpt(:,2) =  Leg.(EEselection).actuatorTorqueOpt(:,2) + Leg.(EEselection).actuatorTorqueOpt(:,3);
-%     end
-% 
-% % % Nominal design
-% % EEselection = EEnames(i,:);
-% % 
-% % figure()
-% % subplot(2,2,1)
-% % plot(torquePoints64R, polyval(polynomials64R,torquePoints64R), Leg.(EEselection).actuatorTorque(:,2), abs(Leg.(EEselection).actuatorqdot(:,2)))
-% % xlabel('Actuator Torque [Nm]')
-% % ylabel('Actuator Speed [rad/s]')
-% % title('HFE Nominal')
-% % subplot(2,2,2)
-% % plot(torquePointsXM540, polyval(polynomialsXM540,torquePointsXM540), Leg.(EEselection).actuatorTorque(:,3), abs(Leg.(EEselection).actuatorqdot(:,3)))
-% % xlabel('Actuator Torque [Nm]')
-% % ylabel('Actuator Speed [rad/s]')
-% % title('KFE Nominal')
-% % 
-% % % Optimized design
-% % subplot(2,2,3)
-% % plot(torquePoints64R, polyval(polynomials64R,torquePoints64R), Leg.(EEselection).actuatorTorqueOpt(:,2), abs(Leg.(EEselection).actuatorqdotOpt(:,2)))
-% % xlabel('Actuator Torque [Nm]')
-% % ylabel('Actuator Speed [rad/s]')
-% % title('HFE Optimized')
-% % subplot(2,2,4)
-% % plot(torquePointsXM540, polyval(polynomialsXM540,torquePointsXM540), Leg.(EEselection).actuatorTorqueOpt(:,3), abs(Leg.(EEselection).actuatorqdotOpt(:,3)))
-% % xlabel('Actuator Torque [Nm]')
-% % ylabel('Actuator Speed [rad/s]')
-% % title('KFE Optimized')
-% end

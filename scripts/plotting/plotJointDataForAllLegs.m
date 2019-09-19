@@ -448,7 +448,7 @@ function [] = plotJointDataForAllLegs(data, data2, optimizeLeg, saveFiguresToPDF
                 p(4) = line([min(xlim),max(xlim)],[data.actuatorProperties.maxTorqueLimit.(jointNames(j,:)), data.actuatorProperties.maxTorqueLimit.(jointNames(j,:))], 'Color', 'k', 'LineStyle', '--');
                 p(5) = line([min(xlim),max(xlim)],[-data.actuatorProperties.maxTorqueLimit.(jointNames(j,:)), -data.actuatorProperties.maxTorqueLimit.(jointNames(j,:))], 'Color', 'k', 'LineStyle', '--');               
 
-                if j == 1 % only show legend on HAA subplots
+                if j == 2 % only show legend on HAA subplots
                     if plotDataSet2 && max(ylimit.torque) > data.actuatorProperties.maxTorqueLimit.(jointNames(j,:)) % If actuator limits visible on plot
                         legend([p(1) p(2) p(4)], 'approximated inertia', 'exact inertia', 'actuator limits')
                     elseif plotDataSet2 % Actuator limits not visible

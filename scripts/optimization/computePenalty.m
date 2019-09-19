@@ -1,14 +1,15 @@
 function penalty = computePenalty(actuatorProperties, imposeJointLimits, heuristic, legDesignParameters, actuateJointDirectly, linkCount, optimizationProperties, robotProperties, selectFrontHind, taskSelection, dt, configSelection, EEselection, meanCyclicMotionHipEE, hipParalleltoBody, Leg, actuatorEfficiency, actuatorSelection, dataExtraction, springInParallelWithJoints, kSpringJoint, q0SpringJoint)
     jointNames = ['HAA'; 'HFE'; 'KFE'; 'AFE'; 'DFE'];
 
-    % Design parameters always start with [links(3-5), hip offset, transmission ratio, springs parallel to joints, AFE/DFE spring]    
+    % Design parameters always start with [links(3-5), transmission ratio (3-5), springs parallel to joints (3-5), AFE/DFE spring]    
+    % Example for leg like ANYmal: 
+    % [hip, thigh, shank, rHAA, rHFE, rKFE]
     jointCount = linkCount+1;
     linkLengths = legDesignParameters(1:jointCount);
-    hipAttachmentOffset = legDesignParameters(jointCount+1);
-    transmissionGearRatio = legDesignParameters(jointCount+2:2*jointCount+1);
+    transmissionGearRatio = legDesignParameters(jointCount+1:2*jointCount);
     
     if springInParallelWithJoints
-        kSpringJoint.(EEselection) = legDesignParameters(2*jointCount+2:3*jointCount+1);
+        kSpringJoint.(EEselection) = legDesignParameters(2*jointCount+1:3*jointCount);
     end
 
     if linkCount > 2 && heuristic.torqueAngle.apply
@@ -20,7 +21,10 @@ function penalty = computePenalty(actuatorProperties, imposeJointLimits, heurist
     end
 
     tempLeg.base = Leg.base;
-
+    tempLeg.(EEselection).force = Leg.(EEselection).force;
+    tempLeg.basicProperties = Leg.basicProperties;
+%     tempLeg.robotProperties = Leg.robotProperties;
+    
     % Update robot properties with newly computed leg design parameters, unit in meters
     robotProperties.hip(selectFrontHind).length = linkLengths(1);
     robotProperties.thigh(selectFrontHind).length = linkLengths(2);
@@ -43,6 +47,7 @@ function penalty = computePenalty(actuatorProperties, imposeJointLimits, heurist
         robotProperties.phalanges(selectFrontHind).mass = robotProperties.legDensity.phalanges(selectFrontHind) * pi*(robotProperties.phalanges(selectFrontHind).radius)^2 * linkLengths(5);
     end
 
+    tempLeg.robotProperties = robotProperties;
     %% qAFE, qDFE torque based heuristic computation
     if (heuristic.torqueAngle.apply == true) && (linkCount > 2)
         % Save the updated spring parameters back into the heuristic struct to
@@ -80,20 +85,30 @@ function penalty = computePenalty(actuatorProperties, imposeJointLimits, heurist
     else 
         
         %% Inverse kinematics
-        [tempLeg.(EEselection).q, tempLeg.(EEselection).r.HAA, tempLeg.(EEselection).r.HFE, tempLeg.(EEselection).r.KFE, tempLeg.(EEselection).r.AFE, tempLeg.(EEselection).r.DFE, tempLeg.(EEselection).r.EE] = inverseKinematics(heuristic, qLiftoff, hipAttachmentOffset, linkCount, meanCyclicMotionHipEE, robotProperties, EEselection, taskSelection, configSelection, hipParalleltoBody);
+        [tempLeg.(EEselection).q, tempLeg.(EEselection).r.HAA, tempLeg.(EEselection).r.HFE, tempLeg.(EEselection).r.KFE, tempLeg.(EEselection).r.AFE, tempLeg.(EEselection).r.DFE, tempLeg.(EEselection).r.EE] = inverseKinematics(tempLeg, heuristic, qLiftoff, meanCyclicMotionHipEE, EEselection);
 
         %% Build robot model with joint angles from inverse kinematics tempLeg
-        tempLeg.(EEselection).rigidBodyModel = buildRobotRigidBodyModel(actuatorProperties, actuateJointDirectly, hipAttachmentOffset, linkCount, robotProperties, tempLeg, meanCyclicMotionHipEE, EEselection, hipParalleltoBody);
-
+        gravitySwing  = [0 0 -9.81]; % During swing phase, apply gravity
+        gravityStance = [0 0 0]; % Do not apply gravity term in stance as the end-effector forces already include the weight of the legs and additional gravity here would be double counting the gravitational weight on the joints
+        tempLeg.(EEselection).rigidBodyModelSwing  = buildRobotRigidBodyModel(gravitySwing, actuatorProperties, actuateJointDirectly, linkCount, robotProperties, tempLeg, meanCyclicMotionHipEE, EEselection, hipParalleltoBody);
+        tempLeg.(EEselection).rigidBodyModelStance = buildRobotRigidBodyModel(gravityStance, actuatorProperties, actuateJointDirectly, linkCount, robotProperties, tempLeg, meanCyclicMotionHipEE, EEselection, hipParalleltoBody);
+        
         %% Get joint velocities and accelerations with finite differences
         [tempLeg.(EEselection).qdot, tempLeg.(EEselection).qdotdot] = getJointVelocitiesUsingFiniteDifference(EEselection, tempLeg, dt);
+        tempLeg.(EEselection).q = tempLeg.(EEselection).q(1:end-2,:); % remove the two supplementary points for position after solving for joint speed and acceleration 
         % Smoothen the velocity and acceleration data using moving average
         for j = 1:length(Leg.(EEselection).qdot(1,:))
             tempLeg.(EEselection).qdot(:,j) = smooth(tempLeg.(EEselection).qdot(:,j));
             tempLeg.(EEselection).qdotdot(:,j) = smooth(tempLeg.(EEselection).qdotdot(:,j));
         end
+        
         %% Get joint torques using inverse dynamics
-        tempLeg.(EEselection).jointTorque = inverseDynamics(EEselection, tempLeg, meanCyclicMotionHipEE, linkCount);
+        externalForce = Leg.(EEselection).force(:,1:3);
+        tempLeg.(EEselection).jointTorqueKinetic = getKineticJointTorques(externalForce, tempLeg, EEselection, meanCyclicMotionHipEE);
+        tempLeg.(EEselection).jointTorqueDynamic = inverseDynamics(EEselection, tempLeg, meanCyclicMotionHipEE, linkCount);
+        
+        tempLeg.(EEselection).jointTorque = tempLeg.(EEselection).jointTorqueKinetic + tempLeg.(EEselection).jointTorqueDynamic;
+        
         % Smoothen the torque using moving average
         for j = 1:length(Leg.(EEselection).jointTorque(1,:))
             tempLeg.(EEselection).jointTorque(:,j) = smooth(tempLeg.(EEselection).jointTorque(:,j));
@@ -363,51 +378,51 @@ function penalty = computePenalty(actuatorProperties, imposeJointLimits, heurist
         end
         
         %% If using Dynamixel 64R or XM540, we have more detailed torque,speed data for actuator limit considerations
-        totalDynamixelLimitViolationPenalty = 0; % initialize
-        usingDynamixelActuators = false; % initialize as false
-        for i = 1:jointCount 
-            if strcmp('Dynamixel64R', actuatorSelection.(jointSelection)) || strcmp('DynamixelXM540', actuatorSelection.(jointSelection))
-                usingDynamixelActuators = true; % set to true if any of the joints use Dynamixel 64R or XM540
-            end
-        end
-        if usingDynamixelActuators
-            [polynomials64R, torquePoints64R, polynomialsXM540, torquePointsXM540] = DynamixelPerformanceGraphs; % compute performance graph values once
-            for i = 1:jointCount
-                    jointSelection = jointNames(i,:);
-                    if strcmp('Dynamixel64R', actuatorSelection.(jointSelection))
-                        maxActuatorqdotValues.(jointSelection) = polyval(polynomials64R,tempLeg.(EEselection).actuatorTorque(:,i));
-                    elseif strcmp('DynamixelXM540', actuatorSelection.(jointSelection))
-                        maxActuatorqdotValues.(jointSelection) = polyval(polynomialsXM540,tempLeg.(EEselection).actuatorTorque(:,i));
-                    end
-                    % Set a tolerance on how close the speed can get to limit before it is penalized
-                    if strcmp('Dynamixel64R', actuatorSelection.(jointSelection))
-                        noLoadSpeed = polyval(polynomials64R,0);
-                        DynamixelSpeedTol = 0.05*noLoadSpeed; 
-                    else
-                        noLoadSpeed = polyval(polynomialsXM540,0);
-                        DynamixelSpeedTol = 0.05*noLoadSpeed;
-                    end
-                    % Determine if the max speed is ever violated and penalize the
-                    % magnitude of the violation
-                    if any(abs(tempLeg.(EEselection).actuatorqdot(:,i)) - abs(maxActuatorqdotValues.(jointSelection)) > DynamixelSpeedTol)
-                        % Determine magnitude and index of maximum
-                        % violation
-                        [maxDynamixelLimitViolation,indexOfMaxDynamixelLimitViolation] = max(abs(tempLeg.(EEselection).actuatorqdot(:,i)) - abs(maxActuatorqdotValues.(jointSelection)),[],1);
-                        if strcmp('Dynamixel64R', actuatorSelection.(jointSelection))
-                            polynomials = polynomials64R;
-                        else
-                            polynomials = polynomialsXM540;
-                        end
-                        weightDynamixelSpeedPenalty = 10;
-                        % Penalize magnitude of violation / actuator limit
-                        % at the point of max violation
-                        DynamixelLimitViolationPenalty.(jointSelection) = weightDynamixelSpeedPenalty * maxDynamixelLimitViolation / polyval(polynomials, tempLeg.(EEselection).actuatorTorque(indexOfMaxDynamixelLimitViolation,i));
-                    else 
-                        DynamixelLimitViolationPenalty.(jointSelection) = 0;
-                    end            
-            end
-            totalDynamixelLimitViolationPenalty = totalDynamixelLimitViolationPenalty + DynamixelLimitViolationPenalty.(jointSelection);
-        end
+         totalDynamixelLimitViolationPenalty = 0; % initialize
+%         usingDynamixelActuators = false; % initialize as false
+%         for i = 1:jointCount 
+%             if strcmp('Dynamixel64R', actuatorSelection.(jointSelection)) || strcmp('DynamixelXM540', actuatorSelection.(jointSelection))
+%                 usingDynamixelActuators = true; % set to true if any of the joints use Dynamixel 64R or XM540
+%             end
+%         end
+%         if usingDynamixelActuators
+%             [polynomials64R, torquePoints64R, polynomialsXM540, torquePointsXM540] = DynamixelPerformanceGraphs; % compute performance graph values once
+%             for i = 1:jointCount
+%                     jointSelection = jointNames(i,:);
+%                     if strcmp('Dynamixel64R', actuatorSelection.(jointSelection))
+%                         maxActuatorqdotValues.(jointSelection) = polyval(polynomials64R,tempLeg.(EEselection).actuatorTorque(:,i));
+%                     elseif strcmp('DynamixelXM540', actuatorSelection.(jointSelection))
+%                         maxActuatorqdotValues.(jointSelection) = polyval(polynomialsXM540,tempLeg.(EEselection).actuatorTorque(:,i));
+%                     end
+%                     % Set a tolerance on how close the speed can get to limit before it is penalized
+%                     if strcmp('Dynamixel64R', actuatorSelection.(jointSelection))
+%                         noLoadSpeed = polyval(polynomials64R,0);
+%                         DynamixelSpeedTol = 0.05*noLoadSpeed; 
+%                     else
+%                         noLoadSpeed = polyval(polynomialsXM540,0);
+%                         DynamixelSpeedTol = 0.05*noLoadSpeed;
+%                     end
+%                     % Determine if the max speed is ever violated and penalize the
+%                     % magnitude of the violation
+%                     if any(abs(tempLeg.(EEselection).actuatorqdot(:,i)) - abs(maxActuatorqdotValues.(jointSelection)) > DynamixelSpeedTol)
+%                         % Determine magnitude and index of maximum
+%                         % violation
+%                         [maxDynamixelLimitViolation,indexOfMaxDynamixelLimitViolation] = max(abs(tempLeg.(EEselection).actuatorqdot(:,i)) - abs(maxActuatorqdotValues.(jointSelection)),[],1);
+%                         if strcmp('Dynamixel64R', actuatorSelection.(jointSelection))
+%                             polynomials = polynomials64R;
+%                         else
+%                             polynomials = polynomialsXM540;
+%                         end
+%                         weightDynamixelSpeedPenalty = 10;
+%                         % Penalize magnitude of violation / actuator limit
+%                         % at the point of max violation
+%                         DynamixelLimitViolationPenalty.(jointSelection) = weightDynamixelSpeedPenalty * maxDynamixelLimitViolation / polyval(polynomials, tempLeg.(EEselection).actuatorTorque(indexOfMaxDynamixelLimitViolation,i));
+%                     else 
+%                         DynamixelLimitViolationPenalty.(jointSelection) = 0;
+%                     end            
+%             end
+%             totalDynamixelLimitViolationPenalty = totalDynamixelLimitViolationPenalty + DynamixelLimitViolationPenalty.(jointSelection);
+%         end
         %% Soft constraints due to actuator limits
         % get the maximum actuator torque speed and power for each joint
         % after applying transmission ratios

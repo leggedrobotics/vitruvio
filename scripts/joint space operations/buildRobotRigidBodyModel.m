@@ -1,5 +1,5 @@
 %% Read in data for quadruped geometry
-function robot = buildRobotRigidBodyModel(actuatorProperties, actuateJointDirectly, hipAttachmentOffset, linkCount, robotProperties, Leg, meanCyclicMotionHipEE, EEselection, hipParalleltoBody) 
+function robot = buildRobotRigidBodyModel(gravity, actuatorProperties, actuateJointDirectly, linkCount, robotProperties, Leg, meanCyclicMotionHipEE, EEselection, hipParalleltoBody) 
     jointNames = ['HAA'; 'HFE'; 'KFE'; 'AFE'; 'DFE']; % a subset of these are used depending on linkCount
     
     %% Get robot properties for selected end effector  
@@ -17,10 +17,6 @@ function robot = buildRobotRigidBodyModel(actuatorProperties, actuateJointDirect
         jointSelection = jointNames(i,:);
         actuatorMass.(jointSelection) = actuatorProperties.mass.(jointSelection);
     end
-
-    % Offset from nominal stance EE position to HAA along body x
-    hipAttachmentOffsetX = hipAttachmentOffset*cos(meanCyclicMotionHipEE.body.eulerAngles.(EEselection)(1,2)); 
-    hipAttachmentOffsetZ = hipAttachmentOffset*sin(meanCyclicMotionHipEE.body.eulerAngles.(EEselection)(1,2));  
 
     l_hip       = robotProperties.hip(selectFrontHind).length; % offset from HAA to HFE
     l_thigh     = robotProperties.thigh(selectFrontHind).length;
@@ -46,11 +42,11 @@ function robot = buildRobotRigidBodyModel(actuatorProperties, actuateJointDirect
 
     % Rotation about x by -pi/2 to align z with inertial y. Rotation about this
     % z gives the angle of attack of the base 
-    T_base = eye(4);
     
-    T_body = [1, 0, 0, hipAttachmentOffsetX;
+    % Rotation about x axis by -pi/2
+    T_body = [1, 0, 0, 0;
               0, 0, 1,  0;
-              0, -1, 0, hipAttachmentOffsetZ;
+              0, -1, 0, 0;
               0, 0, 0, 1];
 
     % rotation about y by pi/2 to align z with HAA rotation axis
@@ -106,9 +102,7 @@ function robot = buildRobotRigidBodyModel(actuatorProperties, actuateJointDirect
     robot = robotics.RigidBodyTree('DataFormat', 'row');
 
     % Create bodies and joints 
-    body00 = robotics.RigidBody('body00'); % rigid connection to base frame
-    body0 = robotics.RigidBody('body0');
-    
+    body0 = robotics.RigidBody('body0'); % attaches to base and gives pitch rotation
     body1 = robotics.RigidBody('body1'); % hip
     body2 = robotics.RigidBody('body2'); % thigh
     body3 = robotics.RigidBody('body3'); % shank
@@ -120,7 +114,6 @@ function robot = buildRobotRigidBodyModel(actuatorProperties, actuateJointDirect
            body6 = robotics.RigidBody('body6'); % EE
     end
 
-    jnt00 = robotics.Joint('jnt00','fixed'); 
     jnt0 = robotics.Joint('jnt0','revolute'); % body rotation about y in inertial frame
     jnt1 = robotics.Joint('jnt1','revolute'); % HAA
     jnt2 = robotics.Joint('jnt2','revolute'); % HFE
@@ -135,7 +128,6 @@ function robot = buildRobotRigidBodyModel(actuatorProperties, actuateJointDirect
            jnt6 = robotics.Joint('jnt6','fixed');    % EE
     end
 
-    body00.Mass = 0;      
     body0.Mass  = 0;      
     body1.Mass  = m_hip;    % hip  
     body2.Mass  = m_thigh;  % thigh
@@ -150,7 +142,7 @@ function robot = buildRobotRigidBodyModel(actuatorProperties, actuateJointDirect
         body6.Mass = m_EE;        % EE
     end 
     
-    %% Set inertia's to zero and instead provide point mass and position for each link/actuator/EE.
+    %% Compute inertia as thin rod for links, point mass for EE and actuators
     I_hip       = [0 0 0 0 0 0];
     I_thigh     = (1/3)*m_thigh*l_thigh*[0.0001 1 1 0 0 0];
     I_shank     = (1/3)*m_shank*l_thigh*[0.0001 1 1 0 0 0];
@@ -160,21 +152,21 @@ function robot = buildRobotRigidBodyModel(actuatorProperties, actuateJointDirect
     if linkCount > 3
         I_phalanges = (1/3)*m_phalanges*l_thigh*[0.0001 1 1 0 0 0];
     end
-    I_EE        = [0 0 0 0 0 0];
+    I_EE        = 0.5*m_EE*l_shank^2*[0.0001 1 1 0 0 0];
     I_HAA       = [0 0 0 0 0 0];
-    I_HFE       = [0 0 0 0 0 0];
-    I_KFE       = [0 0 0 0 0 0];
-    I_AFE       = [0 0 0 0 0 0];
-    I_DFE       = [0 0 0 0 0 0];
+    I_HFE       = 0.5*m_EE*l_hip^2*[0.0001 1 1 0 0 0];
+    I_KFE       = 0.5*m_EE*l_thigh^2*[0.0001 1 1 0 0 0];
+    I_AFE       = 0.5*m_EE*l_shank^2*[0.0001 1 1 0 0 0];
+    I_DFE       = 0.5*m_EE*l_foot^2*[0.0001 1 1 0 0 0];
 
     %% Assign the inertia values to the inertia properties for the links and end effectors
     body00.Inertia = [0 0 0 0 0 0]; % base    
-    body0.Inertia = [0 0 0 0 0 0]; % base    
-    body1.Inertia =  I_hip;     
-    body2.Inertia =  I_thigh; 
-    body3.Inertia =  I_shank + I_EE;
+    body0.Inertia  = [0 0 0 0 0 0]; % base    
+    body1.Inertia  =  I_hip;     
+    body2.Inertia  =  I_thigh; 
+    body3.Inertia  =  I_shank;
     if linkCount == 2
-        body4.Inertia = [0 0 0 0 0 0]; %I_EE;
+        body4.Inertia = I_EE;
     elseif linkCount == 3
         body4.Inertia = I_foot;
         body5.Inertia = I_EE;
@@ -221,8 +213,8 @@ function robot = buildRobotRigidBodyModel(actuatorProperties, actuateJointDirect
     % to compute torque due to gravitational force. Default is [0 0 0] when not
     % specified. As such it is left default for actuators and end effectors
     body1.CenterOfMass = [0.5*l_hip   0 0]; % Hip
-    body2.CenterOfMass = [0.5*l_thigh 0 0]; % Shank
-    body3.CenterOfMass = [0.5*l_shank 0 0]; % Thigh
+    body2.CenterOfMass = [0.5*l_thigh 0 0]; % Thigh
+    body3.CenterOfMass = [0.5*l_shank 0 0]; % Shank
     
     if linkCount == 3
         body4.CenterOfMass = [0.5*l_foot 0 0]; % Foot
@@ -234,7 +226,6 @@ function robot = buildRobotRigidBodyModel(actuatorProperties, actuateJointDirect
     %% Set joint transforms
     % joint transforms these are only translations and rotations to align rotation
     % z with joint rotation axis. The joint positions are specified in the config array.   
-    setFixedTransform(jnt00, T_base);
     setFixedTransform(jnt0, T_body);
     setFixedTransform(jnt1, T_HAA);
     setFixedTransform(jnt2, T_HFEattachment);
@@ -247,7 +238,6 @@ function robot = buildRobotRigidBodyModel(actuatorProperties, actuateJointDirect
         setFixedTransform(jnt6, T_DFE);            
     end
     
-    body00.Joint = jnt00;
     body0.Joint = jnt0;
     body1.Joint = jnt1;
     body2.Joint = jnt2;
@@ -261,8 +251,7 @@ function robot = buildRobotRigidBodyModel(actuatorProperties, actuateJointDirect
     end
 
     %% Specify connections between bodies
-    addBody(robot, body00,'base');  % base
-    addBody(robot, body0,'body00');  % attachment of HAA
+    addBody(robot, body0,'base');  % attachment of HAA, pitches with trunk
     addBody(robot, body1,'body0'); % hip
     addBody(robot, body2,'body1'); % thigh
     addBody(robot, body3,'body2'); % shank
@@ -293,8 +282,5 @@ function robot = buildRobotRigidBodyModel(actuatorProperties, actuateJointDirect
         addBody(robot, body11,'body5');
     end
     
-    % "Gravitational acceleration experienced by robot, specified 
-    % as an [x y z] vector in meters per second squared. Each element corresponds 
-    % to the acceleration of the base robot frame in that direction."
-    robot.Gravity = [0 0 9.81]; 
+    robot.Gravity = gravity;
 end

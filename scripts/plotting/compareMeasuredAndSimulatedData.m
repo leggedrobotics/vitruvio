@@ -1,26 +1,31 @@
 clc
 clear X
+%close all
 warning('off','all')
 
+EEnamesPlot = ['RF'; 'RH']; % Due to left-right symmetry, we only plot LF and LH legs
 % compare measured and simulated results
+% ANYmalBearSlowTrotMeasured.mat, ANYmalBearFastTrotMeasured.mat
 selectDataFile = 'ANYmalBearFastTrotMeasured.mat';
 ANYmalMeasuredData  = load(selectDataFile);
 savePDF = false;
 lineWidth = 2;
 % Simulated data
 robot = 'ANYmalBear'; 
-task  = 'trotSwing5';
+% slowTrot, fastTrot, fastTrotExtendedxNom
+task  = 'fastTrotExtendedxNom3';
+loadSavedResultsOpt = 0;
 
 % Set axis limits
 qAxisLimitsFastTrot = [-0.6, 0.6];
 qdotAxisLimitsFastTrot = [-10, 10];
-torqueAxisLimitsFastTrot = [-60, 60];
+torqueAxisLimitsFastTrot = [-55, 55];
 powerAxisLimitsFastTrot = [-80, 80];
 energyAxisLimitsFastTrot = [0, 25];
 
 qAxisLimitsSlowTrot = [-0.6, 0.6];
 qdotAxisLimitsSlowTrot = [-10, 10];
-torqueAxisLimitsSlowTrot = [-60, 60];
+torqueAxisLimitsSlowTrot = [-70, 70];
 powerAxisLimitsSlowTrot = [-40, 40];
 energyAxisLimitsSlowTrot = [0, 18];
 
@@ -39,6 +44,7 @@ else
 end
 
 legCount          = results.(robot).(task).basicProperties.legCount;
+legCountPlot      = 2; % only plot LF and LH legs
 linkCount         = results.(robot).(task).basicProperties.linkCount;
 EEnames           = results.(robot).(task).basicProperties.EEnames;
 removalRatioStart = results.(robot).(task).basicProperties.trajectory.removalRatioStart;
@@ -49,25 +55,26 @@ endTimeIndexSimulatedData = startTimeIndexSimulatedData + length(results.(robot)
 dt = results.(robot).(task).time(2) - results.(robot).(task).time(1);
 optimizedLegs = results.(robot).(task).basicProperties.optimizedLegs;
 
-loadSavedResultsOpt = 0;
 if loadSavedResultsOpt
-   % resultsOpt = load('resultsOpt.mat');
+   %resultsOpt = load('ANYmalBearOptimized_minTorque.mat');
+   resultsOpt = load('ANYmalBearOptimized_minCoT.mat');
+   plotOptimizedResults = true;
    for i = 1:legCount
        EEselection = EEnames(i,:);
        optimizedLegs.(EEselection) = true; 
-       results.(robot).(task).(EEselection).jointTorqueOpt = resultsOpt.(EEselection).jointTorqueOpt;
-       results.(robot).(task).(EEselection).mechEnergyOpt = resultsOpt.(EEselection).mechEnergyOpt;
-   end
+   end  
+else
+    plotOptimizedResults = false;
 end
 %% 
-% Align data sets by shifting the measured data in time
+%% Align data sets by shifting the measured data in time
 timeShiftSlowTrot = -2.962;
-startTimeSlowTrot = 1.5;
+startTimeSlowTrot = 1.6;
 endTimeSlowTrot   = 5.5;
 
-timeShiftFastTrot = -2.655;
-startTimeFastTrot = 1.5;
-endTimeFastTrot   = 3.5;
+timeShiftFastTrot = -2.7+0.05-0.0285;
+startTimeFastTrot = 1.31; %1.59;
+endTimeFastTrot   = 3.4; %3.6
 
 if strcmp(selectDataFile, 'ANYmalBearSlowTrotMeasured.mat') || strcmp(selectDataFile, 'ANYmalBearSlowTrot2Measured.mat')
     timeShift = timeShiftSlowTrot;
@@ -81,19 +88,19 @@ else
     endTimeMeasured = endTime - timeShift;    
 end
 
-% Compute power for measured data
+%% Compute power for measured data
 ANYmalMeasuredData.joint.LF.meas.jointPower = ANYmalMeasuredData.joint.LF.meas.qdot .* ANYmalMeasuredData.joint.LF.meas.jointTorque;
 ANYmalMeasuredData.joint.RF.meas.jointPower = ANYmalMeasuredData.joint.RF.meas.qdot .* ANYmalMeasuredData.joint.RF.meas.jointTorque;
 ANYmalMeasuredData.joint.LH.meas.jointPower = ANYmalMeasuredData.joint.LH.meas.qdot .* ANYmalMeasuredData.joint.LH.meas.jointTorque;
 ANYmalMeasuredData.joint.RH.meas.jointPower = ANYmalMeasuredData.joint.RH.meas.qdot .* ANYmalMeasuredData.joint.RH.meas.jointTorque;
 
-% Compute energy for measured data
+%% Compute energy for measured data
 power.LF.meas = ANYmalMeasuredData.joint.LF.meas.jointPower;
 power.RF.meas = ANYmalMeasuredData.joint.RF.meas.jointPower;
 power.LH.meas = ANYmalMeasuredData.joint.LH.meas.jointPower;
 power.RH.meas = ANYmalMeasuredData.joint.RH.meas.jointPower;
 
-% Neglect recuperation
+%% Neglect recuperation
 power.LF.meas(power.LF.meas<0) = 0;
 power.RF.meas(power.RF.meas<0) = 0;
 power.LH.meas(power.LH.meas<0) = 0;
@@ -104,8 +111,7 @@ ANYmalMeasuredData.joint.RF.meas.jointEnergy = power.RF.meas(1:end-1,:) .* ANYma
 ANYmalMeasuredData.joint.LH.meas.jointEnergy = power.LH.meas(1:end-1,:) .* ANYmalMeasuredData.joint.dt;
 ANYmalMeasuredData.joint.RH.meas.jointEnergy = power.RH.meas(1:end-1,:) .* ANYmalMeasuredData.joint.dt;
 
-% Energy consumption measured only from a starting time after the accel
-% phase
+%% Energy consumption measured only from a starting time after the accel
 startTimeMeasured  = startTime - timeShift; % seconds
 startIndexEnergy =  round(startTimeMeasured/mean(ANYmalMeasuredData.joint.dt));
 dtMeasured = mean(ANYmalMeasuredData.joint.dt);
@@ -115,41 +121,45 @@ ANYmalMeasuredData.joint.RF.meas.jointEnergyCumulative = [zeros(length(ANYmalMea
 ANYmalMeasuredData.joint.LH.meas.jointEnergyCumulative = [zeros(length(ANYmalMeasuredData.joint.LH.meas.jointEnergy(1:startIndexEnergy-1,1)),3); cumsum(ANYmalMeasuredData.joint.LH.meas.jointEnergy(startIndexEnergy:end,:))];
 ANYmalMeasuredData.joint.RH.meas.jointEnergyCumulative = [zeros(length(ANYmalMeasuredData.joint.RH.meas.jointEnergy(1:startIndexEnergy-1,1)),3); cumsum(ANYmalMeasuredData.joint.RH.meas.jointEnergy(startIndexEnergy:end,:))];
 
-% Cumulative torque normalized by number of points in the plotted time
-% frame 
+startingEnergyConsumptionTime = startTime; % seconds
+
+for i = 1:legCount
+    EEselection = EEnames(i,:);
+    results.(robot).(task).(EEselection).mechEnergy(:,:) = results.(robot).(task).(EEselection).mechEnergy(:,:)  - results.(robot).(task).(EEselection).mechEnergy(ceil(startingEnergyConsumptionTime/dt),:);
+    if optimizedLegs.(EEselection)
+        resultsOpt.(robot).(task).(EEselection).mechEnergy(:,:) = resultsOpt.(robot).(task).(EEselection).mechEnergy(:,:)  - resultsOpt.(robot).(task).(EEselection).mechEnergy(ceil(startingEnergyConsumptionTime/dt),:);
+    end
+end
+%% Calculate cumulative torque and normalize the value
 ANYmalMeasuredData.joint.LF.meas.jointTorqueCumulative = [zeros(length(ANYmalMeasuredData.joint.LF.meas.jointTorque(1:startIndexEnergy-1,1)),3); cumsum(abs(ANYmalMeasuredData.joint.LF.meas.jointTorque(startIndexEnergy:end,:)))]/ ((endTime-startTime)/dtMeasured);
 ANYmalMeasuredData.joint.RF.meas.jointTorqueCumulative = [zeros(length(ANYmalMeasuredData.joint.RF.meas.jointTorque(1:startIndexEnergy-1,1)),3); cumsum(abs(ANYmalMeasuredData.joint.RF.meas.jointTorque(startIndexEnergy:end,:)))]/ ((endTime-startTime)/dtMeasured);
 ANYmalMeasuredData.joint.LH.meas.jointTorqueCumulative = [zeros(length(ANYmalMeasuredData.joint.LH.meas.jointTorque(1:startIndexEnergy-1,1)),3); cumsum(abs(ANYmalMeasuredData.joint.LH.meas.jointTorque(startIndexEnergy:end,:)))]/ ((endTime-startTime)/dtMeasured);
 ANYmalMeasuredData.joint.RH.meas.jointTorqueCumulative = [zeros(length(ANYmalMeasuredData.joint.RH.meas.jointTorque(1:startIndexEnergy-1,1)),3); cumsum(abs(ANYmalMeasuredData.joint.RH.meas.jointTorque(startIndexEnergy:end,:)))]/ ((endTime-startTime)/dtMeasured);
 
-results.(robot).(task).LF.jointTorqueCumulative = (cumsum(abs(results.(robot).(task).LF.jointTorque(:,2:3))) - sum(abs(results.(robot).(task).LF.jointTorque(1:round(startTime/dt),2:3)))) / ((endTime-startTime)/dt);
-results.(robot).(task).RF.jointTorqueCumulative = (cumsum(abs(results.(robot).(task).RF.jointTorque(:,2:3))) - sum(abs(results.(robot).(task).RF.jointTorque(1:round(startTime/dt),2:3)))) / ((endTime-startTime)/dt);
-results.(robot).(task).LH.jointTorqueCumulative = (cumsum(abs(results.(robot).(task).LH.jointTorque(:,2:3))) - sum(abs(results.(robot).(task).LH.jointTorque(1:round(startTime/dt),2:3)))) / ((endTime-startTime)/dt);
-results.(robot).(task).RH.jointTorqueCumulative = (cumsum(abs(results.(robot).(task).RH.jointTorque(:,2:3))) - sum(abs(results.(robot).(task).RH.jointTorque(1:round(startTime/dt),2:3)))) / ((endTime-startTime)/dt);
+results.(robot).(task).LF.jointTorqueCumulative = cumsum(abs(results.(robot).(task).LF.jointTorque(:,2:3))) / ((endTime-startTime)/dt);
+results.(robot).(task).RF.jointTorqueCumulative = cumsum(abs(results.(robot).(task).RF.jointTorque(:,2:3))) / ((endTime-startTime)/dt);
+results.(robot).(task).LH.jointTorqueCumulative = cumsum(abs(results.(robot).(task).LH.jointTorque(:,2:3))) / ((endTime-startTime)/dt);
+results.(robot).(task).RH.jointTorqueCumulative = cumsum(abs(results.(robot).(task).RH.jointTorque(:,2:3))) / ((endTime-startTime)/dt);
 
-for i = 1:legCount
-    EEselection = EEnames(i,:);
-    if optimizedLegs.(EEselection)
-        results.(robot).(task).(EEselection).jointTorqueCumulativeOpt = (cumsum(abs(results.(robot).(task).(EEselection).jointTorqueOpt(:,2:3))) - sum(abs(results.(robot).(task).(EEselection).jointTorqueOpt(1:round(startTime/dt),2:3)))) / ((endTime-startTime)/dt);
-    end
+% Subtract the accumulated torque before plot window so it starts at zero
+% on the plot
+startTimeCumTorque = startTime;
+results.(robot).(task).LF.jointTorqueCumulative(:,:) = results.(robot).(task).LF.jointTorqueCumulative(:,:)  - results.(robot).(task).LF.jointTorqueCumulative(ceil(startTimeCumTorque/dt),:);
+results.(robot).(task).RF.jointTorqueCumulative(:,:) = results.(robot).(task).RF.jointTorqueCumulative(:,:)  - results.(robot).(task).RF.jointTorqueCumulative(ceil(startTimeCumTorque/dt),:);
+results.(robot).(task).LH.jointTorqueCumulative(:,:) = results.(robot).(task).LH.jointTorqueCumulative(:,:)  - results.(robot).(task).LH.jointTorqueCumulative(ceil(startTimeCumTorque/dt),:);
+results.(robot).(task).RH.jointTorqueCumulative(:,:) = results.(robot).(task).RH.jointTorqueCumulative(:,:)  - results.(robot).(task).RH.jointTorqueCumulative(ceil(startTimeCumTorque/dt),:);
+
+if plotOptimizedResults
+    resultsOpt.(robot).(task).LF.jointTorqueCumulative = cumsum(abs(resultsOpt.(robot).(task).LF.jointTorque(:,2:3))) / ((endTime-startTime)/dt);
+    resultsOpt.(robot).(task).RF.jointTorqueCumulative = cumsum(abs(resultsOpt.(robot).(task).RF.jointTorque(:,2:3))) / ((endTime-startTime)/dt);
+    resultsOpt.(robot).(task).LH.jointTorqueCumulative = cumsum(abs(resultsOpt.(robot).(task).LH.jointTorque(:,2:3))) / ((endTime-startTime)/dt);
+    resultsOpt.(robot).(task).RH.jointTorqueCumulative = cumsum(abs(resultsOpt.(robot).(task).RH.jointTorque(:,2:3))) / ((endTime-startTime)/dt);
 end
 
-% Shift the measured data in time to align the plots
-% fast trot
+%% Shift the measured data in time to align the two data sets in time
 ANYmalMeasuredData.joint.time = ANYmalMeasuredData.joint.time + timeShift; 
 
-% Start counting energy consumption of simulated at selected time
-startingEnergyConsumptionTime = startTime; % seconds
-for i = 1:3
-    for j = 1: legCount
-        EEselection = EEnames(j,:);    
-        results.(robot).(task).(EEselection).mechEnergy(:,i) = results.(robot).(task).(EEselection).mechEnergy(:,i) - results.(robot).(task).(EEselection).mechEnergy(round(startTime/dt),i);
-        if optimizedLegs.(EEselection)
-            results.(robot).(task).(EEselection).mechEnergyOpt(:,i) = results.(robot).(task).(EEselection).mechEnergyOpt(:,i) - results.(robot).(task).(EEselection).mechEnergyOpt(round(startTime/dt),i);
-        end
-    end
-end
-% Shift angle data to set mean angle to zero. This helps align plots
+%% Shift angle data to set mean angle to zero. This helps align plots with different calibration points
 for i = 1:3
     for j = 1: legCount
         EEselection = EEnames(j,:);   
@@ -157,7 +167,6 @@ for i = 1:3
         ANYmalMeasuredData.joint.(EEselection).meas.q(:,i) = ANYmalMeasuredData.joint.(EEselection).meas.q(:,i) - mean(ANYmalMeasuredData.joint.(EEselection).meas.q(:,i));
     end
 end
-
 
     %% Create patches to represent swing/stance phase
     % initialize vectors for nominal limits to be empty
@@ -301,21 +310,28 @@ grid on
 %     export_fig validation.pdf -nocrop -append
 % end
 
-lineColorMeas = 'k';
-lineColorSim  = 'r';
-lineColorOpt  = 'b';
+% Line color for plotting in B&W
+lineColorMeas = '#fdae61';
+lineColorSim  = '#d7191c';
+lineColorOpt  = '#2b83ba';
+% Conver hexadecimal color codes
+lineColorMeas = sscanf(lineColorMeas(2:end),'%2x%2x%2x',[1 3])/255;
+lineColorSim = sscanf(lineColorSim(2:end),'%2x%2x%2x',[1 3])/255;
+lineColorOpt = sscanf(lineColorOpt(2:end),'%2x%2x%2x',[1 3])/255;
 
 %% Joint position
-fontSize = 16;
-figure('name', 'Joint Position', 'DefaultAxesFontSize', 10, 'units','normalized','outerposition',[0 0 1 1])
+fontSize = 24;
+figure('name', 'Joint Position', 'DefaultAxesFontSize', fontSize, 'units','normalized','outerposition',[0 0 1 1])
 set(gcf,'color','w')
 for i = 2:3
     subplot(2,4,4*(i-2)+1)
     set(gca,'FontSize', fontSize)
     hold on
     patch(X.LF, Y_q.LF, patchColor, 'FaceAlpha', patchAlpha, 'EdgeAlpha', 0)            
-    p = plot(ANYmalMeasuredData.joint.time, ANYmalMeasuredData.joint.LF.meas.q(:,i), lineColorMeas, ...
-         results.(robot).(task).time(startTimeIndexSimulatedData:endTimeIndexSimulatedData), results.(robot).(task).LF.q(:,i), lineColorSim, 'LineWidth', lineWidth);
+    p = plot(ANYmalMeasuredData.joint.time, ANYmalMeasuredData.joint.LF.meas.q(:,i), ...
+             results.(robot).(task).time(startTimeIndexSimulatedData:endTimeIndexSimulatedData), results.(robot).(task).LF.q(:,i), 'LineWidth', lineWidth);
+    p(1).Color = lineColorMeas;
+    p(2).Color = lineColorSim;
     if i == 2
         title('LF q_{HFE}');
     else
@@ -324,7 +340,7 @@ for i = 2:3
     xlim([startTime, endTime]);
     grid on
     ylim(qAxisLimits)
-    xlabel('time [s]')
+    xlabel('Time [s]')
     ylabel('q [rad]')
     if i == 2
         legend(p,'Measured','Simulated')
@@ -334,8 +350,10 @@ for i = 2:3
     set(gca,'FontSize', fontSize)
     hold on
     patch(X.RF, Y_q.RF, patchColor, 'FaceAlpha', patchAlpha, 'EdgeAlpha', 0)                
-    p = plot(ANYmalMeasuredData.joint.time, ANYmalMeasuredData.joint.RF.meas.q(:,i), lineColorMeas, ...
-         results.(robot).(task).time(startTimeIndexSimulatedData:endTimeIndexSimulatedData), results.(robot).(task).RF.q(:,i), lineColorSim, 'LineWidth', lineWidth);
+    p = plot(ANYmalMeasuredData.joint.time, ANYmalMeasuredData.joint.RF.meas.q(:,i), ...
+         results.(robot).(task).time(startTimeIndexSimulatedData:endTimeIndexSimulatedData), results.(robot).(task).RF.q(:,i), 'LineWidth', lineWidth);
+    p(1).Color = lineColorMeas;
+    p(2).Color = lineColorSim;
     if i == 2
         title('RF q_{HFE}');
     else
@@ -344,7 +362,7 @@ for i = 2:3
      xlim([startTime, endTime]);
     grid on
     ylim(qAxisLimits)
-    xlabel('time [s]')
+    xlabel('Time [s]')
     ylabel('q [rad]')    
     if i == 2
         legend(p,'Measured','Simulated')
@@ -354,8 +372,10 @@ for i = 2:3
     set(gca,'FontSize', fontSize)
     hold on
     patch(X.LH, Y_q.LH, patchColor, 'FaceAlpha', patchAlpha, 'EdgeAlpha', 0)              
-    p = plot(ANYmalMeasuredData.joint.time, ANYmalMeasuredData.joint.LH.meas.q(:,i), lineColorMeas, ...
-         results.(robot).(task).time(startTimeIndexSimulatedData:endTimeIndexSimulatedData), results.(robot).(task).LH.q(:,i), lineColorSim, 'LineWidth', lineWidth);
+    p = plot(ANYmalMeasuredData.joint.time, ANYmalMeasuredData.joint.LH.meas.q(:,i), ...
+         results.(robot).(task).time(startTimeIndexSimulatedData:endTimeIndexSimulatedData), results.(robot).(task).LH.q(:,i), 'LineWidth', lineWidth);
+    p(1).Color = lineColorMeas;
+    p(2).Color = lineColorSim;     
     if i == 2
         title('LH q_{HFE}');
     else
@@ -364,7 +384,7 @@ for i = 2:3
     xlim([startTime, endTime]);
     grid on
     ylim(qAxisLimits)   
-    xlabel('time [s]')
+    xlabel('Time [s]')
     ylabel('q [rad]')    
     if i == 2
         legend(p,'Measured','Simulated')
@@ -374,8 +394,10 @@ for i = 2:3
     set(gca,'FontSize', fontSize)
     hold on
     patch(X.RH, Y_q.RH, patchColor, 'FaceAlpha', patchAlpha, 'EdgeAlpha', 0)            
-    p = plot(ANYmalMeasuredData.joint.time, ANYmalMeasuredData.joint.RH.meas.q(:,i), lineColorMeas, ...
-         results.(robot).(task).time(startTimeIndexSimulatedData:endTimeIndexSimulatedData), results.(robot).(task).RH.q(:,i), lineColorSim, 'LineWidth', lineWidth);
+    p = plot(ANYmalMeasuredData.joint.time, ANYmalMeasuredData.joint.RH.meas.q(:,i), ...
+         results.(robot).(task).time(startTimeIndexSimulatedData:endTimeIndexSimulatedData), results.(robot).(task).RH.q(:,i), 'LineWidth', lineWidth);
+    p(1).Color = lineColorMeas;
+    p(2).Color = lineColorSim;
     if i == 2
         title('RH q_{HFE}');
     else
@@ -384,7 +406,7 @@ for i = 2:3
     xlim([startTime, endTime]);
     grid on
     ylim(qAxisLimits)
-    xlabel('time [s]')
+    xlabel('Time [s]')
     ylabel('q [rad]')    
     if i == 2
         legend(p,'Measured','Simulated')
@@ -396,87 +418,110 @@ if savePDF
     export_fig validation.pdf -nocrop -append
 end
 %% Joint velocity
-figure('name', 'Joint Velocity', 'DefaultAxesFontSize', 10, 'units','normalized','outerposition',[0 0 1 1])
+figure('name', 'Joint Velocity', 'DefaultAxesFontSize', fontSize, 'units','normalized','outerposition',[0 0 1 1])
 set(gcf,'color','w')
 for i = 2:3
-    subplot(2,4,4*(i-2)+1)
-    set(gca,'FontSize', fontSize)
-    hold on
-    patch(X.LF, 1.5*Y_qdot.LF, patchColor, 'FaceAlpha', patchAlpha, 'EdgeAlpha', 0)            
-    p = plot(ANYmalMeasuredData.joint.time, ANYmalMeasuredData.joint.LF.meas.qdot(:,i), lineColorMeas, ...
-         results.(robot).(task).time(startTimeIndexSimulatedData:endTimeIndexSimulatedData), results.(robot).(task).LF.qdot(:,i), lineColorSim, 'LineWidth', lineWidth);
-    if i == 2
-        title('LF qdot_{HFE}');
-    else
-        title('LF qdot_{KFE}');
-    end      
-    xlim([startTime, endTime]);
-    grid on
-    ylim(qdotAxisLimits)
-    xlabel('time [s]')
-    ylabel('qdot [rad/s]')    
-    if i == 2
-        legend(p,'Measured','Simulated')
-    end
+    %subplot(2,4,4*(i-2)+1)
+%     set(gca,'FontSize', fontSize)
+%     hold on
+%     patch(X.LF, 1.5*Y_qdot.LF, patchColor, 'FaceAlpha', patchAlpha, 'EdgeAlpha', 0)            
+%     p = plot(ANYmalMeasuredData.joint.time, ANYmalMeasuredData.joint.LF.meas.qdot(:,i), ...
+%          results.(robot).(task).time(startTimeIndexSimulatedData:endTimeIndexSimulatedData), results.(robot).(task).LF.qdot(:,i), 'LineWidth', lineWidth);
+%     p(1).Color = lineColorMeas;
+%     p(2).Color = lineColorSim;     
+%     if i == 2
+%         title('LF qdot_{HFE}');
+%     else
+%         title('LF qdot_{KFE}');
+%     end      
+%     xlim([startTime, endTime]);
+%     grid on
+%     ylim(qdotAxisLimits)
+%     xlabel('Time [s]')
+%     ylabel('qdot [rad/s]')    
+%     if i == 2
+%         legend(p,'Measured','Simulated')
+%     end
     
-    subplot(2,4,4*(i-2)+2)
+    subplot(2,2,2*(i-2)+1)
     set(gca,'FontSize', fontSize)
     hold on
     patch(X.RF, 1.5*Y_qdot.RF, patchColor, 'FaceAlpha', patchAlpha, 'EdgeAlpha', 0)               
-    p = plot(ANYmalMeasuredData.joint.time, ANYmalMeasuredData.joint.RF.meas.qdot(:,i), lineColorMeas, ...
-         results.(robot).(task).time(startTimeIndexSimulatedData:endTimeIndexSimulatedData), results.(robot).(task).RF.qdot(:,i), lineColorSim, 'LineWidth', lineWidth);
+    p = plot(ANYmalMeasuredData.joint.time, ANYmalMeasuredData.joint.RF.meas.qdot(:,i), ...
+         results.(robot).(task).time(startTimeIndexSimulatedData:endTimeIndexSimulatedData), results.(robot).(task).RF.qdot(:,i), 'LineWidth', lineWidth);
+    p(1).Color = lineColorMeas;
+    p(2).Color = lineColorSim; 
+    if plotOptimizedResults
+        pOpt = plot(results.(robot).(task).time(startTimeIndexSimulatedData:endTimeIndexSimulatedData), resultsOpt.(robot).(task).RF.qdot(:,i), 'LineWidth', lineWidth);
+        pOpt.Color = lineColorOpt;
+    end
+        
     if i == 2
-        title('RF qdot_{HFE}');
+        title('Joint Velocity RF_{HFE}');
     else
-        title('RF qdot_{KFE}');
+        title('Joint Velocity RF_{KFE}');
     end        
     xlim([startTime, endTime]);
     grid on
-    ylim(qdotAxisLimits)
-    xlabel('time [s]')
-    ylabel('qdot [rad/s]')       
-    if i == 2
-        legend(p,'Measured','Simulated')
-    end
+    ylim(1.2*qdotAxisLimits)
+    xlabel('Time [s]')
+    ylabel('Joint Velocity [rad/s]')       
+%     if i == 2
+%         legend(p,'Measured','Simulated')
+%     end
     
-    subplot(2,4,4*(i-2)+3)
-    set(gca,'FontSize', fontSize)
-    hold on
-    patch(X.LH, 1.5*Y_qdot.LH, patchColor, 'FaceAlpha', patchAlpha, 'EdgeAlpha', 0)              
-    p = plot(ANYmalMeasuredData.joint.time, ANYmalMeasuredData.joint.LH.meas.qdot(:,i), lineColorMeas, ...
-         results.(robot).(task).time(startTimeIndexSimulatedData:endTimeIndexSimulatedData), results.(robot).(task).LH.qdot(:,i), lineColorSim, 'LineWidth', lineWidth);
-    if i == 2
-        title('LH qdot_{HFE}');
-    else
-        title('LH qdot_{KFE}');
-    end          
-    xlim([startTime, endTime]);
-    grid on
-    ylim(qdotAxisLimits)    
-    xlabel('time [s]')
-    ylabel('qdot [rad/s]')       
-    if i == 2
-        legend(p,'Measured','Simulated')
-    end
-    
-    subplot(2,4,4*(i-2)+4)
+%     subplot(2,4,4*(i-2)+3)
+%     set(gca,'FontSize', fontSize)
+%     hold on
+%     patch(X.LH, 1.5*Y_qdot.LH, patchColor, 'FaceAlpha', patchAlpha, 'EdgeAlpha', 0)              
+%     p = plot(ANYmalMeasuredData.joint.time, ANYmalMeasuredData.joint.LH.meas.qdot(:,i), ...
+%          results.(robot).(task).time(startTimeIndexSimulatedData:endTimeIndexSimulatedData), results.(robot).(task).LH.qdot(:,i), 'LineWidth', lineWidth);
+%     p(1).Color = lineColorMeas;
+%     p(2).Color = lineColorSim;    
+%     if i == 2
+%         title('LH qdot_{HFE}');
+%     else
+%         title('LH qdot_{KFE}');
+%     end          
+%     xlim([startTime, endTime]);
+%     grid on
+%     ylim(qdotAxisLimits)    
+%     xlabel('Time [s]')
+%     ylabel('qdot [rad/s]')       
+%     if i == 2
+%         legend(p,'Measured','Simulated')
+%     end
+%     
+    subplot(2,2,2*(i-2)+2)
     set(gca,'FontSize', fontSize)
     hold on
     patch(X.RH, 1.5*Y_qdot.RH, patchColor, 'FaceAlpha', patchAlpha, 'EdgeAlpha', 0)               
-    p = plot(ANYmalMeasuredData.joint.time, ANYmalMeasuredData.joint.RH.meas.qdot(:,i), lineColorMeas, ...
-         results.(robot).(task).time(startTimeIndexSimulatedData:endTimeIndexSimulatedData), results.(robot).(task).RH.qdot(:,i), lineColorSim, 'LineWidth', lineWidth);
+    p = plot(ANYmalMeasuredData.joint.time, ANYmalMeasuredData.joint.RH.meas.qdot(:,i), ...
+         results.(robot).(task).time(startTimeIndexSimulatedData:endTimeIndexSimulatedData), results.(robot).(task).RH.qdot(:,i), 'LineWidth', lineWidth);
+    p(1).Color = lineColorMeas;
+    p(2).Color = lineColorSim; 
+    
+    if plotOptimizedResults
+        p(3) = plot(results.(robot).(task).time(startTimeIndexSimulatedData:endTimeIndexSimulatedData), resultsOpt.(robot).(task).RH.qdot(:,i), 'LineWidth', lineWidth);
+        p(3).Color = lineColorOpt;
+    end
+    
     if i == 2
-        title('RH qdot_{HFE}');
+        title('Joint Velocity RH_{HFE}');
     else
-        title('RH qdot_{KFE}');
+        title('Joint Velocity RH_{KFE}');
     end        
     xlim([startTime, endTime]);
     grid on
-    ylim(qdotAxisLimits)    
-    xlabel('time [s]')
-    ylabel('qdot [rad/s]')       
+    ylim(1.2*qdotAxisLimits)    
+    xlabel('Time [s]')
+    ylabel('Joint Velocity [rad/s]')       
     if i == 2
-        legend(p,'Measured','Simulated')
+        if plotOptimizedResults
+            legend(p, 'Measured','Nominal', 'Optimized')
+        else
+            legend(p,'Measured','Simulated')
+        end
     end
     
     hold off
@@ -485,87 +530,111 @@ if savePDF
     export_fig validation.pdf -nocrop -append
 end
 %% Joint Torque
-figure('name', 'Joint Torque', 'DefaultAxesFontSize', 10, 'units','normalized','outerposition',[0 0 1 1])
+figure('name', 'Joint Torque', 'DefaultAxesFontSize', fontSize, 'units','normalized','outerposition',[0 0 1 1])
 set(gcf,'color','w')
 for i = 2:3
-    subplot(2,4,4*(i-2)+1)
-    set(gca,'FontSize', fontSize)
-    hold on
-    patch(X.LF, Y_torque.LF, patchColor, 'FaceAlpha', patchAlpha, 'EdgeAlpha', 0)                
-    p = plot(ANYmalMeasuredData.joint.time, ANYmalMeasuredData.joint.LF.meas.jointTorque(:,i), lineColorMeas, ...
-         results.(robot).(task).time(startTimeIndexSimulatedData:endTimeIndexSimulatedData), results.(robot).(task).LF.jointTorque(:,i), lineColorSim, 'LineWidth', lineWidth);
-    if i == 2
-        title('LF Torque_{HFE}');
-    else
-        title('LF Torque_{KFE}');
-    end        
-    xlim([startTime, endTime]);
-    grid on
-    ylim(torqueAxisLimits)
-    xlabel('time [s]')
-    ylabel('Joint Torque [Nm]')       
-    if i == 2
-        legend(p,'Measured','Simulated')
-    end
+    %subplot(2,4,4*(i-2)+1)
+%     set(gca,'FontSize', fontSize)
+%     hold on
+%     patch(X.LF, Y_torque.LF, patchColor, 'FaceAlpha', patchAlpha, 'EdgeAlpha', 0)                
+%     p = plot(ANYmalMeasuredData.joint.time, ANYmalMeasuredData.joint.LF.meas.jointTorque(:,i), ...
+%          results.(robot).(task).time(startTimeIndexSimulatedData:endTimeIndexSimulatedData), results.(robot).(task).LF.jointTorque(:,i), 'LineWidth', lineWidth);
+%     p(1).Color = lineColorMeas;
+%     p(2).Color = lineColorSim;     
+%     if i == 2
+%         title('LF Torque_{HFE}');
+%     else
+%         title('LF Torque_{KFE}');
+%     end        
+%     xlim([startTime, endTime]);
+%     grid on
+%     ylim(torqueAxisLimits)
+%     xlabel('Time [s]')
+%     ylabel('Joint Torque [Nm]')       
+%     if i == 2
+%         legend(p,'Measured','Simulated')
+%     end
     
-    subplot(2,4,4*(i-2)+2)
+    %subplot(2,4,4*(i-2)+2)
+    subplot(2,2,2*(i-2)+1)
     set(gca,'FontSize', fontSize)
     hold on
-    patch(X.RF, Y_torque.RF, patchColor, 'FaceAlpha', patchAlpha, 'EdgeAlpha', 0)                   
-    p = plot(ANYmalMeasuredData.joint.time, ANYmalMeasuredData.joint.RF.meas.jointTorque(:,i), lineColorMeas, ...
-         results.(robot).(task).time(startTimeIndexSimulatedData:endTimeIndexSimulatedData), results.(robot).(task).RF.jointTorque(:,i), lineColorSim, 'LineWidth', lineWidth);
+    patch(X.RF, 5*Y_torque.RF, patchColor, 'FaceAlpha', patchAlpha, 'EdgeAlpha', 0)                   
+    p = plot(ANYmalMeasuredData.joint.time, ANYmalMeasuredData.joint.RF.meas.jointTorque(:,i), ...
+         results.(robot).(task).time(startTimeIndexSimulatedData:endTimeIndexSimulatedData), results.(robot).(task).RF.jointTorque(:,i), 'LineWidth', lineWidth);
+    if plotOptimizedResults
+        p(3) = plot(resultsOpt.(robot).(task).time(startTimeIndexSimulatedData:endTimeIndexSimulatedData), resultsOpt.(robot).(task).RF.jointTorque(:,i), 'LineWidth', lineWidth);
+        p(3).Color = lineColorOpt;
+    end
+    p(1).Color = lineColorMeas;
+    p(2).Color = lineColorSim;     
     if i == 2
-        title('RF Torque_{HFE}');
+        title('Joint Torque RF_{HFE}');
     else
-        title('RF Torque_{KFE}');
+        title('Joint Torque RF_{KFE}');
     end       
     xlim([startTime, endTime]);
     grid on
     ylim(torqueAxisLimits)   
-    xlabel('time [s]')
+    xlabel('Time [s]')
     ylabel('Joint Torque [Nm]')       
-    if i == 2
-        legend(p,'Measured','Simulated')
-    end
+%     if i == 2
+%         legend(p,'Measured','Simulated')
+%     end
+%     
+    %subplot(2,4,4*(i-2)+3)
+%     subplot(2,2,2*(i-2)+2)
+%     set(gca,'FontSize', fontSize)
+%     hold on
+%     patch(X.LH, Y_torque.LH, patchColor, 'FaceAlpha', patchAlpha, 'EdgeAlpha', 0)                
+%     p = plot(ANYmalMeasuredData.joint.time, ANYmalMeasuredData.joint.LH.meas.jointTorque(:,i), ...
+%          results.(robot).(task).time(startTimeIndexSimulatedData:endTimeIndexSimulatedData), results.(robot).(task).LH.jointTorque(:,i), 'LineWidth', lineWidth);
+%     p(1).Color = lineColorMeas;
+%     p(2).Color = lineColorSim;     
+%     if i == 2
+%         title('LH Torque_{HFE}');
+%     else
+%         title('LH Torque_{KFE}');
+%     end        
+%     xlim([startTime, endTime]);
+%     grid on
+%     ylim(torqueAxisLimits)    
+%     xlabel('Time [s]')
+%     ylabel('Joint Torque [Nm]')       
+%     if i == 2
+%         legend(p,'Measured','Simulated')
+%     end
     
-    subplot(2,4,4*(i-2)+3)
+    %subplot(2,4,4*(i-2)+4)
+    subplot(2,2,2*(i-2)+2)
+
     set(gca,'FontSize', fontSize)
     hold on
-    patch(X.LH, Y_torque.LH, patchColor, 'FaceAlpha', patchAlpha, 'EdgeAlpha', 0)                
-    p = plot(ANYmalMeasuredData.joint.time, ANYmalMeasuredData.joint.LH.meas.jointTorque(:,i), lineColorMeas, ...
-         results.(robot).(task).time(startTimeIndexSimulatedData:endTimeIndexSimulatedData), results.(robot).(task).LH.jointTorque(:,i), lineColorSim, 'LineWidth', lineWidth);
-    if i == 2
-        title('LH Torque_{HFE}');
-    else
-        title('LH Torque_{KFE}');
-    end        
-    xlim([startTime, endTime]);
-    grid on
-    ylim(torqueAxisLimits)    
-    xlabel('time [s]')
-    ylabel('Joint Torque [Nm]')       
-    if i == 2
-        legend(p,'Measured','Simulated')
+    patch(X.RH, 5*Y_torque.RH, patchColor, 'FaceAlpha', patchAlpha, 'EdgeAlpha', 0)                    
+    p = plot(ANYmalMeasuredData.joint.time, ANYmalMeasuredData.joint.RH.meas.jointTorque(:,i), ...
+         results.(robot).(task).time(startTimeIndexSimulatedData:endTimeIndexSimulatedData), results.(robot).(task).RH.jointTorque(:,i), 'LineWidth', lineWidth);
+    p(1).Color = lineColorMeas;
+    p(2).Color = lineColorSim;   
+    if plotOptimizedResults
+        p(3) = plot(resultsOpt.(robot).(task).time(startTimeIndexSimulatedData:endTimeIndexSimulatedData), resultsOpt.(robot).(task).RH.jointTorque(:,i), 'LineWidth', lineWidth);
+        p(3).Color = lineColorOpt;
     end
-    
-    subplot(2,4,4*(i-2)+4)
-    set(gca,'FontSize', fontSize)
-    hold on
-    patch(X.RH, Y_torque.RH, patchColor, 'FaceAlpha', patchAlpha, 'EdgeAlpha', 0)                    
-    p = plot(ANYmalMeasuredData.joint.time, ANYmalMeasuredData.joint.RH.meas.jointTorque(:,i), lineColorMeas, ...
-         results.(robot).(task).time(startTimeIndexSimulatedData:endTimeIndexSimulatedData), results.(robot).(task).RH.jointTorque(:,i), lineColorSim, 'LineWidth', lineWidth);
-    if i == 2 
-        title('RH Torque_{HFE}');
+    if i == 2
+        title('Joint Torque RH_{HFE}');
     else
-        title('RH Torque_{KFE}');
+        title('Joint Torque RH_{KFE}');
     end       
     xlim([startTime, endTime]);
     grid on
     ylim(torqueAxisLimits)    
-    xlabel('time [s]')
+    xlabel('Time [s]')
     ylabel('Joint Torque [Nm]')       
     if i == 2
-        legend(p,'Measured','Simulated')
+        if plotOptimizedResults
+            legend(p,'Measured','Nominal','Optimized')
+        else
+            legend(p,'Measured','Simulated')
+        end
     end
     
     hold off
@@ -574,7 +643,7 @@ if savePDF
     export_fig validation.pdf -nocrop -append
 end
 %% Joint Power
-figure('name', 'Joint Power', 'DefaultAxesFontSize', 10, 'units','normalized','outerposition',[0 0 1 1])
+figure('name', 'Joint Power', 'DefaultAxesFontSize', fontSize, 'units','normalized','outerposition',[0 0 1 1])
 set(gcf,'color','w')
 for i = 2:3
     hold on
@@ -582,8 +651,10 @@ for i = 2:3
     set(gca,'FontSize', fontSize)
     hold on
     patch(X.LF, Y_power.LF, patchColor, 'FaceAlpha', patchAlpha, 'EdgeAlpha', 0)                    
-    p = plot(ANYmalMeasuredData.joint.time, ANYmalMeasuredData.joint.LF.meas.jointPower(:,i), lineColorMeas, ...
-         results.(robot).(task).time(startTimeIndexSimulatedData:endTimeIndexSimulatedData), results.(robot).(task).LF.jointPower(:,i), lineColorSim, 'LineWidth', lineWidth);
+    p = plot(ANYmalMeasuredData.joint.time, ANYmalMeasuredData.joint.LF.meas.jointPower(:,i), ...
+         results.(robot).(task).time(startTimeIndexSimulatedData:endTimeIndexSimulatedData), results.(robot).(task).LF.jointPower(:,i), 'LineWidth', lineWidth);
+    p(1).Color = lineColorMeas;
+    p(2).Color = lineColorSim;     
     if i == 2
         title('LF Pmech_{HFE}');
     else
@@ -595,15 +666,17 @@ for i = 2:3
     if i == 2
         legend(p,'Measured','Simulated')
     end
-    xlabel('time [s]')
+    xlabel('Time [s]')
     ylabel('Joint Power [W]')  
     
     subplot(2,4,4*(i-2)+2)
     set(gca,'FontSize', fontSize)
     hold on
     patch(X.RF, Y_power.RF, patchColor, 'FaceAlpha', patchAlpha, 'EdgeAlpha', 0)                        
-    p = plot(ANYmalMeasuredData.joint.time, ANYmalMeasuredData.joint.RF.meas.jointPower(:,i), lineColorMeas, ...
-         results.(robot).(task).time(startTimeIndexSimulatedData:endTimeIndexSimulatedData), results.(robot).(task).RF.jointPower(:,i), lineColorSim, 'LineWidth', lineWidth);
+    p = plot(ANYmalMeasuredData.joint.time, ANYmalMeasuredData.joint.RF.meas.jointPower(:,i), ...
+         results.(robot).(task).time(startTimeIndexSimulatedData:endTimeIndexSimulatedData), results.(robot).(task).RF.jointPower(:,i), 'LineWidth', lineWidth);
+    p(1).Color = lineColorMeas;
+    p(2).Color = lineColorSim;     
     if i == 2
         title('RF Pmech_{HFE}');
     else
@@ -612,7 +685,7 @@ for i = 2:3
     xlim([startTime, endTime]);
     grid on
     ylim(powerAxisLimits)    
-    xlabel('time [s]')
+    xlabel('Time [s]')
     ylabel('Joint Power [W]')  
     if i == 2
         legend(p,'Measured','Simulated')
@@ -622,8 +695,10 @@ for i = 2:3
     set(gca,'FontSize', fontSize)
     hold on
     patch(X.LH, Y_power.LH, patchColor, 'FaceAlpha', patchAlpha, 'EdgeAlpha', 0)                        
-    p = plot(ANYmalMeasuredData.joint.time, ANYmalMeasuredData.joint.LH.meas.jointPower(:,i), lineColorMeas, ...
-         results.(robot).(task).time(startTimeIndexSimulatedData:endTimeIndexSimulatedData), results.(robot).(task).LH.jointPower(:,i), lineColorSim, 'LineWidth', lineWidth);
+    p = plot(ANYmalMeasuredData.joint.time, ANYmalMeasuredData.joint.LH.meas.jointPower(:,i), ...
+         results.(robot).(task).time(startTimeIndexSimulatedData:endTimeIndexSimulatedData), results.(robot).(task).LH.jointPower(:,i), 'LineWidth', lineWidth);
+    p(1).Color = lineColorMeas;
+    p(2).Color = lineColorSim;     
     if i == 2
         title('LH Pmech_{HFE}');
     else
@@ -632,7 +707,7 @@ for i = 2:3
     xlim([startTime, endTime]);
     grid on
     ylim(powerAxisLimits)    
-    xlabel('time [s]')
+    xlabel('Time [s]')
     ylabel('Joint Power [W]')  
     if i == 2
         legend(p,'Measured','Simulated')
@@ -642,8 +717,10 @@ for i = 2:3
     set(gca,'FontSize', fontSize)
     hold on
     patch(X.RH, Y_power.RH, patchColor, 'FaceAlpha', patchAlpha, 'EdgeAlpha', 0)                        
-    p = plot(ANYmalMeasuredData.joint.time, ANYmalMeasuredData.joint.RH.meas.jointPower(:,i), lineColorMeas, ...
-         results.(robot).(task).time(startTimeIndexSimulatedData:endTimeIndexSimulatedData), results.(robot).(task).RH.jointPower(:,i), lineColorSim, 'LineWidth', lineWidth);
+    p = plot(ANYmalMeasuredData.joint.time, ANYmalMeasuredData.joint.RH.meas.jointPower(:,i), ...
+         results.(robot).(task).time(startTimeIndexSimulatedData:endTimeIndexSimulatedData), results.(robot).(task).RH.jointPower(:,i), 'LineWidth', lineWidth);
+    p(1).Color = lineColorMeas;
+    p(2).Color = lineColorSim;     
     if i == 2
         title('RH Pmech_{HFE}');
     else
@@ -652,7 +729,7 @@ for i = 2:3
     xlim([startTime, endTime]);
     grid on
     ylim(powerAxisLimits)    
-    xlabel('time [s]')
+    xlabel('Time [s]')
     ylabel('Joint Power [W]')  
     if i == 2
         legend(p,'Measured','Simulated')
@@ -663,7 +740,7 @@ if savePDF
     export_fig validation.pdf -nocrop -append
 end
 %% Joint Energy
-figure('name', 'Joint Energy', 'DefaultAxesFontSize', 10, 'units','normalized','outerposition',[0 0 1 1])
+figure('name', 'Joint Energy', 'DefaultAxesFontSize', fontSize, 'units','normalized','outerposition',[0 0 1 1])
 set(gcf,'color','w')
 for i = 2:3
     hold on
@@ -671,8 +748,10 @@ for i = 2:3
     set(gca,'FontSize', fontSize)
     hold on
     patch(X.LF, Y_mechEnergy.LF, patchColor, 'FaceAlpha', patchAlpha, 'EdgeAlpha', 0)                        
-    p = plot(ANYmalMeasuredData.joint.time(1:end-1), ANYmalMeasuredData.joint.LF.meas.jointEnergyCumulative(:,i), lineColorMeas, ...
-         results.(robot).(task).time(startTimeIndexSimulatedData:endTimeIndexSimulatedData), results.(robot).(task).LF.mechEnergy(:,i), lineColorSim, 'LineWidth', lineWidth);
+    p = plot(ANYmalMeasuredData.joint.time(1:end-1), ANYmalMeasuredData.joint.LF.meas.jointEnergyCumulative(:,i), ...
+         results.(robot).(task).time(startTimeIndexSimulatedData:endTimeIndexSimulatedData), results.(robot).(task).LF.mechEnergy(:,i), 'LineWidth', lineWidth);
+    p(1).Color = lineColorMeas;
+    p(2).Color = lineColorSim;     
     if i == 2
         title('LF Emech_{HFE}');
     else
@@ -681,7 +760,7 @@ for i = 2:3
     xlim([startTime, endTime]);
     ylim(energyAxisLimits);
     grid on
-    xlabel('time [s]')
+    xlabel('Time [s]')
     ylabel('Mechanical Energy [J]')      
     if i == 2
         legend(p,'Measured','Simulated')
@@ -691,8 +770,10 @@ for i = 2:3
     set(gca,'FontSize', fontSize)
     hold on
     patch(X.RF, Y_mechEnergy.RF, patchColor, 'FaceAlpha', patchAlpha, 'EdgeAlpha', 0)                    
-    p = plot(ANYmalMeasuredData.joint.time(1:end-1), ANYmalMeasuredData.joint.RF.meas.jointEnergyCumulative(:,i), lineColorMeas, ...
-         results.(robot).(task).time(startTimeIndexSimulatedData:endTimeIndexSimulatedData), results.(robot).(task).RF.mechEnergy(:,i), lineColorSim, 'LineWidth', lineWidth);
+    p = plot(ANYmalMeasuredData.joint.time(1:end-1), ANYmalMeasuredData.joint.RF.meas.jointEnergyCumulative(:,i), ...
+         results.(robot).(task).time(startTimeIndexSimulatedData:endTimeIndexSimulatedData), results.(robot).(task).RF.mechEnergy(:,i), 'LineWidth', lineWidth);
+    p(1).Color = lineColorMeas;
+    p(2).Color = lineColorSim;     
     if i == 2
         title('RF Emech_{HFE}');
     else
@@ -701,7 +782,7 @@ for i = 2:3
     xlim([startTime, endTime]);
     ylim(energyAxisLimits);    
     grid on
-    xlabel('time [s]')
+    xlabel('Time [s]')
     ylabel('Mechanical Energy [J]')      
     if i == 2
         legend(p,'Measured','Simulated')
@@ -711,8 +792,10 @@ for i = 2:3
     set(gca,'FontSize', fontSize)
     hold on
     patch(X.LH, Y_mechEnergy.LH, patchColor, 'FaceAlpha', patchAlpha, 'EdgeAlpha', 0)                        
-    p = plot(ANYmalMeasuredData.joint.time(1:end-1), ANYmalMeasuredData.joint.LH.meas.jointEnergyCumulative(:,i), lineColorMeas, ...
-         results.(robot).(task).time(startTimeIndexSimulatedData:endTimeIndexSimulatedData), results.(robot).(task).LH.mechEnergy(:,i), lineColorSim, 'LineWidth', lineWidth);
+    p = plot(ANYmalMeasuredData.joint.time(1:end-1), ANYmalMeasuredData.joint.LH.meas.jointEnergyCumulative(:,i), ...
+         results.(robot).(task).time(startTimeIndexSimulatedData:endTimeIndexSimulatedData), results.(robot).(task).LH.mechEnergy(:,i), 'LineWidth', lineWidth);
+    p(1).Color = lineColorMeas;
+    p(2).Color = lineColorSim;     
     if i == 2
         title('LH Emech_{HFE}');
     else
@@ -721,7 +804,7 @@ for i = 2:3
     xlim([startTime, endTime]);
     ylim(energyAxisLimits);    
     grid on
-    xlabel('time [s]')
+    xlabel('Time [s]')
     ylabel('Mechanical Energy [J]')      
     if i == 2
         legend(p,'Measured','Simulated')
@@ -731,9 +814,11 @@ for i = 2:3
     set(gca,'FontSize', fontSize)
     hold on
     patch(X.RH, Y_mechEnergy.RH, patchColor, 'FaceAlpha', patchAlpha, 'EdgeAlpha', 0)                        
-    p = plot(ANYmalMeasuredData.joint.time(1:end-1), ANYmalMeasuredData.joint.RH.meas.jointEnergyCumulative(:,i), lineColorMeas, ...
-         results.(robot).(task).time(startTimeIndexSimulatedData:endTimeIndexSimulatedData), results.(robot).(task).RH.mechEnergy(:,i), lineColorSim, 'LineWidth', lineWidth);
-     if i == 2
+    p = plot(ANYmalMeasuredData.joint.time(1:end-1), ANYmalMeasuredData.joint.RH.meas.jointEnergyCumulative(:,i), ...
+         results.(robot).(task).time(startTimeIndexSimulatedData:endTimeIndexSimulatedData), results.(robot).(task).RH.mechEnergy(:,i), 'LineWidth', lineWidth);
+    p(1).Color = lineColorMeas;
+    p(2).Color = lineColorSim;     
+    if i == 2
         title('RH Emech_{HFE}');
     else
         title('RH Emech_{KFE}');
@@ -741,7 +826,7 @@ for i = 2:3
     xlim([startTime, endTime]);
     ylim(energyAxisLimits);    
     grid on
-    xlabel('time [s]')
+    xlabel('Time [s]')
     ylabel('Mechanical Energy [J]')      
     if i == 2
         legend(p,'Measured','Simulated')
@@ -752,47 +837,63 @@ if savePDF
 end
 
 %% Sum of energy over all joints
-figure('name', 'Joint Energy Total', 'DefaultAxesFontSize', 10, 'units','normalized','outerposition',[0 0 1 1])
+figure('name', 'Joint Energy Total', 'DefaultAxesFontSize', fontSize, 'units','normalized','outerposition',[0 0 1 1])
 set(gcf,'color','w')
 energyAxisLimits = 1.5*energyAxisLimits;
-subplotOrder = [1, 2, 5, 6];
-for i = 1:legCount
-    EEselection = EEnames(i,:);
-    subplot(2,4,subplotOrder(i))
+%subplotOrder = [1, 2, 5, 6];
+for i = 1:legCountPlot
+    EEselection = EEnamesPlot(i,:);
+    if i == 1
+    subplot(2, 2, 1)
+    else
+        subplot(2, 2, 3)
+    end
     set(gca,'FontSize', fontSize)
     hold on
     patch(X.(EEselection), Y_mechEnergy.(EEselection), patchColor, 'FaceAlpha', patchAlpha, 'EdgeAlpha', 0)  
     if optimizedLegs.(EEselection)
-        p = plot(ANYmalMeasuredData.joint.time(1:end-1), ANYmalMeasuredData.joint.(EEselection).meas.jointEnergyCumulative(:,2) + ANYmalMeasuredData.joint.(EEselection).meas.jointEnergyCumulative(:,3), lineColorMeas, ...
-             results.(robot).(task).time(startTimeIndexSimulatedData:endTimeIndexSimulatedData), results.(robot).(task).(EEselection).mechEnergy(:,2)+results.(robot).(task).(EEselection).mechEnergy(:,3), lineColorSim, ...
-             results.(robot).(task).time(startTimeIndexSimulatedData:endTimeIndexSimulatedData), results.(robot).(task).(EEselection).mechEnergyOpt(:,2)+results.(robot).(task).(EEselection).mechEnergyOpt(:,3), lineColorOpt, 'LineWidth', lineWidth);
-         legend(p,'Measured','Simulated', 'Optimized')
+        p = plot(ANYmalMeasuredData.joint.time(1:end-1), ANYmalMeasuredData.joint.(EEselection).meas.jointEnergyCumulative(:,2) + ANYmalMeasuredData.joint.(EEselection).meas.jointEnergyCumulative(:,3), ...
+             results.(robot).(task).time(startTimeIndexSimulatedData:endTimeIndexSimulatedData), results.(robot).(task).(EEselection).mechEnergy(:,2)+results.(robot).(task).(EEselection).mechEnergy(:,3), ...
+             resultsOpt.(robot).(task).time(startTimeIndexSimulatedData:endTimeIndexSimulatedData), resultsOpt.(robot).(task).(EEselection).mechEnergy(:,2)+resultsOpt.(robot).(task).(EEselection).mechEnergy(:,3), 'LineWidth', lineWidth);
+       % legend(p,'Measured','Simulated', 'Optimized')
+        p(1).Color = lineColorMeas;
+        p(2).Color = lineColorSim;
+        p(3).Color = lineColorOpt;
     else
-        p = plot(ANYmalMeasuredData.joint.time(1:end-1), ANYmalMeasuredData.joint.(EEselection).meas.jointEnergyCumulative(:,2) + ANYmalMeasuredData.joint.(EEselection).meas.jointEnergyCumulative(:,3), lineColorMeas, ...
-             results.(robot).(task).time(startTimeIndexSimulatedData:endTimeIndexSimulatedData), results.(robot).(task).(EEselection).mechEnergy(:,2)+results.(robot).(task).(EEselection).mechEnergy(:,3), lineColorSim, 'LineWidth', lineWidth);
-        legend(p,'Measured','Simulated')
+        p = plot(ANYmalMeasuredData.joint.time(1:end-1), ANYmalMeasuredData.joint.(EEselection).meas.jointEnergyCumulative(:,2) + ANYmalMeasuredData.joint.(EEselection).meas.jointEnergyCumulative(:,3), ...
+             results.(robot).(task).time(startTimeIndexSimulatedData:endTimeIndexSimulatedData), results.(robot).(task).(EEselection).mechEnergy(:,2)+results.(robot).(task).(EEselection).mechEnergy(:,3), 'LineWidth', lineWidth);
+       % legend(p,'Measured','Simulated')
+        p(1).Color = lineColorMeas;
+        p(2).Color = lineColorSim;
     end
-    title([EEselection, ' ', 'E_{mechTotal}'])
+    title(['Mechanical Energy Consumption ', EEselection])
     xlim([startTime, endTime]);
-    ylim(energyAxisLimits);
+    ylim(0.9*energyAxisLimits);
     grid on
-    xlabel('time [s]')
-    ylabel('Normalized Mechanical Energy')      
+    xlabel('Time [s]')
+    ylabel('Mechanical Energy [J]')
 end
 
-subplot(2,4,[3,4,7,8])
+subplot(2,2,[2,4])
 set(gca,'FontSize', fontSize)
 hold on
 
 % Sum the energy for each leg. If the leg was optimized, use the optimized
 % energy value.
-results.(robot).(task).totalMechEnergy = [0, 0];
+results.(robot).(task).totalMechEnergy = 0;
+resultsOpt.(robot).(task).totalMechEnergy = 0;
+
 for i = 1:legCount
     EEselection = EEnames(i,:);
     if optimizedLegs.(EEselection)
-        results.(robot).(task).totalMechEnergy = results.(robot).(task).totalMechEnergy + results.(robot).(task).(EEselection).mechEnergyOpt(:,2) + results.(robot).(task).(EEselection).mechEnergyOpt(:,3);
+        resultsOpt.(robot).(task).totalMechEnergy = resultsOpt.(robot).(task).totalMechEnergy + resultsOpt.(robot).(task).(EEselection).mechEnergy(:,2) + resultsOpt.(robot).(task).(EEselection).mechEnergy(:,3);
+        p(1).Color = lineColorMeas;
+        p(2).Color = lineColorSim;
+        p(3).Color = lineColorOpt;
     else
         results.(robot).(task).totalMechEnergy = results.(robot).(task).totalMechEnergy + results.(robot).(task).(EEselection).mechEnergy(:,2) + results.(robot).(task).(EEselection).mechEnergy(:,3);
+        p(1).Color = lineColorMeas;
+        p(2).Color = lineColorSim;
     end
 end
  hold on  
@@ -800,135 +901,163 @@ set(gca,'FontSize', fontSize)
 p = plot(ANYmalMeasuredData.joint.time(1:end-1), ANYmalMeasuredData.joint.LF.meas.jointEnergyCumulative(:,2) + ANYmalMeasuredData.joint.LF.meas.jointEnergyCumulative(:,3) + ...
                                                  ANYmalMeasuredData.joint.RF.meas.jointEnergyCumulative(:,2) + ANYmalMeasuredData.joint.RF.meas.jointEnergyCumulative(:,3) + ...
                                                  ANYmalMeasuredData.joint.LH.meas.jointEnergyCumulative(:,2) + ANYmalMeasuredData.joint.LH.meas.jointEnergyCumulative(:,3) + ...
-                                                 ANYmalMeasuredData.joint.RH.meas.jointEnergyCumulative(:,2) + ANYmalMeasuredData.joint.RH.meas.jointEnergyCumulative(:,3), lineColorMeas, ...
+                                                 ANYmalMeasuredData.joint.RH.meas.jointEnergyCumulative(:,2) + ANYmalMeasuredData.joint.RH.meas.jointEnergyCumulative(:,3), ...
      results.(robot).(task).time(startTimeIndexSimulatedData:endTimeIndexSimulatedData), results.(robot).(task).LF.mechEnergy(:,2) + results.(robot).(task).LF.mechEnergy(:,3) + ...
                                                                                          results.(robot).(task).RF.mechEnergy(:,2) + results.(robot).(task).RF.mechEnergy(:,3) + ...
                                                                                          results.(robot).(task).LH.mechEnergy(:,2) + results.(robot).(task).LH.mechEnergy(:,3) + ...
-                                                                                         results.(robot).(task).RH.mechEnergy(:,2) + results.(robot).(task).RH.mechEnergy(:,3), lineColorSim, 'LineWidth', lineWidth);
+                                                                                         results.(robot).(task).RH.mechEnergy(:,2) + results.(robot).(task).RH.mechEnergy(:,3), 'LineWidth', lineWidth);
                                                                                      
 if optimizedLegs.LF || optimizedLegs.RF || optimizedLegs.LH || optimizedLegs.RH
-   pOpt = plot(results.(robot).(task).time(startTimeIndexSimulatedData:endTimeIndexSimulatedData), results.(robot).(task).totalMechEnergy, lineColorOpt);
-    legend('Measured','Simulated', 'Optimized')
+   pOpt = plot(resultsOpt.(robot).(task).time(startTimeIndexSimulatedData:endTimeIndexSimulatedData), resultsOpt.(robot).(task).totalMechEnergy, 'LineWidth', lineWidth);
+   legend('Measured','Simulated', 'Optimized')
+    p(1).Color = lineColorMeas;
+    p(2).Color = lineColorSim;
+    pOpt.Color = lineColorOpt;
 else 
     legend(p,'Measured','Simulated')
+    p(1).Color = lineColorMeas;
+    p(2).Color = lineColorSim;
 end
-title('Sum Over All Legs E_{mechTotal}');
+title('Total Mechanical Energy Consumption Over All Legs');
 xlim([startTime, endTime]);
-ylim(4*energyAxisLimits);    
+ylim(3.7*energyAxisLimits);    
 grid on
-xlabel('time [s]')
-ylabel('Normalized Mechanical Energy')      
+xlabel('Time [s]')
+ylabel('Mechanical Energy [J]')      
 hold off
 if savePDF
     export_fig validation.pdf -nocrop -append
 end
 
 %% Sum of torque over all joints
-fontSize = 12;
-figure('name', 'Joint Torque Total', 'DefaultAxesFontSize', 10, 'units','normalized','outerposition',[0 0 1 1])
+figure('name', 'Joint Torque Total', 'DefaultAxesFontSize', fontSize, 'units','normalized','outerposition',[0 0 1 1])
 set(gcf,'color','w')
 endTorque.LF.meas = sum(ANYmalMeasuredData.joint.LF.meas.jointTorqueCumulative(round(endTimeMeasured/dtMeasured),2) + ANYmalMeasuredData.joint.LF.meas.jointTorqueCumulative(round(endTimeMeasured/dtMeasured),3));
 endTorque.RF.meas = sum(ANYmalMeasuredData.joint.RF.meas.jointTorqueCumulative(round(endTimeMeasured/dtMeasured),2) + ANYmalMeasuredData.joint.RF.meas.jointTorqueCumulative(round(endTimeMeasured/dtMeasured),3));
 endTorque.LH.meas = sum(ANYmalMeasuredData.joint.LH.meas.jointTorqueCumulative(round(endTimeMeasured/dtMeasured),2) + ANYmalMeasuredData.joint.LH.meas.jointTorqueCumulative(round(endTimeMeasured/dtMeasured),3));
 endTorque.RH.meas = sum(ANYmalMeasuredData.joint.RH.meas.jointTorqueCumulative(round(endTimeMeasured/dtMeasured),2) + ANYmalMeasuredData.joint.RH.meas.jointTorqueCumulative(round(endTimeMeasured/dtMeasured),3));
 
-subplot(2,4,1)
+%subplot(2,4,1)
 set(gca,'FontSize', fontSize)
 hold on
 patch(X.LF, Y_torque.LF, patchColor, 'FaceAlpha', patchAlpha, 'EdgeAlpha', 0)   
-if optimizedLegs.LF
-    p = plot(ANYmalMeasuredData.joint.time, (ANYmalMeasuredData.joint.LF.meas.jointTorqueCumulative(:,2) + ANYmalMeasuredData.joint.LF.meas.jointTorqueCumulative(:,3))/endTorque.LF.meas, lineColorMeas, ...
-     results.(robot).(task).time(startTimeIndexSimulatedData:endTimeIndexSimulatedData), (results.(robot).(task).LF.jointTorqueCumulative(:,1) + results.(robot).(task).LF.jointTorqueCumulative(:,2))/endTorque.LF.meas, lineColorSim, ...
-     results.(robot).(task).time(startTimeIndexSimulatedData:endTimeIndexSimulatedData), (results.(robot).(task).LF.jointTorqueCumulativeOpt(:,1) + results.(robot).(task).LF.jointTorqueCumulativeOpt(:,2))/endTorque.LF.meas, lineColorOpt, 'LineWidth', lineWidth);
-     legend(p,'Measured','Simulated', 'Optimized')    
-else
-p = plot(ANYmalMeasuredData.joint.time, (ANYmalMeasuredData.joint.LF.meas.jointTorqueCumulative(:,2) + ANYmalMeasuredData.joint.LF.meas.jointTorqueCumulative(:,3))/endTorque.LF.meas, lineColorMeas, ...
-     results.(robot).(task).time(startTimeIndexSimulatedData:endTimeIndexSimulatedData), (results.(robot).(task).LF.jointTorqueCumulative(:,1) + results.(robot).(task).LF.jointTorqueCumulative(:,2))/endTorque.LF.meas, lineColorSim, 'LineWidth', lineWidth);
-legend(p,'Measured','Simulated')    
-end
-title('LF Normalized Cumulative Joint Torque');
+% if optimizedLegs.LF
+%     p = plot(ANYmalMeasuredData.joint.time, (ANYmalMeasuredData.joint.LF.meas.jointTorqueCumulative(:,2) + ANYmalMeasuredData.joint.LF.meas.jointTorqueCumulative(:,3))/endTorque.LF.meas, ...
+%      results.(robot).(task).time(startTimeIndexSimulatedData:endTimeIndexSimulatedData), (results.(robot).(task).LF.jointTorqueCumulative(:,1) + results.(robot).(task).LF.jointTorqueCumulative(:,2))/endTorque.LF.meas, ...
+%      results.(robot).(task).time(startTimeIndexSimulatedData:endTimeIndexSimulatedData), (results.(robot).(task).LF.jointTorqueCumulativeOpt(:,1) + results.(robot).(task).LF.jointTorqueCumulativeOpt(:,2))/endTorque.LF.meas, 'color', lineColorOpt, 'LineWidth', lineWidth);
+%      legend(p,'Measured','Simulated', 'Optimized')    
+%      p(1).Color = lineColorMeas;
+%      p(2).Color = lineColorSim;
+%      p(3).Color = lineColorOpt;
+% else
+%     p = plot(ANYmalMeasuredData.joint.time, (ANYmalMeasuredData.joint.LF.meas.jointTorqueCumulative(:,2) + ANYmalMeasuredData.joint.LF.meas.jointTorqueCumulative(:,3))/endTorque.LF.meas, ...
+%          results.(robot).(task).time(startTimeIndexSimulatedData:endTimeIndexSimulatedData), (results.(robot).(task).LF.jointTorqueCumulative(:,1) + results.(robot).(task).LF.jointTorqueCumulative(:,2))/endTorque.LF.meas, 'LineWidth', lineWidth);
+%     legend(p,'Measured','Simulated')    
+%     p(1).Color = lineColorMeas;
+%     p(2).Color = lineColorSim;
+% end
+% title('LF Normalized Cumulative Joint Torque');
 
 xlim([startTime, endTime]);
 ylim([0, 1.2]);    
 grid on
-xlabel('time [s]')
+xlabel('Time [s]')
 ylabel('Normalized Joint Torque') 
 
-subplot(2,4,2)
+%subplot(2,4,2)
+subplot(2,2,1)
 set(gca,'FontSize', fontSize)
 hold on
 patch(X.RF, Y_torque.RF, patchColor, 'FaceAlpha', patchAlpha, 'EdgeAlpha', 0)     
 if optimizedLegs.RF
-    p = plot(ANYmalMeasuredData.joint.time, (ANYmalMeasuredData.joint.RF.meas.jointTorqueCumulative(:,2) + ANYmalMeasuredData.joint.RF.meas.jointTorqueCumulative(:,3))/endTorque.RF.meas, lineColorMeas, ...
-     results.(robot).(task).time(startTimeIndexSimulatedData:endTimeIndexSimulatedData), (results.(robot).(task).RF.jointTorqueCumulative(:,1) + results.(robot).(task).RF.jointTorqueCumulative(:,2))/endTorque.RF.meas, lineColorSim, ...
-     results.(robot).(task).time(startTimeIndexSimulatedData:endTimeIndexSimulatedData), (results.(robot).(task).RF.jointTorqueCumulativeOpt(:,1) + results.(robot).(task).RF.jointTorqueCumulativeOpt(:,2))/endTorque.RF.meas, lineColorOpt, 'LineWidth', lineWidth);
-     legend(p,'Measured','Simulated', 'Optimized')    
+    p = plot(ANYmalMeasuredData.joint.time, (ANYmalMeasuredData.joint.RF.meas.jointTorqueCumulative(:,2) + ANYmalMeasuredData.joint.RF.meas.jointTorqueCumulative(:,3))/endTorque.RF.meas, ...
+     results.(robot).(task).time(startTimeIndexSimulatedData:endTimeIndexSimulatedData), (results.(robot).(task).RF.jointTorqueCumulative(:,1) + results.(robot).(task).RF.jointTorqueCumulative(:,2))/endTorque.RF.meas, ...
+     results.(robot).(task).time(startTimeIndexSimulatedData:endTimeIndexSimulatedData), (resultsOpt.(robot).(task).RF.jointTorqueCumulative(:,1) + resultsOpt.(robot).(task).RF.jointTorqueCumulative(:,2))/endTorque.RF.meas, 'LineWidth', lineWidth);
+    % legend(p,'Measured','Simulated', 'Optimized')    
+     p(1).Color = lineColorMeas;
+     p(2).Color = lineColorSim;
+     p(3).Color = lineColorOpt;
 else
-p = plot(ANYmalMeasuredData.joint.time, (ANYmalMeasuredData.joint.RF.meas.jointTorqueCumulative(:,2) + ANYmalMeasuredData.joint.RF.meas.jointTorqueCumulative(:,3))/endTorque.RF.meas, lineColorMeas, ...
-     results.(robot).(task).time(startTimeIndexSimulatedData:endTimeIndexSimulatedData), (results.(robot).(task).RF.jointTorqueCumulative(:,1) + results.(robot).(task).RF.jointTorqueCumulative(:,2))/endTorque.RF.meas, lineColorSim, 'LineWidth', lineWidth);
-legend(p,'Measured','Simulated')    
+    p = plot(ANYmalMeasuredData.joint.time, (ANYmalMeasuredData.joint.RF.meas.jointTorqueCumulative(:,2) + ANYmalMeasuredData.joint.RF.meas.jointTorqueCumulative(:,3))/endTorque.RF.meas, ...
+         results.(robot).(task).time(startTimeIndexSimulatedData:endTimeIndexSimulatedData), (results.(robot).(task).RF.jointTorqueCumulative(:,1) + results.(robot).(task).RF.jointTorqueCumulative(:,2))/endTorque.RF.meas, 'LineWidth', lineWidth);
+   % legend(p,'Measured','Simulated')    
+    p(1).Color = lineColorMeas;
+    p(2).Color = lineColorSim;
 end
-title('RF Normalized Cumulative Joint Torque');
+title('Normalized Cumulative Joint Torque RF');
 xlim([startTime, endTime]);
-ylim([0, 1.2]);    
+ylim([0, 1.4]);    
 grid on
-xlabel('time [s]')
+xlabel('Time [s]')
 ylabel('Normalized Joint Torque') 
 
-subplot(2,4,5)
-set(gca,'FontSize', fontSize)
-hold on
-patch(X.LH, Y_torque.LH, patchColor, 'FaceAlpha', patchAlpha, 'EdgeAlpha', 0)     
-if optimizedLegs.LH
-    p = plot(ANYmalMeasuredData.joint.time, (ANYmalMeasuredData.joint.LH.meas.jointTorqueCumulative(:,2) + ANYmalMeasuredData.joint.LH.meas.jointTorqueCumulative(:,3))/endTorque.LH.meas, lineColorMeas, ...
-     results.(robot).(task).time(startTimeIndexSimulatedData:endTimeIndexSimulatedData), (results.(robot).(task).LH.jointTorqueCumulative(:,1) + results.(robot).(task).LH.jointTorqueCumulative(:,2))/endTorque.LH.meas, lineColorSim, ...
-     results.(robot).(task).time(startTimeIndexSimulatedData:endTimeIndexSimulatedData), (results.(robot).(task).LH.jointTorqueCumulativeOpt(:,1) + results.(robot).(task).LH.jointTorqueCumulativeOpt(:,2))/endTorque.LH.meas, lineColorOpt, 'LineWidth', lineWidth);
-     legend(p,'Measured','Simulated', 'Optimized')    
-else
-    p = plot(ANYmalMeasuredData.joint.time, (ANYmalMeasuredData.joint.LH.meas.jointTorqueCumulative(:,2) + ANYmalMeasuredData.joint.LH.meas.jointTorqueCumulative(:,3))/endTorque.LH.meas, lineColorMeas, ...
-         results.(robot).(task).time(startTimeIndexSimulatedData:endTimeIndexSimulatedData), (results.(robot).(task).LH.jointTorqueCumulative(:,1) + results.(robot).(task).LH.jointTorqueCumulative(:,2))/endTorque.LH.meas, lineColorSim, 'LineWidth', lineWidth);
-    legend(p,'Measured','Simulated')    
-end
-title('LH Normalized Cumulative Joint Torque');
-xlim([startTime, endTime]);
-ylim([0, 1.2]);    
-grid on
-xlabel('time [s]')
-ylabel('Normalized Joint Torque') 
+% subplot(2,4,5)
+% set(gca,'FontSize', fontSize)
+% hold on
+% patch(X.LH, Y_torque.LH, patchColor, 'FaceAlpha', patchAlpha, 'EdgeAlpha', 0)     
+% if optimizedLegs.LH
+%     p = plot(ANYmalMeasuredData.joint.time, (ANYmalMeasuredData.joint.LH.meas.jointTorqueCumulative(:,2) + ANYmalMeasuredData.joint.LH.meas.jointTorqueCumulative(:,3))/endTorque.LH.meas, ...
+%      results.(robot).(task).time(startTimeIndexSimulatedData:endTimeIndexSimulatedData), (results.(robot).(task).LH.jointTorqueCumulative(:,1) + results.(robot).(task).LH.jointTorqueCumulative(:,2))/endTorque.LH.meas, ...
+%      results.(robot).(task).time(startTimeIndexSimulatedData:endTimeIndexSimulatedData), (results.(robot).(task).LH.jointTorqueCumulativeOpt(:,1) + results.(robot).(task).LH.jointTorqueCumulativeOpt(:,2))/endTorque.LH.meas, 'color', lineColorOpt, 'LineWidth', lineWidth);
+%      legend(p,'Measured','Simulated', 'Optimized')   
+%      p(1).Color = lineColorMeas;
+%      p(2).Color = lineColorSim;
+%      p(3).Color = lineColorOpt;
+% else
+%     p = plot(ANYmalMeasuredData.joint.time, (ANYmalMeasuredData.joint.LH.meas.jointTorqueCumulative(:,2) + ANYmalMeasuredData.joint.LH.meas.jointTorqueCumulative(:,3))/endTorque.LH.meas, ...
+%          results.(robot).(task).time(startTimeIndexSimulatedData:endTimeIndexSimulatedData), (results.(robot).(task).LH.jointTorqueCumulative(:,1) + results.(robot).(task).LH.jointTorqueCumulative(:,2))/endTorque.LH.meas, 'LineWidth', lineWidth);
+%     legend(p,'Measured','Simulated')  
+%     p(1).Color = lineColorMeas;
+%     p(2).Color = lineColorSim;
+% end
+% title('LH Normalized Cumulative Joint Torque');
+% xlim([startTime, endTime]);
+% ylim([0, 1.2]);    
+% grid on
+% xlabel('Time [s]')
+% ylabel('Normalized Joint Torque') 
 
-subplot(2,4,6)
+%subplot(2,4,6)
+subplot(2,2,3)
 set(gca,'FontSize', fontSize)
 hold on
 patch(X.RH, Y_torque.RH, patchColor, 'FaceAlpha', patchAlpha, 'EdgeAlpha', 0)  
 if optimizedLegs.RH
-    p = plot(ANYmalMeasuredData.joint.time, (ANYmalMeasuredData.joint.RH.meas.jointTorqueCumulative(:,2) + ANYmalMeasuredData.joint.RH.meas.jointTorqueCumulative(:,3))/endTorque.RH.meas, lineColorMeas, ...
-     results.(robot).(task).time(startTimeIndexSimulatedData:endTimeIndexSimulatedData), (results.(robot).(task).RH.jointTorqueCumulative(:,1) + results.(robot).(task).RH.jointTorqueCumulative(:,2))/endTorque.RH.meas, lineColorSim, ...
-     results.(robot).(task).time(startTimeIndexSimulatedData:endTimeIndexSimulatedData), (results.(robot).(task).RH.jointTorqueCumulativeOpt(:,1) + results.(robot).(task).RH.jointTorqueCumulativeOpt(:,2))/endTorque.RH.meas, lineColorOpt, 'LineWidth', lineWidth);
-     legend(p,'Measured','Simulated', 'Optimized')    
+    p = plot(ANYmalMeasuredData.joint.time, (ANYmalMeasuredData.joint.RH.meas.jointTorqueCumulative(:,2) + ANYmalMeasuredData.joint.RH.meas.jointTorqueCumulative(:,3))/endTorque.RH.meas, ...
+     results.(robot).(task).time(startTimeIndexSimulatedData:endTimeIndexSimulatedData), (results.(robot).(task).RH.jointTorqueCumulative(:,1) + results.(robot).(task).RH.jointTorqueCumulative(:,2))/endTorque.RH.meas, ...
+     resultsOpt.(robot).(task).time(startTimeIndexSimulatedData:endTimeIndexSimulatedData), (resultsOpt.(robot).(task).RH.jointTorqueCumulative(:,1) + resultsOpt.(robot).(task).RH.jointTorqueCumulative(:,2))/endTorque.RH.meas, 'LineWidth', lineWidth);
+   %  legend(p,'Measured','Simulated', 'Optimized') 
+     p(1).Color = lineColorMeas;
+     p(2).Color = lineColorSim;
+     p(3).Color = lineColorOpt;
 else
-    p = plot(ANYmalMeasuredData.joint.time, (ANYmalMeasuredData.joint.RH.meas.jointTorqueCumulative(:,2) + ANYmalMeasuredData.joint.RH.meas.jointTorqueCumulative(:,3))/endTorque.RH.meas, lineColorMeas, ...
-         results.(robot).(task).time(startTimeIndexSimulatedData:endTimeIndexSimulatedData), (results.(robot).(task).RH.jointTorqueCumulative(:,1) + results.(robot).(task).RH.jointTorqueCumulative(:,2))/endTorque.RH.meas, lineColorSim, 'LineWidth', lineWidth);
-    legend(p,'Measured','Simulated')    
+    p = plot(ANYmalMeasuredData.joint.time, (ANYmalMeasuredData.joint.RH.meas.jointTorqueCumulative(:,2) + ANYmalMeasuredData.joint.RH.meas.jointTorqueCumulative(:,3))/endTorque.RH.meas, ...
+         results.(robot).(task).time(startTimeIndexSimulatedData:endTimeIndexSimulatedData), (results.(robot).(task).RH.jointTorqueCumulative(:,1) + results.(robot).(task).RH.jointTorqueCumulative(:,2))/endTorque.RH.meas, 'LineWidth', lineWidth);
+    %legend(p,'Measured','Simulated')   
+    p(1).Color = lineColorMeas;
+    p(2).Color = lineColorSim;
 end 
-title('RH Normalized Cumulative Joint Torque');
+title('Normalized Cumulative Joint Torque RH');
 xlim([startTime, endTime]);
-ylim([0, 1.2]);    
+ylim([0, 1.4]);    
 grid on
-xlabel('time [s]')
+xlabel('Time [s]')
 ylabel('Normalized Joint Torque') 
 
-subplot(2,4,[3,4,7,8])
+%subplot(2,4,[3,4,7,8])
+subplot(2,2,[2,4])
 set(gca,'FontSize', fontSize)
 hold on
-% Sum the torque for each leg. If the leg was optimized, use the optimized
-% torque value.
-results.(robot).(task).totalTorque = [0, 0];
+
+%% Plot cumulative joint torque comparison
+results.(robot).(task).totalTorque = 0;
+resultsOpt.(robot).(task).totalTorque = 0;
+
 for i = 1:legCount
     EEselection = EEnames(i,:);
+    results.(robot).(task).totalTorque = results.(robot).(task).totalTorque + results.(robot).(task).(EEselection).jointTorqueCumulative(:,1) + results.(robot).(task).(EEselection).jointTorqueCumulative(:,2);
     if optimizedLegs.(EEselection)
-        results.(robot).(task).totalTorque = results.(robot).(task).totalTorque + results.(robot).(task).(EEselection).jointTorqueCumulativeOpt(:,1) + results.(robot).(task).(EEselection).jointTorqueCumulativeOpt(:,2);
-    else
-        results.(robot).(task).totalTorque = results.(robot).(task).totalTorque + results.(robot).(task).(EEselection).jointTorqueCumulative(:,1) + results.(robot).(task).(EEselection).jointTorqueCumulative(:,2);
+        resultsOpt.(robot).(task).totalTorque = resultsOpt.(robot).(task).totalTorque + resultsOpt.(robot).(task).(EEselection).jointTorqueCumulative(:,1) + resultsOpt.(robot).(task).(EEselection).jointTorqueCumulative(:,2);
     end
 end
 hold on    
@@ -938,24 +1067,53 @@ set(gca,'FontSize', fontSize)
 p = plot(ANYmalMeasuredData.joint.time, (ANYmalMeasuredData.joint.LF.meas.jointTorqueCumulative(:,2) + ANYmalMeasuredData.joint.LF.meas.jointTorqueCumulative(:,3) + ...
                                          ANYmalMeasuredData.joint.RF.meas.jointTorqueCumulative(:,2) + ANYmalMeasuredData.joint.RF.meas.jointTorqueCumulative(:,3) + ...
                                          ANYmalMeasuredData.joint.LH.meas.jointTorqueCumulative(:,2) + ANYmalMeasuredData.joint.LH.meas.jointTorqueCumulative(:,3) + ...
-                                         ANYmalMeasuredData.joint.RH.meas.jointTorqueCumulative(:,2) + ANYmalMeasuredData.joint.RH.meas.jointTorqueCumulative(:,3))/endTorque.total.meas , lineColorMeas, ...
+                                         ANYmalMeasuredData.joint.RH.meas.jointTorqueCumulative(:,2) + ANYmalMeasuredData.joint.RH.meas.jointTorqueCumulative(:,3))/endTorque.total.meas , ...
      results.(robot).(task).time(startTimeIndexSimulatedData:endTimeIndexSimulatedData), (results.(robot).(task).LF.jointTorqueCumulative(:,1) + results.(robot).(task).LF.jointTorqueCumulative(:,2) + ...
                                                                                           results.(robot).(task).RF.jointTorqueCumulative(:,1) + results.(robot).(task).RF.jointTorqueCumulative(:,2) + ...
                                                                                           results.(robot).(task).LH.jointTorqueCumulative(:,1) + results.(robot).(task).LH.jointTorqueCumulative(:,2) + ...
-                                                                                          results.(robot).(task).RH.jointTorqueCumulative(:,1) + results.(robot).(task).RH.jointTorqueCumulative(:,2))/endTorque.total.meas, lineColorSim, 'LineWidth', lineWidth);
+                                                                                          results.(robot).(task).RH.jointTorqueCumulative(:,1) + results.(robot).(task).RH.jointTorqueCumulative(:,2))/endTorque.total.meas, 'LineWidth', lineWidth);
 if optimizedLegs.LF || optimizedLegs.RF || optimizedLegs.LH || optimizedLegs.RH
-   pOpt = plot(results.(robot).(task).time(startTimeIndexSimulatedData:endTimeIndexSimulatedData), results.(robot).(task).totalTorque/endTorque.total.meas, lineColorOpt);
+    pOpt = plot(resultsOpt.(robot).(task).time(startTimeIndexSimulatedData:endTimeIndexSimulatedData), resultsOpt.(robot).(task).totalTorque/endTorque.total.meas, 'LineWidth', lineWidth);
     legend('Measured','Simulated', 'Optimized')
+    p(1).Color = lineColorMeas;
+    p(2).Color = lineColorSim;
+    pOpt.Color = lineColorOpt;
 else 
     legend(p,'Measured','Simulated')
+    p(1).Color = lineColorMeas;
+    p(2).Color = lineColorSim;
 end
 
 title('Normalized Cumulative Joint Torque Over All Legs');
 xlim([startTime, endTime]);
-ylim([0, 1.2]);    
+ylim([0, 1.4]);    
 grid on
-xlabel('time [s]')
+xlabel('Time [s]')
 ylabel('Normalized Joint Torque') 
 if savePDF
     export_fig validation.pdf -nocrop -append
 end
+
+%% Compute RMSE
+cumJointTorqueSim = results.(robot).(task).LF.jointTorqueCumulative(:,1) + results.(robot).(task).LF.jointTorqueCumulative(:,2) + ...
+                    results.(robot).(task).RF.jointTorqueCumulative(:,1) + results.(robot).(task).RF.jointTorqueCumulative(:,2) + ...
+                    results.(robot).(task).LH.jointTorqueCumulative(:,1) + results.(robot).(task).LH.jointTorqueCumulative(:,2) + ...
+                    results.(robot).(task).RH.jointTorqueCumulative(:,1) + results.(robot).(task).RH.jointTorqueCumulative(:,2);
+                
+cumJointTorqueMeas = ANYmalMeasuredData.joint.LF.meas.jointTorqueCumulative(:,2) + ANYmalMeasuredData.joint.LF.meas.jointTorqueCumulative(:,3) + ...
+                     ANYmalMeasuredData.joint.RF.meas.jointTorqueCumulative(:,2) + ANYmalMeasuredData.joint.RF.meas.jointTorqueCumulative(:,3) + ...
+                     ANYmalMeasuredData.joint.LH.meas.jointTorqueCumulative(:,2) + ANYmalMeasuredData.joint.LH.meas.jointTorqueCumulative(:,3) + ...
+                     ANYmalMeasuredData.joint.RH.meas.jointTorqueCumulative(:,2) + ANYmalMeasuredData.joint.RH.meas.jointTorqueCumulative(:,3);
+                 
+cumJointTorqueMeas(cumJointTorqueMeas==0) = [];
+
+j = 1;
+for i = 1:length(cumJointTorqueMeas)
+    if mod(i,4)==0 || i==1    
+        cumJointTorqueMeasAligned(j,1) = cumJointTorqueMeas(i);
+        j = j+1;
+    end
+end
+
+cumJointTorqueSim = cumJointTorqueSim(1:length(cumJointTorqueMeasAligned));
+RMSE = sqrt(mean((cumJointTorqueSim-cumJointTorqueMeasAligned).^2));

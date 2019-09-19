@@ -12,9 +12,9 @@ function [efficiency, efficiencyMapPlot] = getActuatorEfficiencySimplified(actua
     
     efficiencyLossGearing = 0;
     efficiencyMax = efficiencyMaxMotor - efficiencyLossGearing;
-    stepSize = 0.1;
+    stepSize = 0.01;
 
-    %% compute torque envelope 
+    %% Compute torque envelope 
     torqueEnvelope = zeros(length(0:stepSize:qdotMax),1);
     qdotIntercept = mechPowerMax/torqueMax; % [kr/min]
 
@@ -42,6 +42,8 @@ function [efficiency, efficiencyMapPlot] = getActuatorEfficiencySimplified(actua
         meshDimension = length(qdotEnvelope);
     end
 
+%     qdotEnvelope(end+1) = qdotMax;
+%     torqueEnvelope(end+1) = 0;
     %% Approximate the efficiency map with loss function
     qdot = (linspace(0, qdotMax, meshDimension)); % [kr/min]
     torque = (linspace(0, torqueMax, meshDimension))'; % [Nm]
@@ -67,46 +69,26 @@ function [efficiency, efficiencyMapPlot] = getActuatorEfficiencySimplified(actua
     P_loss23 = (torque/torqueBase).^2 .* (qdot/qdotBase).^3; 
     P_loss33 = (torque/torqueBase).^3 .* (qdot/qdotBase).^3;     
 
-    k00 = 0.003;
-    k10 = -0.0065;
-    k20 = 0.12;
-    k30 = 0.02;
+    k00 = 0.12;
+    k10 = 0.009;
+    k20 = 0.8;
+    k30 = 0.8;
     
     k01 = 0.0175;
-    k11 = 0.002;
-    k21 = 0.005;
-    k31 = 0.05;
+    k11 = 0.09;
+    k21 = 2.8;
+    k31 = 1.1;
     
-    k02 = 0.002;
-    k12 = 0.025;
-    k22 = -0.001;
-    k32 = 0.1;
+    k02 = 0.001;
+    k12 = -0.015;
+    k22 = -0.08;
+    k32 = 0.4;
     
-    k03 = 0.0006;
-    k13 = 0;
-    k23 = 0;
-    k33 = 0;%0.01;
-%     
-%     k00 = 0.002;
-%     k10 = -0.065;
-%     k20 = 0.697;
-%     k30 = 0.942;
-%     
-%     k01 = 0.175;
-%     k11 = 0.577;
-%     k21 = -1.043;
-%     k31 = 0;
-%     
-%     k02 = 0.181;
-%     k12 = -0.542;
-%     k22 = 1;
-%     k32 = 0;
-%     
-%     k03 = 0.443;
-%     k13 = 0;
-%     k23 = 0;
-%     k33 = 10;
-%    
+    k03 = 0.0025;
+    k13 = 0.01;
+    k23 = 0.01;
+    k33 = -0.001;
+    
     P_loss = k00 * P_loss00 + ...
              k10 * P_loss10 + ...
              k20 * P_loss20 + ...

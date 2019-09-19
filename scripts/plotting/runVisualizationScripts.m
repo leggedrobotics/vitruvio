@@ -23,7 +23,7 @@ task           = data.basicProperties.task;
   end
     
 %% Optimized robot
-    if data.optimizationProperties.runOptimization && optimizationProperties.viz.viewVisualization
+    if data.optimizationProperties.runOptimization && robotVisualization.view
         fprintf('Visualizing optimized robot. \n');
         optimized = true;
         fileName = strcat('Optimized_', classSelection, '_',task, '_', config, '.gif'); % for gif of motion
