@@ -457,10 +457,10 @@ function robotProperties = getRobotProperties(robotSelection, transmissionMethod
     % fore, hind
     robot.centaur.hip(1).length = 0.15;
     robot.centaur.hip(2).length = 0.15;
-    robot.centaur.thigh(1).length = 0.45;
-    robot.centaur.thigh(2).length = 0.45;
-    robot.centaur.shank(1).length = 0.45;
-    robot.centaur.shank(2).length = 0.45;
+    robot.centaur.thigh(1).length = 0.35;
+    robot.centaur.thigh(2).length = 0.35;
+    robot.centaur.shank(1).length = 0.4;
+    robot.centaur.shank(2).length = 0.4;
     robot.centaur.foot(1).length = 0.05;
     robot.centaur.foot(2).length = 0.05;
     robot.centaur.phalanges(1).length = 0.05;

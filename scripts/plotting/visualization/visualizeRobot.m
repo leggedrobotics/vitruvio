@@ -14,8 +14,8 @@
     displayTorso    = robotVisualization.torso;
     filenameCount   = 0;
     
-    %outerPosition = [0 0 1 1]; % Fullscreen
-    outerPosition = [0.5 0 0.5 1]; % Top right corner
+    outerPosition = [0 0 1 1]; % Fullscreen
+   % outerPosition = [0.5 0 0.5 0.5]; % Top right corner
     
     if optimized && data.basicProperties.optimizedLegs.(EEselection)
         robot = data.(EEselection).rigidBodyModelStanceOpt;
@@ -24,7 +24,7 @@
     end
     
     % Specify dimensions of torso if applicable
-    torsoHeight = 0.3;
+    torsoHeight = 0.4;
     torsoLength = 0.22;
     torsoWidth  = 0.28;
     
@@ -37,11 +37,12 @@
     
     groundGridlines = linspace(-1,99,101);
 
+         
     mymap = [0.2  0.2  0.4;
              0.4  0.4  0.8;
              0.45 0.45 0.85;
              0.5  0.5  0.9];
-         
+          
     for i = 1:legCount
         hipViz.(EEnames(i,:))       = [];
         thighViz.(EEnames(i,:))     = [];
@@ -464,21 +465,23 @@
                             rEE  = [xNom.(EEnames(k,:))+data.(EEnames(k,:)).rOpt.EE(i,1),  yNom.(EEnames(k,:))+data.(EEnames(k,:)).r.EE(i,2),     zNom.(EEnames(k,:))+ data.(EEnames(k,:)).r.EE(i,3)];
                         end
                         
+                        edgeColor = 'k';
+                        
                         [x1,y1,z1] = cylinder2P(robotProperties.hip(selectFrontHind).radius, 8, rHAA,rHFE);
                         [x2,y2,z2] = cylinder2P(robotProperties.thigh(selectFrontHind).radius, 8,rHFE,rKFE);
                         [x3,y3,z3] = cylinder2P(robotProperties.shank(selectFrontHind).radius, 8,rKFE,rAFE);
-                        hipViz.(EEnames(k,:)) = surf(x1, y1, z1- groundCoordinatesZ(i,1), 'edgecolor','k', 'LineWidth', 0.1);
-                        thighViz.(EEnames(k,:)) = surf(x2, y2, z2- groundCoordinatesZ(i,1), 'edgecolor','k', 'LineWidth', 0.1);
-                        shankViz.(EEnames(k,:)) = surf(x3, y3, z3- groundCoordinatesZ(i,1), 'edgecolor','k', 'LineWidth', 0.1);   
+                        hipViz.(EEnames(k,:)) = surf(x1, y1, z1- groundCoordinatesZ(i,1), 'edgecolor', edgeColor, 'LineWidth', 0.01);
+                        thighViz.(EEnames(k,:)) = surf(x2, y2, z2- groundCoordinatesZ(i,1), 'edgecolor', edgeColor, 'LineWidth', 0.01);
+                        shankViz.(EEnames(k,:)) = surf(x3, y3, z3- groundCoordinatesZ(i,1), 'edgecolor', edgeColor, 'LineWidth', 0.01);   
                         
                         if linkCount > 2 
                             [x4,y4,z4] = cylinder2P(robotProperties.foot(selectFrontHind).radius, 8,rAFE,rDFE);
-                            footViz.(EEnames(k,:)) = surf(x4, y4, z4- groundCoordinatesZ(i,1), 'edgecolor','k', 'LineWidth', 0.1);
+                            footViz.(EEnames(k,:)) = surf(x4, y4, z4- groundCoordinatesZ(i,1), 'edgecolor', edgeColor, 'LineWidth', 0.1);
                         end
                         
                         if linkCount == 4
                             [x5,y5,z5] = cylinder2P(robotProperties.phalanges(selectFrontHind).radius, 8,rDFE,rEE);
-                            phalangesViz.(EEnames(k,:)) = surf(x5, y5, z5-groundCoordinatesZ(i,1), 'edgecolor','k', 'LineWidth', 0.1);
+                            phalangesViz.(EEnames(k,:)) = surf(x5, y5, z5-groundCoordinatesZ(i,1), 'edgecolor', edgeColor, 'LineWidth', 0.1);
                         end
                     end
                     hold off   

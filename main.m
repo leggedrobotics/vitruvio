@@ -1,6 +1,8 @@
 clear;
 close all;
-recordCommandWindow = true; % If true command window is recorded and saved in txt file
+clc; 
+
+recordCommandWindow = false; % If true command window is recorded and saved in txt file
 
 %% Data extraction
 % if averageStepsForCyclicalMotion is true, the motion is segmented into individual steps which are averaged
@@ -72,10 +74,10 @@ heuristic.torqueAngle.kTorsionalSpring = 50; % Spring constant for torsional spr
 
 %% Visualization toggles
 saveFiguresToPDF               = false;  % Figures are saved to results.pdf in current folder. This adds significant computation time.
-robotVisualization.view        = true;   % Visualization of nominal robot
+robotVisualization.view        = false;   % Visualization of nominal robot
 robotVisualization.oneLeg      = false;  % View a single leg tracking the trajectory.
 robotVisualization.allLegs     = true;   % View motion with all legs (incompatible with averageStepsForCyclicalMotion = true)
-robotVisualization.torso       = false;  % Also displays a torso at the front of the robot, dimensions defined in visualizeRobot.m
+robotVisualization.torso       = true;  % Also displays a torso at the front of the robot, dimensions defined in visualizeRobot.m
 
 viewPlots.motionData           = false;  % CoM position, speed. EE position and forces. Trajectory to be tracked.
 viewPlots.rangeOfMotionPlots   = false;  % Range of motion of leg for given link lengths and angle limits
