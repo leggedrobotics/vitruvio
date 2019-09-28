@@ -1,125 +1,110 @@
 function [] = plotMetaParameters(data, saveFiguresToPDF)
+    t                    = data.time;
+    base                 = data.base; % base motion for each leg during its cycle
+    base.fullTrajectory  = data.fullTrajectory.base;
+    force.fullTrajectory = data.fullTrajectory.force;
+    legCount             = data.basicProperties.legCount;
+    linkCount            = data.basicProperties.linkCount;
+    EEnames              = data.basicProperties.EEnames;
+    removalRatioStart    = data.basicProperties.trajectory.removalRatioStart;
+    removalRatioEnd      = data.basicProperties.trajectory.removalRatioEnd;
+    fontSize = 16; 
 
-t                    = data.time;
-base                 = data.base; % base motion for each leg during its cycle
-base.fullTrajectory  = data.fullTrajectory.base;
-force.fullTrajectory = data.fullTrajectory.force;
-legCount             = data.basicProperties.legCount;
-linkCount            = data.basicProperties.linkCount;
-EEnames              = data.basicProperties.EEnames;
-removalRatioStart    = data.basicProperties.trajectory.removalRatioStart;
-removalRatioEnd      = data.basicProperties.trajectory.removalRatioEnd;
-fontSize = 10; 
+    if saveFiguresToPDF
+        outerPosition = [0 0 1 1]; % Fullscreen
+    else
+        outerPosition = [0.5 0.5 0.5 0.5]; % Top right corner
+    end
+    
+    %% Link Lengths
+    if linkCount == 2
+        linkLabels = {'Hip','Thigh','Shank'};
+        jointLabels = {'HAA', 'HFE', 'KFE'};
+    elseif linkCount == 3
+        linkLabels = {'Hip','Thigh','Shank', 'Foot'};
+        jointLabels = {'HAA', 'HFE', 'KFE', 'AFE'};
+    elseif linkCount == 4
+        linkLabels = {'Hip','Thigh','Shank', 'Foot'};
+        jointLabels = {'HAA', 'HFE', 'KFE', 'AFE', 'DFE'};
+    end
+    categoryLabels = categorical({'Nominal', 'Optimized'});
 
-%% link lengths
-if linkCount == 2
-    legendLabels = {'Hip','Thigh','Shank'};
-elseif linkCount == 3
-    legendLabels = {'Hip','Thigh','Shank', 'Foot'};
-elseif linkCount == 4
-    legendLabels = {'Hip','Thigh','Shank', 'Foot'};
-end
+    figureName = 'Link Length Comparison';
+    figure('name', figureName, 'DefaultAxesFontSize', 10, 'units','normalized','outerposition',outerPosition)
+    set(gcf,'color','w')
+    for i = 1:legCount
+        EEselection = EEnames(i,:);
+        if data.basicProperties.optimizedLegs.(EEselection)
+            linkLengths.(EEselection) = [100*data.(EEselection).linkLengths; 100*data.(EEselection).linkLengthsOpt];
+            maxTorque.(EEselection)   = [data.metaParameters.jointTorqueMax.(EEselection);  data.metaParameters.jointTorqueMaxOpt.(EEselection)];
+            mechEnergy.(EEselection)  = [data.metaParameters.mechEnergyPerCycle.(EEselection); data.metaParameters.mechEnergyPerCycleOpt.(EEselection)];
+            elecEnergy.(EEselection)  = [data.metaParameters.elecEnergyPerCycle.(EEselection); data.metaParameters.elecEnergyPerCycleOpt.(EEselection)];
+        else
+            linkLengths.(EEselection) = [100*data.(EEselection).linkLengths; zeros(1, length(data.(EEselection).linkLengths))];
+            maxTorque.(EEselection)   = [data.metaParameters.jointTorqueMax.(EEselection); zeros(1, length(data.(EEselection).linkLengths))];
+            mechEnergy.(EEselection)  = [data.metaParameters.mechEnergyPerCycle.(EEselection); zeros(1, length(data.(EEselection).linkLengths))];
+            elecEnergy.(EEselection)  = [data.metaParameters.elecEnergyPerCycle.(EEselection); zeros(1, length(data.(EEselection).linkLengths))];
+        end
 
-for i = 1:legCount
-    EEselection = EEnames(i,:);
-    valueLabels = string(data.(EEselection).linkLengths);
-    if data.basicProperties.optimizedLegs.(EEselection)
+        subplot(2,2,i)
+        bar(categoryLabels, linkLengths.(EEselection), 'stacked');
+        legend(linkLabels,'Location','southoutside','Orientation','horizontal')
+        title((['Link Length Comparison ', EEselection]), 'FontSize', fontSize);
+        ylabel('Link Lengths [cm]');
+    end
+    if saveFiguresToPDF
+        export_fig results.pdf -nocrop -append
+    end
         
-        valueLabelsOpt = string(data.(EEselection).linkLengthsOpt);
-        
-        figureName = 'Optimized link lengths' + " " + EEselection;
-        figure('name', figureName, 'DefaultAxesFontSize', 10, 'units','normalized','outerposition',[0 0 1 1])
-        set(gcf,'color','w')
-        ax1 = subplot(1,2,1);
-        pie(ax1, 100*data.(EEselection).linkLengths, valueLabels) % multiply values by 100 to avoid having a partial pie plot
-        title(ax1, ({'Link lengths [m]',['Nominal ', EEselection]}), 'FontSize', fontSize);
-        legend(legendLabels,'Location','southoutside','Orientation','horizontal')
-        view([90 90])   % this is to rotate the chart
-        
-        ax2 = subplot(1,2,2);
-        pie(ax2, 100*data.(EEselection).linkLengthsOpt, valueLabelsOpt)
-        title(ax2, ({'Link lengths [m]',['Optimized ', EEselection]}), 'FontSize', fontSize);
-        legend(legendLabels,'Location','southoutside','Orientation','horizontal')
-        view([90 90])   % this is to rotate the chart
-        if saveFiguresToPDF
-            export_fig results.pdf -nocrop -append
-        end
+    %% Peak joint torque comparison of actuators
+    figureName = 'Joint Torque Comparison';
+    figure('name', figureName, 'DefaultAxesFontSize', 10, 'units','normalized','outerposition', outerPosition)
+    set(gcf,'color','w')
 
-        %% Peak joint torque comparison of actuators
-        if linkCount == 2
-            legendLabels = {'HAA','HFE','KFE'};
-        elseif linkCount == 3
-            legendLabels = {'HAA','HFE','KFE', 'AFE'};
-        elseif linkCount == 4
-            legendLabels = {'HAA','HFE','KFE', 'AFE', 'DFE'};
-        end
+    for i = 1:legCount
+        EEselection = EEnames(i,:);
+        subplot(2,2,i)
+        bar(categoryLabels, maxTorque.(EEselection), 'stacked');
+        legend(jointLabels,'Location','southoutside','Orientation','horizontal')
+        title((['Joint Torque Comparison ', EEselection]), 'FontSize', fontSize);
+        ylabel('Peak Joint Torque [Nm]');
+    end
+    if saveFiguresToPDF
+        export_fig results.pdf -nocrop -append
+    end
 
-        valueLabels    = string(round(data.metaParameters.jointTorqueMax.(EEselection)));
-        valueLabelsOpt = string(round(data.metaParameters.jointTorqueMaxOpt.(EEselection)));
-        
-        figureName = 'Peak joint torques' + " " + EEselection;
-        figure('name', figureName, 'DefaultAxesFontSize', 10, 'units','normalized','outerposition',[0 0 1 1])
-        set(gcf,'color','w')        
-        ax1 = subplot(1,2,1);
-        pie(ax1, data.metaParameters.jointTorqueMax.(EEselection), valueLabels)
-        title(ax1, ({'Peak joint torques [Nm]',['Nominal ', EEselection]}), 'FontSize', fontSize);        
-        legend(legendLabels,'Location','southoutside','Orientation','horizontal')
-        view([90 90])   % this is to rotate the chart
+    %% Energy consumption comparison of actuators
+    % Mechanical energy demand        
+    figureName = 'Mechanical Energy Comparison';
+    figure('name', figureName, 'DefaultAxesFontSize', 10, 'units','normalized','outerposition', outerPosition)
+    set(gcf,'color','w')
 
-        ax2 = subplot(1,2,2);
-        pie(ax2, data.metaParameters.jointTorqueMaxOpt.(EEselection), valueLabelsOpt)
-        title(ax2, ({'Peak joint torques [Nm]',['Optimized ', EEselection]}), 'FontSize', fontSize);        
-        legend(legendLabels,'Location','southoutside','Orientation','horizontal')
-        view([90 90])   % this is to rotate the chart
-        if saveFiguresToPDF
-            export_fig results.pdf -nocrop -append
-        end
+    for i = 1:legCount
+        EEselection = EEnames(i,:);
+        subplot(2,2,i)
+        bar(categoryLabels, mechEnergy.(EEselection), 'stacked');
+        legend(jointLabels,'Location','southoutside','Orientation','horizontal')
+        title((['Mechanical Energy Comparison ', EEselection]), 'FontSize', fontSize);
+        ylabel('Energy [J/cycle]');
+    end
+    if saveFiguresToPDF
+        export_fig results.pdf -nocrop -append
+    end
 
-        %% Energy consumption comparison of actuators
-       
-        valueLabelsMechEnergy    = string(round(data.metaParameters.mechEnergyPerCycle.(EEselection)));
-        valueLabelsMechEnergyOpt = string(round(data.metaParameters.mechEnergyPerCycleOpt.(EEselection)));
-        valueLabelsElecEnergy    = string(round(data.metaParameters.elecEnergyPerCycle.(EEselection)));
-        valueLabelsElecEnergyOpt = string(round(data.metaParameters.elecEnergyPerCycleOpt.(EEselection)));
-       
-        % Mechanical energy demand        
-        figureName = 'Mechanical energy' + " " + EEselection;
-        figure('name', figureName, 'DefaultAxesFontSize', 10, 'units','normalized','outerposition',[0 0 1 1])
-        set(gcf,'color','w')        
+    % Electrical energy demand
+    figureName = 'Electrical Energy Comparison';
+    figure('name', figureName, 'DefaultAxesFontSize', 10, 'units','normalized','outerposition', outerPosition)
+    set(gcf,'color','w')
 
-        ax1 = subplot(1,2,1);
-        pie(ax1,  data.metaParameters.mechEnergyPerCycle.(EEselection), valueLabelsMechEnergy)
-        title(ax1, ({'Mechanical energy [J/cycle]',['Nominal ', EEselection]}), 'FontSize', fontSize);                
-        legend(legendLabels,'Location','southoutside','Orientation','horizontal')
-        view([90 90])   % this is to rotate the chart
-
-        ax2 = subplot(1,2,2);
-        pie(ax2, data.metaParameters.mechEnergyPerCycleOpt.(EEselection), valueLabelsMechEnergyOpt)
-        title(ax2, ({'Mechanical energy [J/cycle]',['Optimized ', EEselection]}), 'FontSize', fontSize);                
-        legend(legendLabels,'Location','southoutside','Orientation','horizontal')
-        view([90 90])   % this is to rotate the chart
-        if saveFiguresToPDF
-            export_fig results.pdf -nocrop -append
-        end
- 
-        % Electrical energy demand
-        figureName = 'Electrical demand' + " " + EEselection;
-        figure('name', figureName, 'DefaultAxesFontSize', 10, 'units','normalized','outerposition',[0 0 1 1])
-        set(gcf,'color','w')    
-
-        ax1 = subplot(1,2,1);
-        pie(ax1,  data.metaParameters.elecEnergyPerCycle.(EEselection), valueLabelsElecEnergy)
-        title(ax1, ({'Electrical energy [J/cycle]',['Nominal ', EEselection]}), 'FontSize', fontSize);                
-        legend(legendLabels,'Location','southoutside','Orientation','horizontal')
-        view([90 90])   % this is to rotate the chart
-
-        ax2 = subplot(1,2,2);
-        pie(ax2, data.metaParameters.elecEnergyPerCycleOpt.(EEselection), valueLabelsElecEnergyOpt)
-        title(ax2, ({'Electrical energy [J/cycle]',['Optimized ', EEselection]}), 'FontSize', fontSize);                
-        legend(legendLabels,'Location','southoutside','Orientation','horizontal')
-        view([90 90])   % this is to rotate the chart 
-        if saveFiguresToPDF
-            export_fig results.pdf -nocrop -append        
-        end
+    for i = 1:legCount
+        EEselection = EEnames(i,:);
+        subplot(2,2,i)
+        bar(categoryLabels, elecEnergy.(EEselection), 'stacked');
+        legend(jointLabels,'Location','southoutside','Orientation','horizontal')
+        title((['Electrical Energy Comparison ', EEselection]), 'FontSize', fontSize);
+        ylabel('Energy [J/cycle]');
+    end
+    if saveFiguresToPDF
+        export_fig results.pdf -nocrop -append
     end
 end

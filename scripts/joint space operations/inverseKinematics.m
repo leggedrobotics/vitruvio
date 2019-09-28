@@ -1,8 +1,11 @@
-function [jointPositions, r1, r2, r3, r4, r5, rEE] = inverseKinematics(heuristic, qLiftoff, hipAttachmentOffset, linkCount, meanCyclicMotionHipEE, robotProperties, EEselection, taskSelection, configSelection, hipParalleltoBody)
+function [jointPositions, r1, r2, r3, r4, r5, rEE] = inverseKinematics(Leg, heuristic, qLiftoff, meanCyclicMotionHipEE, EEselection)
 
  % Input: desired end-effector position, quadruped properties
  %        initial guess for joint angles, threshold for the stopping-criterion
  % Output: joint angles which match desired end-effector position
+ 
+    linkCount = Leg.basicProperties.linkCount;
+    configSelection = Leg.basicProperties.configSelection;
 
  %% Setup
   tol = 0.000001; % [m] 
@@ -40,7 +43,7 @@ function [jointPositions, r1, r2, r3, r4, r5, rEE] = inverseKinematics(heuristic
  
   % Initialize error
   rotBodyY = 0;
-  [~, ~, r_H_01, r_H_02, r_H_03, r_H_04, r_H_05, r_H_0EE] = jointToPosJac(hipAttachmentOffset, linkCount, rotBodyY, q, robotProperties, EEselection, hipParalleltoBody);
+  [~, ~, r_H_01, r_H_02, r_H_03, r_H_04, r_H_05, r_H_0EE] = jointToPosJac(Leg, rotBodyY, q, EEselection);
   
   % preallocate arrays for joint coordinates
   r1 = zeros(length(meanCyclicMotionHipEE.(EEselection).position(:,1)), 3);
@@ -74,7 +77,7 @@ function [jointPositions, r1, r2, r3, r4, r5, rEE] = inverseKinematics(heuristic
                 if heuristic.torqueAngle.apply == true
                     qPrevious = jointPositions(i-1,:); % use joint angles from last time step to compute the joint deformation at the current time step
                     EE_force = meanCyclicMotionHipEE.(EEselection).force(i,1:3);
-                    [~, springDeformation] = computeFinalJointDeformation(heuristic, qPrevious, EE_force, hipAttachmentOffset, linkCount, rotBodyY, robotProperties, EEselection, hipParalleltoBody);
+                    [~, springDeformation] = computeFinalJointDeformation(Leg, heuristic, qPrevious, EE_force, linkCount, rotBodyY, EEselection);
                     q(4) = jointPositions(1,4) + springDeformation; % qAFE is it's initial undeformed value + spring deformation due to torque at previous timestep                     
                 end
             end
@@ -83,17 +86,18 @@ function [jointPositions, r1, r2, r3, r4, r5, rEE] = inverseKinematics(heuristic
          % iterative IK until error within tolerance or max iterations
          % exceeded
           while (norm(dr)>tol && it < max_it)
-             [J_P, ~, r_H_01, r_H_02, r_H_03, r_H_04, r_H_05, r_H_0EE] = jointToPosJac(hipAttachmentOffset, linkCount, rotBodyY, q, robotProperties, EEselection, hipParalleltoBody);
+             [J_P, ~, r_H_01, r_H_02, r_H_03, r_H_04, r_H_05, r_H_0EE] = jointToPosJac(Leg, rotBodyY, q, EEselection);
              dr = r_H_0EE_des(i,:)' - r_H_0EE;
              dq = pinv(J_P, lambda)*dr;
              q = q + k*dq;
              it = it+1;    
-             q(4) = jointPositions(1,4) + springDeformation; % hold qAFE at this value
              
              % qAFE and qDFE heuristic (foot and thigh links parallel, qDFE modelled as torsional spring)
              if heuristic.torqueAngle.apply == true
                 if i > 1
-                    if linkCount == 4
+                    if linkCount == 3
+                         q(4) = jointPositions(1,4) + springDeformation; % hold qAFE at this value
+                    elseif linkCount == 4
                          q(4) = -q(3); % foot parallel to thigh requires qAFE = -qKFE 
                          q(5) = jointPositions(1,5) + springDeformation; % initial value of the joint angle plus spring deformation
                      end

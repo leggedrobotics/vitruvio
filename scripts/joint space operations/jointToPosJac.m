@@ -1,4 +1,4 @@
-function [J_P, C_0EE, r_H_01, r_H_02, r_H_03, r_H_04, r_H_05, r_H_0EE]  = jointToPosJac(hipAttachmentOffset, linkCount, rotBodyY, q, robotProperties, EEselection, hipParalleltoBody)
+function [J_P, C_0EE, r_H_01, r_H_02, r_H_03, r_H_04, r_H_05, r_H_0EE]  = jointToPosJac(Leg, rotBodyY, q, EEselection)
   % Input: vector of generalized coordinates (joint angles)
   % Output: Jacobian of the end-effector translation which maps joint
   % velocities to end-effector linear velocities in hip attachmemt frame.
@@ -10,26 +10,32 @@ function [J_P, C_0EE, r_H_01, r_H_02, r_H_03, r_H_04, r_H_05, r_H_0EE]  = jointT
     selectFrontHind = 2;
     hipOffsetDirection = -1;
   end
-    
+  
+  linkCount           = Leg.basicProperties.linkCount; 
+  hipParalleltoBody   = Leg.basicProperties.hipParalleltoBody;  
+  
   % Compute the relative homogeneous transformation matrices.
-  l_hip = robotProperties.hip(selectFrontHind).length;
-  l_thigh = robotProperties.thigh(selectFrontHind).length;
-  l_shank = robotProperties.shank(selectFrontHind).length;
-  l_foot = robotProperties.foot(selectFrontHind).length;
-  l_phalanges = robotProperties.phalanges(selectFrontHind).length;
-
+  l_hip = Leg.robotProperties.hip(selectFrontHind).length;
+  l_thigh = Leg.robotProperties.thigh(selectFrontHind).length;
+  l_shank = Leg.robotProperties.shank(selectFrontHind).length;
+  if linkCount > 2
+    l_foot = Leg.robotProperties.foot(selectFrontHind).length;
+  end
+  if linkCount == 4
+    l_phalanges = Leg.robotProperties.phalanges(selectFrontHind).length;
+  end
   
   % Rotation about y in inertial frame to align hip attachment with body
   % rotation about y. The rotation about the body x and z are neglected but
   % assumed small for forward motion on even terrain.
   T_0H = [cos(-rotBodyY), 0, sin(-rotBodyY), 0;
-         0,              1, 0,             0;
+         0,               1, 0,             0;
         -sin(-rotBodyY),  0, cos(-rotBodyY), 0;
-         0,              0, 0,             1];
+         0,               0, 0,             1];
      
   % transformation from nominal HAA point with coord. sys aligned with body frame to HAA frame   
   % rotation about x of hip attachment frame (HAA rotation)
-  T_H1 = [1, 0,          0,          hipAttachmentOffset;
+  T_H1 = [1, 0,          0,          0;
           0, cos(q(1)), -sin(q(1)),  0;
           0, sin(q(1)),  cos(q(1)),  0;
           0, 0,          0,          1];

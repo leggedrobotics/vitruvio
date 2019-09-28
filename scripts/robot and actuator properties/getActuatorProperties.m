@@ -19,8 +19,8 @@ function [maxTorqueLimit, maxqdotLimit, maxPowerLimit, actuatorMass, gearRatio, 
         maxPowerLimit  = 20;  % [W] Not sure about this value 
         actuatorMass   = 0.126;  % [kg]
         gearRatio      = 200;
-        efficiencyMinMotor = 0.1;  
-        efficiencyMaxMotor = 0.95; % motor efficiency before gearing losses        
+        efficiencyMinMotor = 0.24;  
+        efficiencyMaxMotor = 0.5; % motor efficiency before gearing losses        
     end
     
     if isequal(actuatorName,'DynamixelXM540') % Dynamixel XM-540
@@ -28,9 +28,9 @@ function [maxTorqueLimit, maxqdotLimit, maxPowerLimit, actuatorMass, gearRatio, 
         maxqdotLimit   = 3.14;  % [rad/s] 
         maxPowerLimit  = 20;  % [W] Not sure about this value 
         actuatorMass   = 0.126;  % [kg]
-        gearRatio      = 200; % check this
-        efficiencyMinMotor = 0.1;  
-        efficiencyMaxMotor = 0.95; % motor efficiency before gearing losses        
+        gearRatio      = 272.5;
+        efficiencyMinMotor = 0.05;  
+        efficiencyMaxMotor = 0.46; % motor efficiency before gearing losses        
     end
     
     if isequal(actuatorName,'ANYdrive')
