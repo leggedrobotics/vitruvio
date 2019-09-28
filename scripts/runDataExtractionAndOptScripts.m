@@ -1,4 +1,4 @@
-function Leg = runDataExtractionAndOptScripts(actuatorSelection, dataExtraction, imposeJointLimits, heuristic, actuateJointDirectly, transmissionMethod, robotVisualization, linkCount, optimizeLeg, optimizationProperties, dataSelection, classSelection, configSelection, hipParalleltoBody, legCount, task, saveFiguresToPDF, springInParallelWithJoints, kSpringJoint, payload)
+function Leg = runDataExtractionAndOptScripts(actuatorSelection, dataExtraction, imposeJointLimits, heuristic, actuateJointDirectly, transmissionMethod, linkCount, optimizeLeg, optimizationProperties, dataSelection, classSelection, configSelection, hipParalleltoBody, legCount, task, saveFiguresToPDF, springInParallelWithJoints, kSpringJoint, payload)
 
 %% Display selections
 fprintf('Robot class: %s.\n', classSelection);
@@ -71,8 +71,8 @@ if payload.simulateAdditionalPayload
     end
 end
 
-% Get suggested removal ratio for cropping motion data to useful steady state motion
-[removalRatioStart, removalRatioEnd] = getSuggestedRemovalRatios(dataSelection);
+% Get removal ratio for cropping motion data to useful steady state motion
+[removalRatioStart, removalRatioEnd] = getRemovalRatios(dataSelection);
 
 %% Load corresponding robot, actuator and spring properties
 fprintf('Loading robot properties for %s.\n', classSelection);
@@ -292,7 +292,7 @@ if (heuristic.torqueAngle.apply == true) && (linkCount > 2)
     for i = 1:legCount
         EEselection = EEnames(i,:);
         % Use inverse kinematics to solve joint angles for first time step.
-        [qLiftoff.(EEselection)] = computeqLiftoffFinalJoint(Leg, heuristic, Leg.(EEselection).hipAttachmentOffset, linkCount, meanCyclicMotionHipEE, robotProperties, EEselection, configSelection, hipParalleltoBody);
+        [qLiftoff.(EEselection)] = computeqLiftoffFinalJoint(Leg, heuristic, linkCount, meanCyclicMotionHipEE, robotProperties, EEselection, configSelection, hipParalleltoBody);
         EE_force = Leg.(EEselection).force(1,1:3);
         rotBodyY = -meanCyclicMotionHipEE.body.eulerAngles.(EEselection)(1,2); % rotation of body about inertial y
         qPrevious = qLiftoff.(EEselection);
@@ -316,8 +316,8 @@ gravityStance = [0 0 0]; % Do not apply gravity term in stance as the end-effect
 
 for i = 1:legCount
     EEselection = EEnames(i,:);
-    Leg.(EEselection).rigidBodyModelSwing = buildRobotRigidBodyModel(gravitySwing, actuatorProperties, actuateJointDirectly, linkCount, robotProperties, Leg, meanCyclicMotionHipEE, EEselection, hipParalleltoBody);
-    Leg.(EEselection).rigidBodyModelStance = buildRobotRigidBodyModel(gravityStance, actuatorProperties, actuateJointDirectly, linkCount, robotProperties, Leg, meanCyclicMotionHipEE, EEselection, hipParalleltoBody);
+    Leg.(EEselection).rigidBodyModelSwing = buildRobotRigidBodyModel(gravitySwing, actuatorProperties, actuateJointDirectly, linkCount, robotProperties, Leg, EEselection);
+    Leg.(EEselection).rigidBodyModelStance = buildRobotRigidBodyModel(gravityStance, actuatorProperties, actuateJointDirectly, linkCount, robotProperties, Leg, EEselection);
 end
 
 %% Get joint velocities with finite differences
@@ -326,11 +326,6 @@ for i = 1:legCount
     EEselection = EEnames(i,:);
     [Leg.(EEselection).qdot, Leg.(EEselection).qdotdot] = getJointVelocitiesUsingFiniteDifference(EEselection, Leg, dt);
     Leg.(EEselection).q = Leg.(EEselection).q(1:end-2,:); % remove the two supplementary points for position after solving for joint speed and acceleration 
-    % Smoothen the velocity and acceleration data using moving average filter
-%     for j = 1:length(Leg.(EEselection).qdot(1,:))
-%         Leg.(EEselection).qdot(:,j) = smooth(Leg.(EEselection).qdot(:,j));
-%         Leg.(EEselection).qdotdot(:,j) = smooth(Leg.(EEselection).qdotdot(:,j));
-%     end
 end
 
 %% Get joint torques using inverse dynamics
@@ -508,6 +503,7 @@ if optimizationProperties.runOptimization % master toggle in main
 
             fprintf('Saving optimization results. \n');
             % Save all the results of the optimization
+            Leg.(EEselection).rigidBodyModelStanceOpt                        = optimizationResults.rigidBodyModelStanceOpt;
             Leg.(EEselection).jointTorqueOpt                                 = optimizationResults.jointTorqueOpt;
             Leg.(EEselection).qOpt                                           = optimizationResults.qOpt;
             Leg.(EEselection).qdotOpt                                        = optimizationResults.qdotOpt;
@@ -550,7 +546,8 @@ if optimizationProperties.runOptimization % master toggle in main
             Leg.(EEselection).kSpringJointOpt                                = optimizationResults.kSpringJointOpt;
             Leg.(EEselection).mechEnergyActiveOpt                            = optimizationResults.mechEnergyActiveOpt;
             Leg.(EEselection).mechEnergyPerCycleActiveOpt                    = optimizationResults.mechEnergyPerCycleActiveOpt;
-            % compute CoT
+            
+            % compute CoT and power quality
              power = Leg.(EEselection).jointPowerOpt;
              Leg.metaParameters.CoTOpt.(EEselection) = getCostOfTransport(v, power, robotProperties);
              Leg.metaParameters.powerQualityOpt.(EEselection) = computePowerQuality(power);

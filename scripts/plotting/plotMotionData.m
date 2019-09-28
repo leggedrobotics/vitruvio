@@ -13,12 +13,18 @@ function [] = plotMotionData(data, saveFiguresToPDF)
     removalRatioEnd      = data.basicProperties.trajectory.removalRatioEnd;
     inertialEEposition   = data.inertialFrame.EEposition;
     
+    if saveFiguresToPDF
+        outerPosition = [0 0 1 1]; % Fullscreen
+    else
+        outerPosition = [0.5 0.5 0.5 0.5]; % Top right corner
+    end
+    
     startIndexFullTrajectory = round(length(data.fullTrajectory.r.EEdes.LF)*removalRatioStart);
     startIndexFullTrajectory(startIndexFullTrajectory<1) = 1;
     endIndexFullTrajectory = round(length(data.fullTrajectory.r.EEdes.LF)*(1-removalRatioEnd));
 
     %% Base position and velocity in inertial frame with sampled rectange.
-    figure('name', 'Base position and velocity', 'units','normalized','outerposition',[0 0 1 1])
+    figure('name', 'Base position and velocity', 'units','normalized','outerposition',outerPosition)
     set(gcf,'color','w')
     subplot(3,2,1);
     plot(t, base.fullTrajectory.position(:,1));
@@ -98,7 +104,7 @@ function [] = plotMotionData(data, saveFiguresToPDF)
 
     
     %% End effector position in inertial frame x vs t and z vs t
-    figure('name', 'End effector position inertial frame', 'units','normalized','outerposition',[0 0 1 1]) 
+    figure('name', 'End effector position inertial frame', 'units','normalized','outerposition',outerPosition) 
     set(gcf,'color','w')
     lineColor = {'b', 'g', 'r', 'c'};
     minValue1 = []; maxValue1 = [];
@@ -116,14 +122,14 @@ function [] = plotMotionData(data, saveFiguresToPDF)
             grid on
         subplot(3,1,2) 
         hold on
-            p(i) = plot(tUninterpolated, inertialEEposition.(EEselection)(:,2), lineColor{i}, 'DisplayName', EEselection);
+            plot(tUninterpolated, inertialEEposition.(EEselection)(:,2), lineColor{i}, 'DisplayName', EEselection);
             title('End effector position y')
             xlabel('time [s]')    
             ylabel('EE y position relative to CoM starting point [m]')
             grid on
         subplot(3,1,3)
         hold on
-            p(i) = plot(tUninterpolated, inertialEEposition.(EEselection)(:,3), lineColor{i}, 'DisplayName', EEselection);
+            plot(tUninterpolated, inertialEEposition.(EEselection)(:,3), lineColor{i}, 'DisplayName', EEselection);
             title('End effector position z')
             xlabel('time [s]')    
             ylabel('EE z position relative to CoM starting point [m]')
@@ -140,7 +146,7 @@ function [] = plotMotionData(data, saveFiguresToPDF)
         export_fig results.pdf -nocrop -append
     end
     %% End effector forces.
-    figure('name', 'End effector forces', 'units','normalized','outerposition',[0 0 1 1]) 
+    figure('name', 'End effector forces', 'units','normalized','outerposition',outerPosition) 
     set(gcf,'color','w')
     lineColor = {'b', 'g', 'r', 'c'};
     minValue1 = []; maxValue1 = [];
@@ -203,7 +209,7 @@ function [] = plotMotionData(data, saveFiguresToPDF)
         export_fig results.pdf -nocrop -append
     end
     %% Plot x vs z position of EE for the final trajectory (after trimming and averaging).
-    figure('name', 'EE trajectory relative to hip', 'units','normalized','outerposition',[0 0 1 1]) 
+    figure('name', 'EE trajectory relative to hip', 'units','normalized','outerposition',outerPosition) 
     set(gcf,'color','w')
     % Number of rows [1 2], number of columns [1 2]
     subplotRows = ceil(legCount/2);
@@ -226,7 +232,7 @@ function [] = plotMotionData(data, saveFiguresToPDF)
         axis equal
         xlabel('x position [m]')
         ylabel('z position [m]')
-        title(['Resulting ', EEselection, ' end effector trajectory'])
+        title(['End Effector Trajectory ', EEselection,])
         grid on
         hold off
     end

@@ -211,14 +211,14 @@ for i = 1:linkCount+1
 end
 
 % Update link mass with assumption of constant density cylinder
-robotProperties.hip(selectFrontHind).mass = robotProperties.legDensity.hip(selectFrontHind) * pi*(robotProperties.hip(selectFrontHind).radius)^2   * linkLengths(1);
-robotProperties.thigh(selectFrontHind).mass = robotProperties.legDensity.thigh(selectFrontHind) * pi*(robotProperties.thigh(selectFrontHind).radius)^2 * linkLengths(2);
-robotProperties.shank(selectFrontHind).mass = robotProperties.legDensity.shank(selectFrontHind) * pi*(robotProperties.shank(selectFrontHind).radius)^2 * linkLengths(3);
+robotProperties.hip(selectFrontHind).mass = robotProperties.legDensity.hip(selectFrontHind) * pi*(robotProperties.hip(selectFrontHind).radius)^2   * abs(linkLengths(1));
+robotProperties.thigh(selectFrontHind).mass = robotProperties.legDensity.thigh(selectFrontHind) * pi*(robotProperties.thigh(selectFrontHind).radius)^2 * abs(linkLengths(2));
+robotProperties.shank(selectFrontHind).mass = robotProperties.legDensity.shank(selectFrontHind) * pi*(robotProperties.shank(selectFrontHind).radius)^2 * abs(linkLengths(3));
 if (linkCount == 3) || (linkCount == 4)
-    robotProperties.foot(selectFrontHind).mass = robotProperties.legDensity.foot(selectFrontHind) * pi*(robotProperties.foot(selectFrontHind).radius)^2 * linkLengths(4);
+    robotProperties.foot(selectFrontHind).mass = robotProperties.legDensity.foot(selectFrontHind) * pi*(robotProperties.foot(selectFrontHind).radius)^2 * abs(linkLengths(4));
 end
 if (linkCount ==4)
-    robotProperties.phalanges(selectFrontHind).mass = robotProperties.legDensity.phalanges(selectFrontHind) * pi*(robotProperties.phalanges(selectFrontHind).radius)^2 * linkLengths(5);
+    robotProperties.phalanges(selectFrontHind).mass = robotProperties.legDensity.phalanges(selectFrontHind) * pi*(robotProperties.phalanges(selectFrontHind).radius)^2 * abs(linkLengths(5));
 end
 
 tempLeg.robotProperties = robotProperties;
@@ -246,19 +246,14 @@ tempLeg.base = Leg.base;
 % presence of the gravity term.
 gravitySwing  = [0 0 -9.81]; % During swing phase, apply gravity
 gravityStance = [0 0 0]; % Do not apply gravity term in stance as the end-effector forces already include the weight of the legs and additional gravity here would be double counting the gravitational weight on the joints
-tempLeg.(EEselection).rigidBodyModelSwing  = buildRobotRigidBodyModel(gravitySwing, actuatorProperties, actuateJointDirectly, linkCount, robotProperties, tempLeg, meanCyclicMotionHipEE, EEselection, hipParalleltoBody);
-tempLeg.(EEselection).rigidBodyModelStance = buildRobotRigidBodyModel(gravityStance, actuatorProperties, actuateJointDirectly, linkCount, robotProperties, tempLeg, meanCyclicMotionHipEE, EEselection, hipParalleltoBody);
+tempLeg.(EEselection).rigidBodyModelSwing  = buildRobotRigidBodyModel(gravitySwing, actuatorProperties, actuateJointDirectly, linkCount, robotProperties, tempLeg, EEselection);
+tempLeg.(EEselection).rigidBodyModelStance = buildRobotRigidBodyModel(gravityStance, actuatorProperties, actuateJointDirectly, linkCount, robotProperties, tempLeg, EEselection);
 
 %% Get joint velocities and accelerations using finite difference
 % finite difference to compute qdot
 tempLeg.time = Leg.time;
 [tempLeg.(EEselection).qdot, tempLeg.(EEselection).qdotdot] = getJointVelocitiesUsingFiniteDifference(EEselection, tempLeg, dt);
 tempLeg.(EEselection).q = tempLeg.(EEselection).q(1:end-2,:); % no longer need the two additional points for position after solving for joint speed and acceleration
-% Smoothen result using moving average
-% for j = 1:length(Leg.(EEselection).qdot(1,:))
-%     tempLeg.(EEselection).qdot(:,j) = smooth(tempLeg.(EEselection).qdot(:,j));
-%     tempLeg.(EEselection).qdotdot(:,j) = smooth(tempLeg.(EEselection).qdotdot(:,j));
-% end
 
 %% Inverse dynamics
 externalForce = Leg.(EEselection).force(:,1:3);
@@ -337,6 +332,7 @@ end
  [mechEnergyActiveOpt, mechEnergyPerCycleActiveOpt, ~, ~]  = computeEnergyConsumption(tempLeg.activePowerOpt, tempLeg.(EEselection).electricalPower, dt);
 
 %% Return the results of the optimization
+optimizationResults.rigidBodyModelStanceOpt = tempLeg.(EEselection).rigidBodyModelStance;
 optimizationResults.linkLengthsOpt = linkLengths;
 optimizationResults.transmissionGearRatioOpt = transmissionGearRatio;
 optimizationResults.springOpt.kTorsionalSpring = springOpt.kTorsionalSpring;

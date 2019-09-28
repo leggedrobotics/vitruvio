@@ -1,8 +1,14 @@
 %% Read in data for quadruped geometry
-function robot = buildRobotRigidBodyModel(gravity, actuatorProperties, actuateJointDirectly, linkCount, robotProperties, Leg, meanCyclicMotionHipEE, EEselection, hipParalleltoBody) 
-    jointNames = ['HAA'; 'HFE'; 'KFE'; 'AFE'; 'DFE']; % a subset of these are used depending on linkCount
-    
-    %% Get robot properties for selected end effector  
+function robot = buildRobotRigidBodyModel(gravity, actuatorProperties, actuateJointDirectly, linkCount, robotProperties, Leg, EEselection) 
+% BUILDROBOTRIGIDBODYMODEL Creates a rigid body tree for the selected leg.
+% The tree has bodies for links, actuators and end-effectors with mass and
+% inertia calculated as thin rods and point masses.  
+
+hipParalleltoBody = Leg.basicProperties.hipParalleltoBody;    
+jointNames = Leg.basicProperties.jointNames;
+
+%jointNames = ['HAA'; 'HFE'; 'KFE'; 'AFE'; 'DFE']; % a subset of these are used depending on linkCount
+    %% Get robot properties for selected leg  
     if strcmp(EEselection, 'LF') || strcmp(EEselection, 'RF')
         selectFrontHind = 1;
         hipOffsetDirection = 1;
@@ -18,7 +24,7 @@ function robot = buildRobotRigidBodyModel(gravity, actuatorProperties, actuateJo
         actuatorMass.(jointSelection) = actuatorProperties.mass.(jointSelection);
     end
 
-    l_hip       = robotProperties.hip(selectFrontHind).length; % offset from HAA to HFE
+    l_hip       = robotProperties.hip(selectFrontHind).length; % offset from center of HAA to center of HFE
     l_thigh     = robotProperties.thigh(selectFrontHind).length;
     l_shank     = robotProperties.shank(selectFrontHind).length;
     l_foot      = robotProperties.foot(selectFrontHind).length;

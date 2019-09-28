@@ -1,19 +1,19 @@
 clear;
 close all;
-recordCommandWindow = false; % If true command window is recorded and saved in txt file
+recordCommandWindow = true; % If true command window is recorded and saved in txt file
 
 %% Data extraction
 % if averageStepsForCyclicalMotion is true, the motion is segmented into individual steps which are averaged
 % to create a single step cycle. This works well when the motion is very cyclical.
 % If false the individual steps are not averaged. This should be selected
 % when the generated motion is irregular.
-dataExtraction.averageStepsForCyclicalMotion = true; 
+dataExtraction.averageStepsForCyclicalMotion = false; 
 dataExtraction.allowableDeviation = 0.05; % [m] Deviation between neighbouring points. If the deviation is larger, additional points are interpolated.
 
 %% Toggle leg properties: leg c, link count, configuration, direct/remote joint actuation, spider/serial leg
 legCount  = 4;                  % Accepts values from 1 to 4.
 linkCount = 2;                  % Accepts values from 2 to 4. [thigh, shank, foot, phalanges]. Hip link connects HAA and HFE but is not included in link count.
-configSelection = 'X';          % X or M
+configSelection = 'X';          % X or M. By default, the HFE is outwards from HAA but for M configuration this may not be desired. To avoid this set the hip length to negative in getRobotProperties.m.
 
 % If true, actuators are positioned in the joint which contributes to leg
 % mass and inertia. If false, there is no actuator mass at joints, the 
@@ -52,13 +52,13 @@ hipParalleltoBody = true;
 
 % Simulate additional payload as point mass at CoM
 payload.simulateAdditionalPayload = false;
-payload.mass = 0.077; % kg
+payload.mass = 1; % kg
 
 % Model springs in parallel with each joint.
 springInParallelWithJoints = false;
-% if springInParallelWithJoints is true, spring constant in Nm/rad
-kSpringJoint.LF = [0, 0, 100, 0, 0]; % HAA, HFE, KFE, AFE, DFE
-kSpringJoint.RF = [0, 0, 1.5, 0, 0]; % HAA, HFE, KFE, AFE, DFE
+% Apply if springInParallelWithJoints = true, spring constant in Nm/rad
+kSpringJoint.LF = [0, 0, 10, 0, 0]; % HAA, HFE, KFE, AFE, DFE
+kSpringJoint.RF = [0, 0, 10, 0, 0]; % HAA, HFE, KFE, AFE, DFE
 kSpringJoint.LH = [0, 0, 10, 0, 0]; % HAA, HFE, KFE, AFE, DFE
 kSpringJoint.RH = [0, 0, 10, 0, 0]; % HAA, HFE, KFE, AFE, DFE
 
@@ -72,77 +72,77 @@ heuristic.torqueAngle.kTorsionalSpring = 50; % Spring constant for torsional spr
 
 %% Visualization toggles
 saveFiguresToPDF               = false;  % Figures are saved to results.pdf in current folder. This adds significant computation time.
-robotVisualization.view        = false;      % Visualization of nominal robot
-robotVisualization.plotOneLeg  = false;
-robotVisualization.plotAllLegs = true;      % If we don't average the trajectory, we can use this option to view all legs
+robotVisualization.view        = true;   % Visualization of nominal robot
+robotVisualization.oneLeg      = false;  % View a single leg tracking the trajectory.
+robotVisualization.allLegs     = true;   % View motion with all legs (incompatible with averageStepsForCyclicalMotion = true)
 robotVisualization.torso       = false;  % Also displays a torso at the front of the robot, dimensions defined in visualizeRobot.m
-viewPlots.motionData           = false;      % CoM position, speed. EE position and forces. Trajectory to be tracked.
+
+viewPlots.motionData           = false;  % CoM position, speed. EE position and forces. Trajectory to be tracked.
 viewPlots.rangeOfMotionPlots   = false;  % Range of motion of leg for given link lengths and angle limits
 viewPlots.efficiencyMap        = false;  % Actuator operating efficiency map
-viewPlots.jointDataPlot        = 1;      % Angle, speed, torque, power, energy data
+viewPlots.jointDataPlot        = true;  % By default only joint level speed, torque, power, and energy are plotted. Actuator/motor/spring level plots can be turned on in plotJointDataForAllLegs.m.
 viewPlots.metaParameterPlot    = false;  % Design parameters and key results plotted as pie charts
 
-% optimizationProperties.viz.viewVisualization        = false; %Visualization of optimized robot
-% optimizationProperties.viz.numberOfCyclesVisualized = 1;
-optimizationProperties.viz.displayBestCurrentDesign = true; % display chart of current best leg design parameters while running ga
+optimizationProperties.viz.displayBestCurrentDesign = true; % Display chart of current best leg design parameters while running ga
 
 %% Select a .mat trajectory data file to be simulated and optimized
 % Select from the below options or import a new data .mat set using the
-% importMotionData script
+% importMotionData.m script
 
-%%% Add your trajectory data file here %%%
-yourTrajectoryData = false;
+%%% Add your trajectory data file here with name class_task %%%
+dataSelection.yourTrajectoryData = false;
 %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
-universalTrot    = false;
-universalStairs  = false;
-speedyStairs     = false;
-speedyGallop     = false;
-massivoWalk      = false;
-massivoStairs    = false;
-centaurWalk      = false;
-centaurStairs    = false;
-miniPronk        = false;
-defaultHopperHop = false;
+dataSelection.universal_trot    = true;
+dataSelection.universal_stairs  = false;
+dataSelection.speedy_stairs     = false;
+dataSelection.speedy_gallop     = false;
+dataSelection.massivo_walk      = false;
+dataSelection.massivo_stairs    = false;
+dataSelection.centaur_walk      = false;
+dataSelection.centaur_stairs    = false;
+dataSelection.mini_pronk        = false;
+dataSelection.hopper_hop = false;
 
-ANYmalBearFastTrot      = false; 
-ANYmalBearPushup        = false;
-ANYmalBearSlowTrot      = false;
-ANYmalBearFastTrotExtendedxNom = false;
-ANYmalBearFastTrotExtendedxNom2 = 0; % Same as v1 but with t_swing = 0.4 instead of 0.3
-ANYmalBearFastTrotExtendedxNom3 = true; % Same as v1 but with trot:swing ratio closer to measured
+dataSelection.ANYmalBear_fastTrot      = false; 
+dataSelection.ANYmalBear_pushup        = false;
+dataSelection.ANYmalBear_slowTrot      = false;
+dataSelection.ANYmalBear_fastTrotExtendedxNom3 = false; % Same as v1 but with trot:swing ratio closer to measured
+dataSelection.ANYmalBear_slowTrotExtendedxNom  = false; % Same as v1 but with trot:swing ratio closer to measured
 
-vitruvianBipedPushupSquat  = false;
-vitruvianBipedHop          = false;
-vitruvianBipedFastWalk     = false;
+dataSelection.vitruvian_bipedPushupSquat  = false;
+dataSelection.vitruvian_bipedHop          = false;
+dataSelection.vitruvian_bipedFastWalk     = false;
 
-optimizationCount = 1; % Set to 1 to run the optimization only once. Number of times that leg is optimized. This allows for an easy check if the same optimal solution is found each time the optimization is run.
+optimizationCount = 1; % Set to 1 to run the optimization only once. For values >1 the leg is reoptimized with the same settings. This allows for an easy check if the same optimal solution is found each time the optimization is run.
 
 %% Toggle optimization for each leg
-optimizationProperties.runOptimization = true; 
-% select which legs are to be optimized
+optimizationProperties.runOptimization = false; % If true, selected legs will be optimize
+% Select which legs are to be optimized
 optimizeLeg.LF = true; 
-optimizeLeg.RF = false; 
+optimizeLeg.RF = true; 
 optimizeLeg.LH = false; 
 optimizeLeg.RH = false;
 
 %% Set optimization properties
 % Set number of generations and population size
-optimizationProperties.options.maxGenerations = 20;
-optimizationProperties.options.populationSize = 30;
+optimizationProperties.options.maxGenerations = 1;
+optimizationProperties.options.populationSize = 5;
 
-% Impose limits on maximum joint torque, speed and power
-% the values are defined in getActuatorProperties. A penalty term is incurred
+% Impose limits on maximum joint torque, speed and power.
+% The limiting values are defined for each actuator in getActuatorProperties. A penalty term is incurred
 % for violations of these limits.
 imposeJointLimits.maxTorque = false;
 imposeJointLimits.maxqdot   = false;
 imposeJointLimits.maxPower  = false;
 imposeJointLimits.limitingValue = 1; % Specified as a ratio of the actuator limit. Penalize when actuators loaded beyond this value.
 
-% Set weights for fitness function terms. Total means summed over all
+% Set weights for cost function terms. Total means summed over all
 % joints in the leg.
 % Penalty weights [0, inf). Zero means that term is not considered in the
-% penalty function.
-optimizationProperties.penaltyWeight.totalSwingTorque   = 0;
+% penalty function. Unless otherwise specified, the
+% speed/torque/power/energy terms are penalized at actuator level. When
+% the tranmission ratio is 1, actuator and joint level are equivalent.
+optimizationProperties.penaltyWeight.totalSwingTorque   = 0;   % Terms which penalize swing/stance are only used when averageStepsForCyclicalMotion = true
 optimizationProperties.penaltyWeight.totalStanceTorque  = 0;
 optimizationProperties.penaltyWeight.totalTorque        = 1;
 optimizationProperties.penaltyWeight.totalTorqueHFE     = 0;
@@ -151,19 +151,20 @@ optimizationProperties.penaltyWeight.swingTorqueHFE     = 0;
 optimizationProperties.penaltyWeight.totalActiveTorque  = 0;
 optimizationProperties.penaltyWeight.stanceActiveTorque = 0;
 optimizationProperties.penaltyWeight.totalqdot          = 0;
-optimizationProperties.penaltyWeight.totalPower         = 0;      % only considers power terms > 0
+optimizationProperties.penaltyWeight.totalPower         = 0;    % Only considers power terms > 0
 optimizationProperties.penaltyWeight.totalMechEnergy    = 0;
 optimizationProperties.penaltyWeight.totalElecEnergy    = 0;
-optimizationProperties.penaltyWeight.averageEfficiency  = 0;      % Maximizes average efficiency (even though this could increase overall energy use)
+optimizationProperties.penaltyWeight.averageEfficiency  = 0;    % Maximizes average efficiency (even though this could increase overall energy use)
 optimizationProperties.penaltyWeight.maxTorque          = 0;
 optimizationProperties.penaltyWeight.maxqdot            = 0;
-optimizationProperties.penaltyWeight.maxPower           = 0;      % only considers power terms > 0
-optimizationProperties.penaltyWeight.antagonisticPower  = 0;      % seeks to minimize antagonistic power which improves power quality
-optimizationProperties.penaltyWeight.mechCoT            = 0;      % mechanical cost of transport contribution of optimized leg
-optimizationProperties.penaltyWeight.maximumExtension   = true;   % large penalty incurred if leg extends beyond allowable amount
-optimizationProperties.allowableExtension               = 0.9;   % [0 1] penalize extension above this ratio of total possible extension
+optimizationProperties.penaltyWeight.maxPower           = 0;    % Only considers power terms > 0
+optimizationProperties.penaltyWeight.antagonisticPower  = 0;    % Seeks to minimize antagonistic power which improves power quality
+optimizationProperties.penaltyWeight.mechCoT            = 0;    % Mechanical cost of transport contribution of optimized leg
+optimizationProperties.penaltyWeight.maximumExtension   = true; % Large penalty incurred if leg extends beyond allowable amount
+optimizationProperties.allowableExtension               = 0.9;  % Penalize extension above this ratio of total possible extension
 
-% Bounds are input as multipliers of nominal input value
+%% Set upper and lower bounds on each design parameter as ratio of nominal value.
+% Link lengths
 optimizationProperties.bounds.lowerBoundMultiplier.hipLength = 1;
 optimizationProperties.bounds.upperBoundMultiplier.hipLength = 1;
 
@@ -186,8 +187,8 @@ optimizationProperties.bounds.upperBoundMultiplier.hipOffset = 1;
 optimizationProperties.bounds.lowerBoundMultiplier.transmissionGearRatio.HAA = 1;
 optimizationProperties.bounds.upperBoundMultiplier.transmissionGearRatio.HAA = 1;
 
-optimizationProperties.bounds.lowerBoundMultiplier.transmissionGearRatio.HFE = 1;
-optimizationProperties.bounds.upperBoundMultiplier.transmissionGearRatio.HFE = 1;
+optimizationProperties.bounds.lowerBoundMultiplier.transmissionGearRatio.HFE = 0.5;
+optimizationProperties.bounds.upperBoundMultiplier.transmissionGearRatio.HFE = 2;
 
 optimizationProperties.bounds.lowerBoundMultiplier.transmissionGearRatio.KFE = 1;
 optimizationProperties.bounds.upperBoundMultiplier.transmissionGearRatio.KFE = 1;
@@ -198,7 +199,7 @@ optimizationProperties.bounds.upperBoundMultiplier.transmissionGearRatio.AFE = 1
 optimizationProperties.bounds.lowerBoundMultiplier.transmissionGearRatio.DFE = 1;
 optimizationProperties.bounds.upperBoundMultiplier.transmissionGearRatio.DFE = 1;
 
-% Spring in parallel with joint
+% Spring constant for springs in parallel with joint
 optimizationProperties.bounds.lowerBoundMultiplier.kSpringJoint.HAA = 1;
 optimizationProperties.bounds.upperBoundMultiplier.kSpringJoint.HAA = 1;
 
@@ -214,14 +215,14 @@ optimizationProperties.bounds.upperBoundMultiplier.kSpringJoint.AFE = 1;
 optimizationProperties.bounds.lowerBoundMultiplier.kSpringJoint.DFE = 1;
 optimizationProperties.bounds.upperBoundMultiplier.kSpringJoint.DFE = 1;
 
-% Heuristic at AFE/DFE for 3-4 link legs
+% Spring for heuristic at AFE/DFE (for 3-4 link legs)
 optimizationProperties.bounds.lowerBoundMultiplier.kTorsionalSpring = 1;
 optimizationProperties.bounds.upperBoundMultiplier.kTorsionalSpring = 1;
 
 optimizationProperties.bounds.lowerBoundMultiplier.thetaLiftoff_des = 1;
 optimizationProperties.bounds.upperBoundMultiplier.thetaLiftoff_des = 1;
 
-%% run the simulation
+%% Run the simulation
 if recordCommandWindow
     diary commandWindowReadout
 end

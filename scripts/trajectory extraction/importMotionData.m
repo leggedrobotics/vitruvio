@@ -7,9 +7,10 @@ clear;
 close all;
 
 %% Enter path to bag containing trajectory data
-pathToTrajectoryData =  '/Users/michaelchadwick/Documents/git/vitruvio/data/extractedBags/matlab_ANYmalfastTrotExtendedxNom3.bag';
-saveName = 'ANYmalBearFastTrotExtendedxNom3.mat';
+pathToTrajectoryData =  '/Users/michaelchadwick/Documents/git/vitruvio/data/extractedBags/matlab_ANYmalBear_slowTrotExtendedxNom.bag';
+saveName = 'ANYmalBearSlowTrotExtendedxNom.mat';
 legCount = 4; % Specify number of legs from 1 to 4.
+m = 38.8;   % mass of the robot
 
 %% Extract the desired 3D vectors from the bag
 bag_all = rosbag(pathToTrajectoryData);
@@ -122,7 +123,6 @@ motion.trajectoryData.base.position     = [ts_base_pos.Data(:,1) ts_base_pos.Dat
 save(saveName, '-struct','motion') 
 
 %% Error 
-m = 38.8;   % mass of the robot
 g = 9.81; % gravity acceleration
 
 if legCount == 1

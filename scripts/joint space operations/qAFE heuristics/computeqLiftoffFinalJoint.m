@@ -1,4 +1,4 @@
-function qLiftoff = computeqLiftoffFinalJoint(Leg, heuristic, hipAttachmentOffset, linkCount, meanCyclicMotionHipEE, robotProperties, EEselection, configSelection, hipParalleltoBody)
+function qLiftoff = computeqLiftoffFinalJoint(Leg, heuristic, linkCount, meanCyclicMotionHipEE, robotProperties, EEselection, configSelection, hipParalleltoBody)
  % Using inverse kinematics, solve the angle of all joints for the first timestep such that the angle between the final link and the ground at liftoff is as desired. 
  %% Setup
   tol = 0.0001;
