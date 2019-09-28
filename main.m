@@ -74,10 +74,10 @@ heuristic.torqueAngle.kTorsionalSpring = 50; % Spring constant for torsional spr
 
 %% Visualization toggles
 saveFiguresToPDF               = false;  % Figures are saved to results.pdf in current folder. This adds significant computation time.
-robotVisualization.view        = false;   % Visualization of nominal robot
+robotVisualization.view        = true;   % Visualization of nominal robot
 robotVisualization.oneLeg      = false;  % View a single leg tracking the trajectory.
 robotVisualization.allLegs     = true;   % View motion with all legs (incompatible with averageStepsForCyclicalMotion = true)
-robotVisualization.torso       = true;  % Also displays a torso at the front of the robot, dimensions defined in visualizeRobot.m
+robotVisualization.torso       = false;  % Also displays a torso at the front of the robot, dimensions defined in visualizeRobot.m
 
 viewPlots.motionData           = false;  % CoM position, speed. EE position and forces. Trajectory to be tracked.
 viewPlots.rangeOfMotionPlots   = false;  % Range of motion of leg for given link lengths and angle limits
@@ -105,11 +105,9 @@ dataSelection.centaur_stairs    = false;
 dataSelection.mini_pronk        = false;
 dataSelection.hopper_hop = false;
 
-dataSelection.ANYmalBear_fastTrot      = false; 
-dataSelection.ANYmalBear_pushup        = false;
-dataSelection.ANYmalBear_slowTrot      = false;
-dataSelection.ANYmalBear_fastTrotExtendedxNom3 = false; % Same as v1 but with trot:swing ratio closer to measured
-dataSelection.ANYmalBear_slowTrotExtendedxNom  = false; % Same as v1 but with trot:swing ratio closer to measured
+dataSelection.ANYmalBear_pushup = false;
+dataSelection.ANYmalBear_fastTrotExtendedxNom3 = false; 
+dataSelection.ANYmalBear_slowTrotExtendedxNom  = false;
 
 dataSelection.vitruvian_bipedPushupSquat  = false;
 dataSelection.vitruvian_bipedHop          = false;
@@ -127,8 +125,8 @@ optimizeLeg.RH = false;
 
 %% Set optimization properties
 % Set number of generations and population size
-optimizationProperties.options.maxGenerations = 1;
-optimizationProperties.options.populationSize = 5;
+optimizationProperties.options.maxGenerations = 10;
+optimizationProperties.options.populationSize = 10;
 
 % Impose limits on maximum joint torque, speed and power.
 % The limiting values are defined for each actuator in getActuatorProperties. A penalty term is incurred
