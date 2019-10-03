@@ -8,7 +8,7 @@ The framework relies on first importing trajectory data consisting of a center o
 
 _TOWR_ allows for quick computation of feasible trajectories for different tasks using a small set of robot design parameters and as such is well suited to aiding in simulation in the early design stages. 
 
-![](results/sampleVisualizations.gif)
+![](results/sample_visualizations.gif)
 
 ## Features
 
