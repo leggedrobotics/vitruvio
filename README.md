@@ -8,7 +8,7 @@ The framework relies on first importing trajectory data consisting of a center o
 
 _TOWR_ allows for quick computation of feasible trajectories for different tasks using a small set of robot design parameters and as such is well suited to aiding in simulation in the early design stages. 
 
-![](results/sample_visualizations.gif)
+![](results/sample_visualization.gif)
 
 ## Features
 
@@ -83,7 +83,7 @@ The cost function is a sum of cost terms which can be included by setting their 
 
 Play around with the different toggle options to understand the different degrees of freedom available to the user.
 
-![](results/sampleOptimization.gif)
+![](results/sample_optimization.gif)
 
 ### Adding your own robot 
 
