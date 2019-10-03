@@ -76,7 +76,7 @@ The toggles have been set to simulate the universal robot class performing a tro
 
 Run `main.m` and observe the result. The motion is visualized and several plots are generated to show the trajectory and joint data. The values are saved in a structure named _results_. This structure contains all the relevant input and output data of the simulation.
 
-### Optimization 
+## Optimization 
 
 Now try running the optimization by setting _runOptimization = true_ in `main.m`. This will run the genetic algorithm optimization for the link lengths within the specified upper and lower bounds. The default population size and number of generations are both 10 but can be increased to improve the result of the optimization. While the optimization runs, the penalty value of the current best design is shown in the command window. This has been normalized such that values < 1 are an improvement on the nominal design while values > 1 generally indicate worse performance than the nominal design when no soft constraints are violated. If the penalty is > 1 this can also indicate that a soft constraint has been violated. 
 The cost function is a sum of cost terms which can be included by setting their weights in _optimizationProperties.penaltyWeight_ to non-zero or removed from the cost function by setting the terms to zero. Some soft constraints such as limiting leg extension and imposing the actuator limits are also activated/deactivated in `main.m` by setting them to true/false. Others which ensure physical feasibility (joint positions below ground and violation of actuator torque, speed and power limits) are always enforced and are found in the `scripts/optimization/computePenalty.m` script.
@@ -85,7 +85,7 @@ Play around with the different toggle options to understand the different degree
 
 ![](results/sample_optimization.gif)
 
-### Adding your own robot 
+## Adding your own robot 
 
 To add your own robot, you will need to modify the following scripts:
    1. main
@@ -96,7 +96,7 @@ First the trajectory data must be input into _Vitruvio_. Drop the ROSbag generat
 
 New robots are added in `scripts/robot and actuator properties/getRobotProperties.m`. Here you must specify geometric properties such as the positions of the HAA joints relative to the COM, the nominal link lengths, densities, end-effector mass. New actuators can be added in `scripts/robot and actuator properties/getActuatorProperties.m` by specifying the actuator mass and limits.
 
-### Limitations
+## Limitations
 Currently _Vitruvio_ only fully considers pitch of the base and neglects roll and yaw. As such, only straight line and stair climbing motions can be anaylzed. Motions that involve turning are not properly tracked.
 
 ## License
