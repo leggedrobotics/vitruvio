@@ -12,10 +12,9 @@
     bodyWidth       = robotProperties.baseWidth;
     bodyHeight      = robotProperties.baseHeight;
     displayTorso    = robotVisualization.torso;
-    filenameCount   = 0;
     
     outerPosition = [0 0 1 1]; % Fullscreen
-   % outerPosition = [0.5 0 0.5 0.5]; % Top right corner
+    %outerPosition = [0.5 0 0.5 0.5]; % Top right corner
     
     if optimized && data.basicProperties.optimizedLegs.(EEselection)
         robot = data.(EEselection).rigidBodyModelStanceOpt;
@@ -37,12 +36,8 @@
     
     groundGridlines = linspace(-1,99,101);
 
-         
-    mymap = [0.2  0.2  0.4;
-             0.4  0.4  0.8;
-             0.45 0.45 0.85;
-             0.5  0.5  0.9];
-          
+    myMap = [65 105 225]/225; % Royal blue
+        
     for i = 1:legCount
         hipViz.(EEnames(i,:))       = [];
         thighViz.(EEnames(i,:))     = [];
@@ -54,9 +49,9 @@
     
     % Axis limits - adjust manually based on size of robot
     if robotVisualization.oneLeg
-        xlimit = [-1.6, 1.6];
+        xlimit = [-0.2, 0.4];
         ylimit = [-0.3, 0.3];
-        zlimit = [-0.7, 0.2];
+        zlimit = [-0.55, 0.4];
     else
         xlimit = [-1.05, 1.05];
         ylimit = [-1, 1];
@@ -250,9 +245,9 @@
                   data.(EEselection).r.EEdes(1:end-2,2), ...
                   data.(EEselection).r.EEdes(1:end-2,3),'k', 'LineWidth', 1)                    
 
-          % Plot end effector sphere
+            % Plot end effector sphere
             surf(xEE+data.(EEselection).r.EE(i,1), yEE+data.(EEselection).r.EE(i,2), zEE+data.(EEselection).r.EE(i,3), 'edgecolor', 'none')
-            colormap(mymap)
+            colormap(myMap)
 
             % Plot links as cylinders
             if optimized && data.basicProperties.optimizedLegs.(EEselection) % If the selected leg has been optimized, use optimized link lengths
@@ -295,7 +290,7 @@
                 im = frame2im(frame); 
                 [imind,cm] = rgb2ind(im,256); 
                 % Write to the GIF File 
-                if i == 1
+                if i == 1 && isequal(EEselection, 'LF')
                     imwrite(imind,cm,fileName,'gif', 'Loopcount',inf); 
                 else 
                     imwrite(imind,cm, fileName,'gif','WriteMode','append'); 
@@ -349,20 +344,20 @@
                 bodyCenterZ = [];
                 for k = 1:legCount
                     bodyCenterX = [bodyCenterX, xNom.(EEnames(k,:))];
-                    bodyCenterZ = [bodyCenterZ, zNom.(EEnames(k,:))]; %data.(EEnames(k,:)).r.HAA(i,3)];
+                    bodyCenterZ = [bodyCenterZ, zNom.(EEnames(k,:))];
                 end
                 bodyCenterX = mean(bodyCenterX);
                 bodyCenterZ = mean(bodyCenterZ);
-                shiftBodyZ = 0;
-                     vert = [bodyCenterX,     0,             bodyCenterZ] + ...
-                            [0.5*bodyLength,  0.5*bodyWidth, shiftBodyZ;...
-                            -0.5*bodyLength,  0.5*bodyWidth, shiftBodyZ;...
-                            -0.5*bodyLength, -0.5*bodyWidth, shiftBodyZ;...
-                             0.5*bodyLength, -0.5*bodyWidth, shiftBodyZ;...
-                             0.5*bodyLength,  0.5*bodyWidth, bodyHeight+shiftBodyZ;...
-                            -0.5*bodyLength,  0.5*bodyWidth, bodyHeight+shiftBodyZ;...
-                            -0.5*bodyLength, -0.5*bodyWidth, bodyHeight+shiftBodyZ;...
-                             0.5*bodyLength, -0.5*bodyWidth, bodyHeight+shiftBodyZ];
+                
+                 vert = [bodyCenterX,     0,             bodyCenterZ] + ...
+                        [0.5*bodyLength,  0.5*bodyWidth, 0;...
+                        -0.5*bodyLength,  0.5*bodyWidth, 0;...
+                        -0.5*bodyLength, -0.5*bodyWidth, 0;...
+                         0.5*bodyLength, -0.5*bodyWidth, 0;...
+                         0.5*bodyLength,  0.5*bodyWidth, bodyHeight;...
+                        -0.5*bodyLength,  0.5*bodyWidth, bodyHeight;...
+                        -0.5*bodyLength, -0.5*bodyWidth, bodyHeight;...
+                         0.5*bodyLength, -0.5*bodyWidth, bodyHeight];
 
                     vertTorso = vert;    
                     % Compute body rotation about y axis with elementary rotation matrix
@@ -400,25 +395,8 @@
                         torsoViz = patch('Vertices',vertTorso,'Faces',fac,'FaceColor','w', 'FaceAlpha', 0.7);    
                     end
                     
-                    %% Ground
-                      % Get ground color dependent on phase
-                        if legCount > 1
-                            if data.LF.force(i,3) > 0 && data.RF.force(i,3) > 0 % Trot, all legs stance
-                                groundColor =  [0.7 0.7 1];
-                            elseif (data.LF.force(i,3) > 0 && data.RF.force(i,3) == 0) % Trot, LF/LH stance
-                                groundColor =  [0.7 0.7 1];
-                            else % Trot, LF/LH stance
-                                groundColor =  [0.7 0.7 1]; 
-                            end
-                        else
-                            if data.LF.force(i,3) > 0
-                                groundColor =  [0.7 0.7 1];
-                            else
-                                groundColor =  [0.7 0.7 1];
-                            end
-                        end
-                        
                         %% Plot ground and stairs
+                        groundColor = myMap;
                         delete(groundViz)
                         groundViz = patch(groundCoordinatesX(1,:), groundCoordinatesY(1,:), [0 0 0 0], groundColor, 'FaceAlpha', 0.4, 'LineStyle', '-', 'LineWidth', 0.5);
                         groundColorStairs =  [0.7 0.7 1];
@@ -435,6 +413,8 @@
                             platformViz = patch(platformCoordinates(1,1)-data.base.position.LF(i,1)+platformLength*[1 1 0 0], platformCoordinates(1,2)+2*[1 -1 -1 1], platformCoordinates(1,3)*[1 1 1 1], groundColorStairs, 'FaceAlpha', 0.4, 'LineStyle', 'none');
                         end
                     %% Display links and end effectors
+                    edgeColor = 'k';
+
                     for k = 1:legCount
                         delete(EEviz.(EEnames(k,:)));
                         delete(hipViz.(EEnames(k,:)));
@@ -445,7 +425,7 @@
                         
                         % Display end effectors as spheres
                         EEviz.(EEnames(k,:)) = surf(xNom.(EEnames(k,:))+xEE+data.(EEnames(k,:)).r.EE(i,1),yNom.(EEnames(k,:))+yEE+data.(EEnames(k,:)).r.EE(i,2),zNom.(EEnames(k,:))+zEE+data.(EEnames(k,:)).r.EE(i,3)-groundCoordinatesZ(i,1), 'edgecolor', 'none');
-                        colormap(mymap);
+                        colormap(myMap);
                         
                         % Display links as cylinders
                         if ~optimized || (optimized && ~data.basicProperties.optimizedLegs.(EEnames(k,:)))
@@ -464,8 +444,6 @@
                             rDFE = [xNom.(EEnames(k,:))+data.(EEnames(k,:)).rOpt.DFE(i,1), yNom.(EEnames(k,:))+data.(EEnames(k,:)).rOpt.DFE(i,2), zNom.(EEnames(k,:))+ data.(EEnames(k,:)).rOpt.DFE(i,3)];
                             rEE  = [xNom.(EEnames(k,:))+data.(EEnames(k,:)).rOpt.EE(i,1),  yNom.(EEnames(k,:))+data.(EEnames(k,:)).r.EE(i,2),     zNom.(EEnames(k,:))+ data.(EEnames(k,:)).r.EE(i,3)];
                         end
-                        
-                        edgeColor = 'k';
                         
                         [x1,y1,z1] = cylinder2P(robotProperties.hip(selectFrontHind).radius, 8, rHAA,rHFE);
                         [x2,y2,z2] = cylinder2P(robotProperties.thigh(selectFrontHind).radius, 8,rHFE,rKFE);
@@ -498,13 +476,6 @@
                       imwrite(imind,cm, fileName,'gif','WriteMode','append'); 
                   end 
             end 
-            
-            % Save select frames as .svg
-%             if i == 1 %3*48 || i == 3*56 || i == 3*62 || i == 3*68
-%                 filenameCount = filenameCount + 1;
-%                 filename = strcat(classSelection,task,'_image', string(filenameCount));
-%                 print(filename,'-dsvg')
-%             end
         end
     end
  end

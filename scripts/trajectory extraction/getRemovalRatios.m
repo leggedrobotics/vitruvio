@@ -16,7 +16,7 @@ suggestedRemovalRatioStart.universal_trot = 0.2;
 suggestedRemovalRatioEnd.universal_trot   = 0.2;
 
 suggestedRemovalRatioStart.universal_stairs = 0.3;
-suggestedRemovalRatioEnd.universal_stairs   = 0.3;
+suggestedRemovalRatioEnd.universal_stairs   = 0*0.3;
 
 suggestedRemovalRatioStart.speedy_gallop = 0.3;
 suggestedRemovalRatioEnd.speedy_gallop   = 0.5;
@@ -45,8 +45,8 @@ suggestedRemovalRatioEnd.ANYmalBear_trot   = 0.3;
 suggestedRemovalRatioStart.ANYmalBearFast_trot = 0.2; %0.3;
 suggestedRemovalRatioEnd.ANYmalBearFast_trot   = 0; %0.3;
 
-suggestedRemovalRatioStart.ANYmalBear_fastTrotExtendedxNom3 = 0;%0.3; %0.3;
-suggestedRemovalRatioEnd.ANYmalBear_fastTrotExtendedxNom3   = 0;%0.2; %0.3;
+suggestedRemovalRatioStart.ANYmalBear_fastTrotExtendedxNom3 = 0; %0.3; %0.3;
+suggestedRemovalRatioEnd.ANYmalBear_fastTrotExtendedxNom3   = 0; %0.2; %0.3;
 
 suggestedRemovalRatioStart.ANYmalBear_slowTrot = 0; %0.3;
 suggestedRemovalRatioEnd.ANYmalBear_slowTrot   = 0; %0.3;

@@ -95,11 +95,6 @@ function penalty = computePenalty(actuatorProperties, imposeJointLimits, heurist
         %% Get joint velocities and accelerations with finite differences
         [tempLeg.(EEselection).qdot, tempLeg.(EEselection).qdotdot] = getJointVelocitiesUsingFiniteDifference(EEselection, tempLeg, dt);
         tempLeg.(EEselection).q = tempLeg.(EEselection).q(1:end-2,:); % remove the two supplementary points for position after solving for joint speed and acceleration 
-        % Smoothen the velocity and acceleration data using moving average
-        for j = 1:length(Leg.(EEselection).qdot(1,:))
-            tempLeg.(EEselection).qdot(:,j) = smooth(tempLeg.(EEselection).qdot(:,j));
-            tempLeg.(EEselection).qdotdot(:,j) = smooth(tempLeg.(EEselection).qdotdot(:,j));
-        end
         
         %% Get joint torques using inverse dynamics
         externalForce = Leg.(EEselection).force(:,1:3);
@@ -363,52 +358,6 @@ function penalty = computePenalty(actuatorProperties, imposeJointLimits, heurist
             tempLeg.(EEselection).actuatorTorque(:,2) =  tempLeg.(EEselection).actuatorTorque(:,2) + tempLeg.(EEselection).actuatorTorque(:,3);
         end
         
-        %% If using Dynamixel 64R or XM540, we have more detailed torque,speed data for actuator limit considerations
-         totalDynamixelLimitViolationPenalty = 0; % initialize
-%         usingDynamixelActuators = false; % initialize as false
-%         for i = 1:jointCount 
-%             if strcmp('Dynamixel64R', actuatorSelection.(jointSelection)) || strcmp('DynamixelXM540', actuatorSelection.(jointSelection))
-%                 usingDynamixelActuators = true; % set to true if any of the joints use Dynamixel 64R or XM540
-%             end
-%         end
-%         if usingDynamixelActuators
-%             [polynomials64R, torquePoints64R, polynomialsXM540, torquePointsXM540] = DynamixelPerformanceGraphs; % compute performance graph values once
-%             for i = 1:jointCount
-%                     jointSelection = jointNames(i,:);
-%                     if strcmp('Dynamixel64R', actuatorSelection.(jointSelection))
-%                         maxActuatorqdotValues.(jointSelection) = polyval(polynomials64R,tempLeg.(EEselection).actuatorTorque(:,i));
-%                     elseif strcmp('DynamixelXM540', actuatorSelection.(jointSelection))
-%                         maxActuatorqdotValues.(jointSelection) = polyval(polynomialsXM540,tempLeg.(EEselection).actuatorTorque(:,i));
-%                     end
-%                     % Set a tolerance on how close the speed can get to limit before it is penalized
-%                     if strcmp('Dynamixel64R', actuatorSelection.(jointSelection))
-%                         noLoadSpeed = polyval(polynomials64R,0);
-%                         DynamixelSpeedTol = 0.05*noLoadSpeed; 
-%                     else
-%                         noLoadSpeed = polyval(polynomialsXM540,0);
-%                         DynamixelSpeedTol = 0.05*noLoadSpeed;
-%                     end
-%                     % Determine if the max speed is ever violated and penalize the
-%                     % magnitude of the violation
-%                     if any(abs(tempLeg.(EEselection).actuatorqdot(:,i)) - abs(maxActuatorqdotValues.(jointSelection)) > DynamixelSpeedTol)
-%                         % Determine magnitude and index of maximum
-%                         % violation
-%                         [maxDynamixelLimitViolation,indexOfMaxDynamixelLimitViolation] = max(abs(tempLeg.(EEselection).actuatorqdot(:,i)) - abs(maxActuatorqdotValues.(jointSelection)),[],1);
-%                         if strcmp('Dynamixel64R', actuatorSelection.(jointSelection))
-%                             polynomials = polynomials64R;
-%                         else
-%                             polynomials = polynomialsXM540;
-%                         end
-%                         weightDynamixelSpeedPenalty = 10;
-%                         % Penalize magnitude of violation / actuator limit
-%                         % at the point of max violation
-%                         DynamixelLimitViolationPenalty.(jointSelection) = weightDynamixelSpeedPenalty * maxDynamixelLimitViolation / polyval(polynomials, tempLeg.(EEselection).actuatorTorque(indexOfMaxDynamixelLimitViolation,i));
-%                     else 
-%                         DynamixelLimitViolationPenalty.(jointSelection) = 0;
-%                     end            
-%             end
-%             totalDynamixelLimitViolationPenalty = totalDynamixelLimitViolationPenalty + DynamixelLimitViolationPenalty.(jointSelection);
-%         end
         %% Soft constraints due to actuator limits
         % get the maximum actuator torque speed and power for each joint
         % after applying transmission ratios
@@ -489,67 +438,67 @@ function penalty = computePenalty(actuatorProperties, imposeJointLimits, heurist
         %% Joint too close to ground
         % Requires us to bring in hipNomZ
         % For flat ground, ground height is the distance CoM z position.
-            groundHeight = -Leg.base.position.(EEselection)(:,3);
-            allowableHeightAboveGround = 0; % m
-            % Get the height of the lowest joint at each time step.
-            for i = 1:length(tempLeg.(EEselection).r.HAA(:,3))
-                jointHeight = []; % Initialize jointHeight to be empty
-                for j = 1:linkCount+1 
-                    % Fill in joint heights for all of the joints in the leg.
-                    jointHeight = [jointHeight, tempLeg.(EEselection).r.(jointNames(j,:))(i,3)];         
-                end
-                % return the lowest point of all joints at time i
-                lowestJoint(i,1) =  min(jointHeight);
-            end              
-            % Apply penalty if the lowest joint is ever too close to the ground                 
-            if any(lowestJoint - groundHeight(1:length(lowestJoint)) < allowableHeightAboveGround)
-                jointBelowGroundPenalty = 10;
-            else
-                jointBelowGroundPenalty = 0;
+        groundHeight = -Leg.base.position.(EEselection)(:,3);
+        allowableHeightAboveGround = 0; % m
+        % Get the height of the lowest joint at each time step.
+        for i = 1:length(tempLeg.(EEselection).r.HAA(:,3))
+            jointHeight = []; % Initialize jointHeight to be empty
+            for j = 1:linkCount+1 
+                % Fill in joint heights for all of the joints in the leg.
+                jointHeight = [jointHeight, tempLeg.(EEselection).r.(jointNames(j,:))(i,3)];         
             end
+            % return the lowest point of all joints at time i
+            lowestJoint(i,1) =  min(jointHeight);
+        end              
+        % Apply penalty if the lowest joint is ever too close to the ground                 
+        if any(lowestJoint - groundHeight(1:length(lowestJoint)) < allowableHeightAboveGround)
+            jointBelowGroundPenalty = 10;
+        else
+            jointBelowGroundPenalty = 0;
+        end
 
         %% KFE above HFE penalty - otherwise spider config preferred
         % find max z position of KFE and penalize if above origin
-           jointHeightHFE = tempLeg.(EEselection).r.HFE(:,3);
-           jointHeightKFE = tempLeg.(EEselection).r.KFE(:,3);
+       jointHeightHFE = tempLeg.(EEselection).r.HFE(:,3);
+       jointHeightKFE = tempLeg.(EEselection).r.KFE(:,3);
 
-            % Apply penalty if KFE joint is ever above HFE joint
-            if any(jointHeightKFE > jointHeightHFE)
-                KFEAboveHFEPenalty = 0;
-            else
-                KFEAboveHFEPenalty = 0;
-            end
+        % Apply penalty if KFE joint is ever above HFE joint
+        if any(jointHeightKFE > jointHeightHFE)
+            KFEAboveHFEPenalty = 0;
+        else
+            KFEAboveHFEPenalty = 0;
+        end
 
         %% AFE/DFE in front of end effector (Control spring deform. direction)
-            % Applies only if using spring heuristic
-            if linkCount>2 && heuristic.torqueAngle.apply                 
-                for i = 1:length(tempLeg.(EEselection).r.HAA(:,3))
-                    if linkCount == 3
-                        jointPositionxLastJoint(i,1) = tempLeg.(EEselection).r.AFE(i,1);
-                    else
-                        jointPositionxLastJoint(i,1) = tempLeg.(EEselection).r.DFE(i,1);
-                    end            
-                end   
-                % Apply penalty if last joint (AFE or DFE) is ever in front of EE
-                if any(jointPositionxLastJoint > tempLeg.(EEselection).r.EE(i,1))
-                    lastJointInFrontOfEEPenalty = 10;
+        % Applies only if using spring heuristic
+        if linkCount>2 && heuristic.torqueAngle.apply                 
+            for i = 1:length(tempLeg.(EEselection).r.HAA(:,3))
+                if linkCount == 3
+                    jointPositionxLastJoint(i,1) = tempLeg.(EEselection).r.AFE(i,1);
                 else
-                    lastJointInFrontOfEEPenalty = 0;
-                end 
+                    jointPositionxLastJoint(i,1) = tempLeg.(EEselection).r.DFE(i,1);
+                end            
+            end   
+            % Apply penalty if last joint (AFE or DFE) is ever in front of EE
+            if any(jointPositionxLastJoint > tempLeg.(EEselection).r.EE(i,1))
+                lastJointInFrontOfEEPenalty = 10;
             else
                 lastJointInFrontOfEEPenalty = 0;
-            end
+            end 
+        else
+            lastJointInFrontOfEEPenalty = 0;
+        end
 
         %% Overextension penalty
-            if optimizationProperties.penaltyWeight.maximumExtension % if true, calculate and penalize for overzealous extension
-                offsetHFE2EEdes = tempLeg.(EEselection).r.HFE - meanCyclicMotionHipEE.(EEselection).position(1:end-2,:); % offset from HFE to desired EE position at all time steps
-                maxOffsetHFE2EEdes = max(sqrt(sum(offsetHFE2EEdes.^2,2))); % max euclidian distance from HFE to desired EE position
-                if maxOffsetHFE2EEdes > allowableExtension*sum(linkLengths(2:end))
-                    maximumExtensionPenalty = 10;
-                else 
-                    maximumExtensionPenalty = 0;
-                end
+        if optimizationProperties.penaltyWeight.maximumExtension % if true, calculate and penalize for overzealous extension
+            offsetHFE2EEdes = tempLeg.(EEselection).r.HFE - meanCyclicMotionHipEE.(EEselection).position(1:end-2,:); % offset from HFE to desired EE position at all time steps
+            maxOffsetHFE2EEdes = max(sqrt(sum(offsetHFE2EEdes.^2,2))); % max euclidian distance from HFE to desired EE position
+            if maxOffsetHFE2EEdes > allowableExtension*sum(linkLengths(2:end))
+                maximumExtensionPenalty = 10;
+            else 
+                maximumExtensionPenalty = 0;
             end
+        end
 
         %% Compute total penalty as sum of optimization goal related penalty terms and soft constraints
         penalty = W_totalTorque         * (totalTorque/totalTorqueInitial) + ...
@@ -575,9 +524,8 @@ function penalty = computePenalty(actuatorProperties, imposeJointLimits, heurist
                   KFEAboveHFEPenalty          + ...
                   lastJointInFrontOfEEPenalty + ... % only applies for spring at final joint to control the spring deformation direction
                   optimizationProperties.penaltyWeight.maximumExtension * maximumExtensionPenalty + ...
-                  torqueLimitPenalty + ...
-                  speedLimitPenalty  + ...
-                  powerLimitPenalty  + ...
-                  totalDynamixelLimitViolationPenalty;
+                  10*torqueLimitPenalty + ...
+                  10*speedLimitPenalty  + ...
+                  10*powerLimitPenalty  + ...
     end
 end

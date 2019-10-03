@@ -26,6 +26,7 @@ for optimizationNumber = 1:optimizationCount
             results.(classSelection).(task)(optimizationNumber).(EEselection) = orderfields(results.(classSelection).(task)(optimizationNumber).(EEselection));
         end
         generatePlots(viewPlots, results.(classSelection).(task)(optimizationNumber), task, optimizeLeg, saveFiguresToPDF);    
+
         runVisualizationScripts(robotVisualization, optimizationProperties, results.(classSelection).(task)(optimizationNumber));
     end 
 end

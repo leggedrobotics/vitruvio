@@ -1,7 +1,7 @@
 function [] = plotJointDataForAllLegs(data, data2, optimizeLeg, saveFiguresToPDF)
     %% Select which plots are to be displayed
     displayJointLevelPlots         = true;
-    displayActuatorLevelPlots      = false;
+    displayActuatorLevelPlots      = true;
     displayActivePassiveLevelPlots = false;
     displayMotorLevelPlots         = false;
 
@@ -370,8 +370,12 @@ function [] = plotJointDataForAllLegs(data, data2, optimizeLeg, saveFiguresToPDF
                     end
                 end            
                 grid on
-                xlabel('Time [s]')
-                ylabel('Position [rad]')
+                if j == linkCount+1
+                    xlabel('Time [s]')
+                end
+               % if strcmp('LF', EEselection)
+                    ylabel('Position [rad]')
+               % end
                 xlim(xlimit.time)
                 ylim(ylimit.q)
                 title([EEselection, ' ', plotTitle{k}])
@@ -388,7 +392,7 @@ function [] = plotJointDataForAllLegs(data, data2, optimizeLeg, saveFiguresToPDF
         set(gcf,'color','w')
         plotTitle = {'\omega_{HAA}','\omega_{HFE}','\omega_{KFE}','\omega_{AFE}','\omega_{DFE}'};
         for i = 1:legCount
-            k = 1; % plot title index
+            k = 1; % Plot title index
             EEselection = EEnames(i,:);
             for j = 1:linkCount+1
                 subplot(linkCount+1, legCount, i + (j-1)*legCount);
@@ -401,11 +405,11 @@ function [] = plotJointDataForAllLegs(data, data2, optimizeLeg, saveFiguresToPDF
                 if optimizeLeg.(EEselection)
                     p(3) = plot(data.time(startTimeIndex:startTimeIndex+length(jointqdotOpt.(EEselection))-1),  jointqdotOpt.(EEselection)(:,j), lineColourOpt, 'LineWidth', LineWidth);
                 end
-                % plot actuator limits on the same plot
+                % Plot actuator limits on the same plot
                 p(4) = line([min(xlim),max(xlim)],[data.actuatorProperties.maxqdotLimit.(jointNames(j,:)), data.actuatorProperties.maxqdotLimit.(jointNames(j,:))], 'Color', 'k', 'LineStyle', '--');
                 p(5) = line([min(xlim),max(xlim)],[-data.actuatorProperties.maxqdotLimit.(jointNames(j,:)), -data.actuatorProperties.maxqdotLimit.(jointNames(j,:))], 'Color', 'k', 'LineStyle', '--');            
 
-                if j == 1 % only show legend on HAA subplots
+                if j == 1 % Only show legend on HAA subplots
                     if plotDataSet2 && max(ylimit.qdot) > data.actuatorProperties.maxqdotLimit.(jointNames(j,:)) % If actuator limits visible on plot
                         legend([p(1) p(2) p(4)], 'approximated inertia', 'exact inertia', 'actuator limits')
                     elseif plotDataSet2 % Actuator limits not visible
@@ -420,8 +424,12 @@ function [] = plotJointDataForAllLegs(data, data2, optimizeLeg, saveFiguresToPDF
                 end
 
                 grid on
-                xlabel('Time [s]')
-                ylabel('Velocity [rad/s]')
+                if j == linkCount + 1
+                    xlabel('Time [s]')
+                end
+                if strcmp('LF', EEselection)
+                    ylabel('Velocity [rad/s]')
+                end
                 xlim(xlimit.time)
                 ylim(ylimit.qdot)
                 title([EEselection, ' ', plotTitle{k}])
@@ -469,8 +477,12 @@ function [] = plotJointDataForAllLegs(data, data2, optimizeLeg, saveFiguresToPDF
                     end
                 end
                 grid on
-                xlabel('Time [s]')
-                ylabel('Torque [Nm]')
+                if j == linkCount+1
+                    xlabel('Time [s]')
+                end
+                if strcmp('LF', EEselection)
+                    ylabel('Torque [Nm]')
+                end
                 xlim(xlimit.time)
                 ylim(ylimit.torque)
                 title([EEselection, ' ', plotTitle{k}])
@@ -518,8 +530,12 @@ function [] = plotJointDataForAllLegs(data, data2, optimizeLeg, saveFiguresToPDF
                     end
                 end
 
-                xlabel('Time [s]')
-                ylabel('P_{mech} [W]')
+                if j == linkCount+1
+                    xlabel('Time [s]')
+                end
+                if strcmp('LF', EEselection)
+                    ylabel('P_{mech} [W]')
+                end
                 xlim(xlimit.time)
                 ylim(ylimit.power)
                 title([EEselection, ' ', plotTitle{k}])
@@ -559,8 +575,12 @@ function [] = plotJointDataForAllLegs(data, data2, optimizeLeg, saveFiguresToPDF
                 end
 
                 grid on
-                xlabel('Time [s]')
-                ylabel('E_{mech} [J]')
+                if j == linkCount+1
+                    xlabel('Time [s]')
+                end
+                if strcmp('LF', EEselection)
+                    ylabel('E_{mech} [J]')
+                end
                 xlim(xlimit.time)
                 ylim(ylimit.mechEnergy)
                 title([EEselection, ' ', plotTitle{k}])
@@ -622,8 +642,12 @@ function [] = plotJointDataForAllLegs(data, data2, optimizeLeg, saveFiguresToPDF
                     end
                 end
                 grid on
-                xlabel('Time [s]')
-                ylabel('Torque [Nm]')
+                if j == linkCount+1
+                    xlabel('Time [s]')
+                end
+                if strcmp('LF', EEselection)
+                    ylabel('Torque [Nm]')
+                end
                 xlim(xlimit.time)
                 ylim(ylimit.torque)
                 title([EEselection, ' ', plotTitle{k}])
@@ -675,8 +699,12 @@ function [] = plotJointDataForAllLegs(data, data2, optimizeLeg, saveFiguresToPDF
                     end
                 end
                 grid on
-                xlabel('Time [s]')
-                ylabel('Power [W]')
+                if j == linkCount+1
+                    xlabel('Time [s]')
+                end
+                if strcmp('LF', EEselection)
+                    ylabel('Power [W]')
+                end
                 xlim(xlimit.time)
                 ylim(ylimit.activePower)
                 title([EEselection, ' ', plotTitle{k}])
@@ -716,8 +744,12 @@ function [] = plotJointDataForAllLegs(data, data2, optimizeLeg, saveFiguresToPDF
                 end
 
                 grid on
-                xlabel('Time [s]')
-                ylabel('E_{mech} [J]')
+                if j == linkCount+1
+                    xlabel('Time [s]')
+                end
+                if strcmp('LF', EEselection)
+                    ylabel('E_{mech} [J]')
+                end
                 xlim(xlimit.time)
                 ylim(2*ylimit.mechEnergy)
                 title([EEselection, ' ', plotTitle{k}])
@@ -768,8 +800,12 @@ function [] = plotJointDataForAllLegs(data, data2, optimizeLeg, saveFiguresToPDF
                 end
 
                 grid on
-                xlabel('Time [s]')
-                ylabel('Velocity [rad/s]')
+                if j == linkCount+1
+                    xlabel('Time [s]')
+                end
+                if strcmp('LF', EEselection)
+                    ylabel('Velocity [rad/s]')
+                end
                 xlim(xlimit.time)
                 ylim(ylimit.qdot)
                 title([EEselection, ' ', plotTitle{k}])
@@ -817,8 +853,12 @@ function [] = plotJointDataForAllLegs(data, data2, optimizeLeg, saveFiguresToPDF
                     end
                 end
                 grid on
-                xlabel('Time [s]')
-                ylabel('Torque [Nm]')
+                if j == linkCount+1
+                    xlabel('Time [s]')
+                end
+                if strcmp('LF', EEselection)
+                    ylabel('Torque [Nm]')
+                end
                 xlim(xlimit.time)
                 ylim(ylimit.torque)
                 title([EEselection, ' ', plotTitle{k}])
@@ -868,8 +908,12 @@ function [] = plotJointDataForAllLegs(data, data2, optimizeLeg, saveFiguresToPDF
                     end
                 end
 
-                xlabel('Time [s]')
-                ylabel('P_{mech} [W]')
+                if j == linkCount+1
+                    xlabel('Time [s]')
+                end
+                if strcmp('LF', EEselection)
+                    ylabel('P_{mech} [W]')
+                end
                 xlim(xlimit.time)
                 ylim([0, 6*ylimit.power(2)])
                 title([EEselection, ' ', plotTitle{k}])
@@ -909,8 +953,12 @@ function [] = plotJointDataForAllLegs(data, data2, optimizeLeg, saveFiguresToPDF
                 end
 
                 grid on
-                xlabel('Time [s]')
-                ylabel('E_{mech} [J]')
+                if j == linkCount+1
+                    xlabel('Time [s]')
+                end
+                if strcmp('LF', EEselection)
+                    ylabel('E_{mech} [J]')
+                end
                 xlim(xlimit.time)
                 ylim(5*ylimit.mechEnergy)
                 title([EEselection, ' ', plotTitle{k}])

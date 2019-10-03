@@ -4,13 +4,14 @@
 
 _Vitruvio_ is a framework for rapid leg design analysis and optimization for legged robots. The purpose of the simulation framework is to guide the early stages of legged robot design. The end effectors track an input trajectory and the necessary joint speed, torque, power and energy for the tracking is computed. These values are subject to a set of customizable user design selections in the form of toggle switches. Optionally, a set of low level design parameters are then optimized using a genetic algorithm optimizer to reduce a user-specified cost funtion.
 
-The framework relies on first importing trajectory data consisting of a center of mass position and orientation as well as end effector positions and forces over time. The input trajectories have been generated using the _TOWR_ trajectory optimizer: https://github.com/ethz-adrl/towr 
+The framework relies on first importing trajectory data consisting of a center of mass position and orientation as well as end effector positions and forces over time. The input trajectories have been generated using the [_TOWR_ trajectory optimizer](https://github.com/ethz-adrl/towr) 
 
 _TOWR_ allows for quick computation of feasible trajectories for different tasks using a small set of robot design parameters and as such is well suited to aiding in simulation in the early design stages. 
 
 ![](results/sampleVisualization_1.gif)
 ![](results/sampleVisualization_2.gif)
 ![](results/sampleVisualization_3.gif)
+![](results/sampleVisualization_4.gif)
 
 ## Features
 
@@ -60,47 +61,45 @@ These can be added using the Add-Ons button in the Matlab Home tab.
 
 ## Usage
  
-The user should control the simulation using the toggles in the __main.m__ script. New robots and actuators can be added in __getRobotProperties.m__ and __getActuatorProperties.m__. To import a new ROSbag with a trajectory from _TOWR_, use the __importMotionData.m__ script.
-
+The user should control the simulation using the toggles in `main.m`.
 The intended work flow is as follows:
    
    1. High level robot design decisions are made including quantity of legs, robot mass, center of mass height and end effector positions in nominal stance.
-   2. Based on these decisions, the inertia tensor for the robot at its center of mass are computed from a simplified CAD model.
+   2. Based on these decisions, the inertia tensor for the nominal stance robot at its COM are computed from a simplified CAD model.
    3. These design parameters and inertia tensors are input into a new robot model in _TOWR_ and the motion is simulated for a given task by specifying gait, goal position, duration and terrain.
-   4. The simulated data is imported into _Vitruvio_.
+   4. The simulated ROSbag is imported into _Vitruvio_ and saved as a .mat file.
    5. The user makes high level design decisions in _Vitruvio_ and runs the simulation to obtain the required joint speed, torque, power, energy for tracking the motion. If applicable, the optimized leg design parameters are also returned along with comparison of the results for the nominal and optimized leg. These are all recorded in a structure named __results__.
-   6. The user can adapt high level design aspects and the cost function terms as desired in the __main.m__ script.
-   7. If toggled on in __main.m__, a PDF file and txt file are automatically generated containing all the figures and command window printouts created during the simulation. 
+   6. The user can adapt high level design aspects and the cost function terms as desired in the `main.m` script.
+   7. If toggled on in `main.m`, a PDF file and txt file are automatically generated containing all the figures and command window printouts created during the simulation. 
 
 ## Example
 
-To run _Vitruvio_, open the __main.m__ script and review the different options which can be toggled on/off. These include high level design decisions, visualization options and selection of robots to be optimized. 
-The toggles have been set to simulate the universal robot class performing a trot motion using the nominal robot properties read in from the __getRobotProperties.m__ script. 
+To run _Vitruvio_, open `main.m` and review the different options which can be toggled on/off. These include high level design decisions, visualization options and selection of robots to be optimized. 
+The toggles have been set to simulate the universal robot class performing a trot motion using the nominal robot properties read in from the `scripts/robot and actuator properties/getRobotProperties.m` script. 
 
-Run __main.m__ and observe the result. The motion is visualized and several plots are generated to show the trajectory and joint data. The values are saved in a structure named _results_. This structure contains all the relevant input and output data of the simulation.
+Run `main.m` and observe the result. The motion is visualized and several plots are generated to show the trajectory and joint data. The values are saved in a structure named _results_. This structure contains all the relevant input and output data of the simulation.
 
 ### Optimization 
 
-Now try running the optimization by setting _runOptimization = true_. This will run the genetic algorithm optimization for the link lengths within the specified upper and lower bounds. The default population size and number of generations are both 10 but can be increased to improve the result of the optimization. While the optimization runs, the penalty value of the current best design is shown in the command window. This has been normalized such that values < 1 are an improvement on the nominal design while values > 1 generally indicate worse performance than the nominal design. If the penalty is > 1 this can also indicate that a soft constraint has been violated. Soft constraints violations include joint positions below ground and violation of actuator torque, speed and power limits. Theses are found in __computePenalty.m__.
-
-The cost function is a sum of cost terms which can be included by setting their weights in _optimizationProperties.penaltyWeight_ to non-zero or removed from the cost function by setting the terms to zero. Some soft constraints such as limiting leg extension and imposing the actuator limits are also activated/deactivated in __main.m__ by setting them to true/false. Others which ensure physical feasibility are always enforced and are found in the __computePenalty.m__ script.
+Now try running the optimization by setting _runOptimization = true_ in `main.m`. This will run the genetic algorithm optimization for the link lengths within the specified upper and lower bounds. The default population size and number of generations are both 10 but can be increased to improve the result of the optimization. While the optimization runs, the penalty value of the current best design is shown in the command window. This has been normalized such that values < 1 are an improvement on the nominal design while values > 1 generally indicate worse performance than the nominal design when no soft constraints are violated. If the penalty is > 1 this can also indicate that a soft constraint has been violated. 
+The cost function is a sum of cost terms which can be included by setting their weights in _optimizationProperties.penaltyWeight_ to non-zero or removed from the cost function by setting the terms to zero. Some soft constraints such as limiting leg extension and imposing the actuator limits are also activated/deactivated in `main.m` by setting them to true/false. Others which ensure physical feasibility (joint positions below ground and violation of actuator torque, speed and power limits) are always enforced and are found in the `scripts/optimization/computePenalty.m` script.
 
 Play around with the different toggle options to understand the different degrees of freedom available to the user.
 
+![](results/sampleOptimization.gif)
+
 ### Adding your own robot 
 
-To add your own robot and task, first the trajectory data must be input into _Vitruvio_. If using _TOWR_ to generate trajectories, the first step is to drop the ROSbag into the _vitruvio_ folder and run the __importMotionData.m__ script which reads in the trajectory data from a and saves it into a .mat file.
-
-After importing the motion data, you will need to add your robot and task to the following scripts in _vitruvio_.
-
+To add your own robot, you will need to modify the following scripts:
    1. main
    2. getRobotProperties
    3. getRemovalRatios (optional to crop the motion data)
    
-Each of these scripts has a section at the top with a template to follow in adding your own robot and task. Similarly if you would like to add a new actuator, this can be done in __getActuatorProperties.m__ 
+First the trajectory data must be input into _Vitruvio_. Drop the ROSbag generated in _TOWR_ into the _vitruvio_ folder and run the `scripts/trajectory extraction/importMotionData.m` script (first specify robot mass and leg quantity in this script) which reads in the trajectory data and saves it into a .mat file. This .mat file should follow the naming convention of _robotclass_task.mat_. In `main.m` you will need to add the name of the data file dataSelection.robotclass_task to toggle on/off the analysis of this data. 
+
+New robots are added in `scripts/robot and actuator properties/getRobotProperties.m`. Here you must specify geometric properties such as the positions of the HAA joints relative to the COM, the nominal link lengths, densities, end-effector mass. New actuators can be added in `scripts/robot and actuator properties/getActuatorProperties.m` by specifying the actuator mass and limits.
 
 ### Limitations
 Currently _Vitruvio_ only fully considers pitch of the base and neglects roll and yaw. As such, only straight line and stair climbing motions can be anaylzed. Motions that involve turning are not properly tracked.
-
 
 ## License

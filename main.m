@@ -74,7 +74,7 @@ heuristic.torqueAngle.kTorsionalSpring = 50; % Spring constant for torsional spr
 
 %% Visualization toggles
 saveFiguresToPDF               = false;  % Figures are saved to results.pdf in current folder. This adds significant computation time.
-robotVisualization.view        = true;   % Visualization of nominal robot
+robotVisualization.view        = false;   % Visualization of nominal robot
 robotVisualization.oneLeg      = false;  % View a single leg tracking the trajectory.
 robotVisualization.allLegs     = true;   % View motion with all legs (incompatible with averageStepsForCyclicalMotion = true)
 robotVisualization.torso       = false;  % Also displays a torso at the front of the robot, dimensions defined in visualizeRobot.m
@@ -119,7 +119,7 @@ optimizationCount = 1; % Set to 1 to run the optimization only once. For values 
 optimizationProperties.runOptimization = false; % If true, selected legs will be optimize
 % Select which legs are to be optimized
 optimizeLeg.LF = true; 
-optimizeLeg.RF = true; 
+optimizeLeg.RF = false; 
 optimizeLeg.LH = false; 
 optimizeLeg.RH = false;
 
@@ -132,7 +132,7 @@ optimizationProperties.options.populationSize = 10;
 % The limiting values are defined for each actuator in getActuatorProperties. A penalty term is incurred
 % for violations of these limits.
 imposeJointLimits.maxTorque = false;
-imposeJointLimits.maxqdot   = false;
+imposeJointLimits.maxqdot   = true;
 imposeJointLimits.maxPower  = false;
 imposeJointLimits.limitingValue = 1; % Specified as a ratio of the actuator limit. Penalize when actuators loaded beyond this value.
 
@@ -144,7 +144,7 @@ imposeJointLimits.limitingValue = 1; % Specified as a ratio of the actuator limi
 % the tranmission ratio is 1, actuator and joint level are equivalent.
 optimizationProperties.penaltyWeight.totalSwingTorque   = 0;   % Terms which penalize swing/stance are only used when averageStepsForCyclicalMotion = true
 optimizationProperties.penaltyWeight.totalStanceTorque  = 0;
-optimizationProperties.penaltyWeight.totalTorque        = 1;
+optimizationProperties.penaltyWeight.totalTorque        = 0;
 optimizationProperties.penaltyWeight.totalTorqueHFE     = 0;
 optimizationProperties.penaltyWeight.totalTorqueKFE     = 0;
 optimizationProperties.penaltyWeight.swingTorqueHFE     = 0;
@@ -159,7 +159,7 @@ optimizationProperties.penaltyWeight.maxTorque          = 0;
 optimizationProperties.penaltyWeight.maxqdot            = 0;
 optimizationProperties.penaltyWeight.maxPower           = 0;    % Only considers power terms > 0
 optimizationProperties.penaltyWeight.antagonisticPower  = 0;    % Seeks to minimize antagonistic power which improves power quality
-optimizationProperties.penaltyWeight.mechCoT            = 0;    % Mechanical cost of transport contribution of optimized leg
+optimizationProperties.penaltyWeight.mechCoT            = 1;    % Mechanical cost of transport contribution of optimized leg
 optimizationProperties.penaltyWeight.maximumExtension   = true; % Large penalty incurred if leg extends beyond allowable amount
 optimizationProperties.allowableExtension               = 0.9;  % Penalize extension above this ratio of total possible extension
 
@@ -187,11 +187,11 @@ optimizationProperties.bounds.upperBoundMultiplier.hipOffset = 1;
 optimizationProperties.bounds.lowerBoundMultiplier.transmissionGearRatio.HAA = 1;
 optimizationProperties.bounds.upperBoundMultiplier.transmissionGearRatio.HAA = 1;
 
-optimizationProperties.bounds.lowerBoundMultiplier.transmissionGearRatio.HFE = 0.5;
-optimizationProperties.bounds.upperBoundMultiplier.transmissionGearRatio.HFE = 2;
+optimizationProperties.bounds.lowerBoundMultiplier.transmissionGearRatio.HFE = 1;
+optimizationProperties.bounds.upperBoundMultiplier.transmissionGearRatio.HFE = 1;
 
-optimizationProperties.bounds.lowerBoundMultiplier.transmissionGearRatio.KFE = 1;
-optimizationProperties.bounds.upperBoundMultiplier.transmissionGearRatio.KFE = 1;
+optimizationProperties.bounds.lowerBoundMultiplier.transmissionGearRatio.KFE = 0.5;
+optimizationProperties.bounds.upperBoundMultiplier.transmissionGearRatio.KFE = 2;
 
 optimizationProperties.bounds.lowerBoundMultiplier.transmissionGearRatio.AFE = 1;
 optimizationProperties.bounds.upperBoundMultiplier.transmissionGearRatio.AFE = 1;
