@@ -175,13 +175,16 @@ fprintf('Optimized leg design parameters :')
 disp(legDesignParameters);
 
 %% Save optimized parameters
-tempLeg.base = Leg.base;
+tempLeg.base                = Leg.base;
 tempLeg.(EEselection).force = Leg.(EEselection).force;
-tempLeg.basicProperties = Leg.basicProperties;
+tempLeg.basicProperties     = Leg.basicProperties;
+tempLeg.actuatorProperties  = Leg.actuatorProperties;
 
-jointCount = linkCount+1;
-linkLengths = legDesignParameters(1:jointCount);
+
+jointCount            = linkCount+1;
+linkLengths           = legDesignParameters(1:jointCount);
 transmissionGearRatio = legDesignParameters(jointCount+1:2*jointCount);
+
 if springInParallelWithJoints
     kSpringJointOpt.(EEselection) = legDesignParameters(2*jointCount+1:3*jointCount);
 else
@@ -196,12 +199,14 @@ else
     springOpt.thetaLiftoff_des = [];
 end
 
-robotProperties.hip(selectFrontHind).length = linkLengths(1);
+robotProperties.hip(selectFrontHind).length   = linkLengths(1);
 robotProperties.thigh(selectFrontHind).length = linkLengths(2);
 robotProperties.shank(selectFrontHind).length = linkLengths(3);
+
 if (linkCount == 3) || (linkCount == 4)
     robotProperties.foot(selectFrontHind).length = linkLengths(4);
 end
+
 if linkCount == 4
     robotProperties.phalanges(selectFrontHind).length = linkLengths(5);
 end
@@ -211,12 +216,14 @@ for i = 1:linkCount+1
 end
 
 % Update link mass with assumption of constant density cylinder
-robotProperties.hip(selectFrontHind).mass = robotProperties.legDensity.hip(selectFrontHind) * pi*(robotProperties.hip(selectFrontHind).radius)^2   * abs(linkLengths(1));
+robotProperties.hip(selectFrontHind).mass   = robotProperties.legDensity.hip(selectFrontHind) * pi*(robotProperties.hip(selectFrontHind).radius)^2   * abs(linkLengths(1));
 robotProperties.thigh(selectFrontHind).mass = robotProperties.legDensity.thigh(selectFrontHind) * pi*(robotProperties.thigh(selectFrontHind).radius)^2 * abs(linkLengths(2));
 robotProperties.shank(selectFrontHind).mass = robotProperties.legDensity.shank(selectFrontHind) * pi*(robotProperties.shank(selectFrontHind).radius)^2 * abs(linkLengths(3));
+
 if (linkCount == 3) || (linkCount == 4)
     robotProperties.foot(selectFrontHind).mass = robotProperties.legDensity.foot(selectFrontHind) * pi*(robotProperties.foot(selectFrontHind).radius)^2 * abs(linkLengths(4));
 end
+
 if (linkCount ==4)
     robotProperties.phalanges(selectFrontHind).mass = robotProperties.legDensity.phalanges(selectFrontHind) * pi*(robotProperties.phalanges(selectFrontHind).radius)^2 * abs(linkLengths(5));
 end
@@ -245,9 +252,7 @@ tempLeg.base = Leg.base;
 % Create rigid body model for swing and stance. The only difference is the
 % presence of the gravity term.
 gravitySwing  = [0 0 -9.81]; % During swing phase, apply gravity
-gravityStance = [0 0 0]; % Do not apply gravity term in stance as the end-effector forces already include the weight of the legs and additional gravity here would be double counting the gravitational weight on the joints
 tempLeg.(EEselection).rigidBodyModelSwing  = buildRobotRigidBodyModel(gravitySwing, actuatorProperties, actuateJointDirectly, linkCount, robotProperties, tempLeg, EEselection);
-tempLeg.(EEselection).rigidBodyModelStance = buildRobotRigidBodyModel(gravityStance, actuatorProperties, actuateJointDirectly, linkCount, robotProperties, tempLeg, EEselection);
 
 %% Get joint velocities and accelerations using finite difference
 % finite difference to compute qdot
@@ -255,16 +260,11 @@ tempLeg.time = Leg.time;
 [tempLeg.(EEselection).qdot, tempLeg.(EEselection).qdotdot] = getJointVelocitiesUsingFiniteDifference(EEselection, tempLeg, dt);
 tempLeg.(EEselection).q = tempLeg.(EEselection).q(1:end-2,:); % no longer need the two additional points for position after solving for joint speed and acceleration
 
-%% Inverse dynamics
+%% Get joint torques as sum of kinetic term due to EE forces and dynamic term due to joint inertia
 externalForce = Leg.(EEselection).force(:,1:3);
-tempLeg.(EEselection).jointTorqueKinetic = getKineticJointTorques(externalForce, tempLeg, EEselection, meanCyclicMotionHipEE);
-tempLeg.(EEselection).jointTorqueDynamic = inverseDynamics(EEselection, tempLeg, meanCyclicMotionHipEE, linkCount);
-tempLeg.(EEselection).jointTorque = tempLeg.(EEselection).jointTorqueKinetic + tempLeg.(EEselection).jointTorqueDynamic;
-
-% Smoothen result using moving average
-for j = 1:length(Leg.(EEselection).jointTorque(1,:))
-    tempLeg.(EEselection).jointTorque(:,j) = smooth(tempLeg.(EEselection).jointTorque(:,j));
-end
+tempLeg.(EEselection).jointTorqueStance = getStanceJointTorques(externalForce, tempLeg, EEselection, meanCyclicMotionHipEE);
+tempLeg.(EEselection).jointTorqueSwing = getSwingJointTorques(EEselection, tempLeg, meanCyclicMotionHipEE, linkCount);
+tempLeg.(EEselection).jointTorque = tempLeg.(EEselection).jointTorqueStance + tempLeg.(EEselection).jointTorqueSwing;
 
 %% Get active and passive torques for spring modeled in parallel with joint
 if springInParallelWithJoints
@@ -326,50 +326,49 @@ end
 
 %% Get meta parameters
 [tempLeg.(EEselection).mechEnergy, tempLeg.metaParameters.mechEnergyPerCycle.(EEselection), tempLeg.(EEselection).elecEnergy, tempLeg.metaParameters.elecEnergyPerCycle.(EEselection)]  = computeEnergyConsumption(tempLeg.(EEselection).jointPower, tempLeg.(EEselection).electricalPower, dt);
- tempLeg.metaParameters.mechEnergyPerCycleTotal.(EEselection) = sum(tempLeg.metaParameters.mechEnergyPerCycle.(EEselection)(end,:));
- tempLeg.metaParameters.elecEnergyPerCycleTotal.(EEselection) = sum(tempLeg.metaParameters.elecEnergyPerCycle.(EEselection)(end,:));  
-
- [mechEnergyActiveOpt, mechEnergyPerCycleActiveOpt, ~, ~]  = computeEnergyConsumption(tempLeg.activePowerOpt, tempLeg.(EEselection).electricalPower, dt);
+tempLeg.metaParameters.mechEnergyPerCycleTotal.(EEselection) = sum(tempLeg.metaParameters.mechEnergyPerCycle.(EEselection)(end,:));
+tempLeg.metaParameters.elecEnergyPerCycleTotal.(EEselection) = sum(tempLeg.metaParameters.elecEnergyPerCycle.(EEselection)(end,:));  
+[mechEnergyActiveOpt, mechEnergyPerCycleActiveOpt, ~, ~]  = computeEnergyConsumption(tempLeg.activePowerOpt, tempLeg.(EEselection).electricalPower, dt);
 
 %% Return the results of the optimization
-optimizationResults.rigidBodyModelStanceOpt = tempLeg.(EEselection).rigidBodyModelStance;
-optimizationResults.linkLengthsOpt = linkLengths;
-optimizationResults.transmissionGearRatioOpt = transmissionGearRatio;
-optimizationResults.springOpt.kTorsionalSpring = springOpt.kTorsionalSpring;
-optimizationResults.springOpt.thetaLiftoff_des = springOpt.thetaLiftoff_des;
-optimizationResults.rOpt = tempLeg.(EEselection).r;
-optimizationResults.qOpt = tempLeg.(EEselection).q;
-optimizationResults.qdotOpt = tempLeg.(EEselection).qdot;
-optimizationResults.qdotdotOpt = tempLeg.(EEselection).qdotdot;
-optimizationResults.jointTorqueOpt = tempLeg.(EEselection).jointTorque;
-optimizationResults.jointPowerOpt = tempLeg.(EEselection).jointPower;
-optimizationResults.mechEnergyOpt = tempLeg.(EEselection).mechEnergy;
-optimizationResults.mechEnergyPerCycleOpt = tempLeg.metaParameters.mechEnergyPerCycle.(EEselection);
-optimizationResults.mechEnergyPerCycleTotalOpt = tempLeg.metaParameters.mechEnergyPerCycleTotal.(EEselection);
-optimizationResults.elecEnergyOpt = tempLeg.(EEselection).elecEnergy;
-optimizationResults.elecEnergyPerCycleOpt = tempLeg.metaParameters.elecEnergyPerCycle.(EEselection);
-optimizationResults.elecEnergyPerCycleTotalOpt = tempLeg.metaParameters.elecEnergyPerCycleTotal.(EEselection);
-optimizationResults.elecPowerOpt  = tempLeg.(EEselection).electricalPower;
-optimizationResults.operatingPointEfficiencyOpt = tempLeg.(EEselection).operatingPointEfficiency;
+optimizationResults.rigidBodyModelSwingOpt         = tempLeg.(EEselection).rigidBodyModelSwing;
+optimizationResults.linkLengthsOpt                  = linkLengths;
+optimizationResults.transmissionGearRatioOpt        = transmissionGearRatio;
+optimizationResults.springOpt.kTorsionalSpring      = springOpt.kTorsionalSpring;
+optimizationResults.springOpt.thetaLiftoff_des      = springOpt.thetaLiftoff_des;
+optimizationResults.rOpt                            = tempLeg.(EEselection).r;
+optimizationResults.qOpt                            = tempLeg.(EEselection).q;
+optimizationResults.qdotOpt                         = tempLeg.(EEselection).qdot;
+optimizationResults.qdotdotOpt                      = tempLeg.(EEselection).qdotdot;
+optimizationResults.jointTorqueOpt                  = tempLeg.(EEselection).jointTorque;
+optimizationResults.jointPowerOpt                   = tempLeg.(EEselection).jointPower;
+optimizationResults.mechEnergyOpt                   = tempLeg.(EEselection).mechEnergy;
+optimizationResults.mechEnergyPerCycleOpt           = tempLeg.metaParameters.mechEnergyPerCycle.(EEselection);
+optimizationResults.mechEnergyPerCycleTotalOpt      = tempLeg.metaParameters.mechEnergyPerCycleTotal.(EEselection);
+optimizationResults.elecEnergyOpt                   = tempLeg.(EEselection).elecEnergy;
+optimizationResults.elecEnergyPerCycleOpt           = tempLeg.metaParameters.elecEnergyPerCycle.(EEselection);
+optimizationResults.elecEnergyPerCycleTotalOpt      = tempLeg.metaParameters.elecEnergyPerCycleTotal.(EEselection);
+optimizationResults.elecPowerOpt                    = tempLeg.(EEselection).electricalPower;
+optimizationResults.operatingPointEfficiencyOpt     = tempLeg.(EEselection).operatingPointEfficiency;
 optimizationResults.operatingPointEfficiencyMeanOpt = mean(tempLeg.(EEselection).operatingPointEfficiency);
-optimizationResults.actuatorqOpt = tempLeg.(EEselection).actuatorq;
-optimizationResults.actuatorqdotOpt = tempLeg.(EEselection).actuatorqdot;
-optimizationResults.actuatorTorqueOpt = tempLeg.(EEselection).actuatorTorque;
-optimizationResults.penaltyMinOpt = penaltyMin;
-optimizationResults.linkMassOpt = linkMassOpt;
-optimizationResults.totalLinkMassOpt = totalLinkMassOpt;
-optimizationResults.deltaqMaxOpt = deltaqMaxOpt;
-optimizationResults.qdotMaxOpt = qdotMaxOpt;
-optimizationResults.jointTorqueMaxOpt = jointTorqueMaxOpt;
-optimizationResults.jointPowerMaxOpt = jointPowerMaxOpt;
-optimizationResults.actuatordeltaqMaxOpt = actuatordeltaqMaxOpt;
-optimizationResults.actuatorqdotMaxOpt = actuatorqdotMaxOpt;
-optimizationResults.actuatorTorqueMaxOpt = actuatorTorqueMaxOpt;
-optimizationResults.gaSettings = output;
-optimizationResults.activeTorqueOpt = tempLeg.activeTorqueOpt;
-optimizationResults.activePowerOpt = tempLeg.activePowerOpt;
-optimizationResults.passiveTorqueOpt = tempLeg.passiveTorqueOpt;
-optimizationResults.passivePowerOpt = tempLeg.passivePowerOpt;
-optimizationResults.kSpringJointOpt = kSpringJointOpt.(EEselection);
-optimizationResults.mechEnergyActiveOpt = mechEnergyActiveOpt;
-optimizationResults.mechEnergyPerCycleActiveOpt = mechEnergyPerCycleActiveOpt;
+optimizationResults.actuatorqOpt                    = tempLeg.(EEselection).actuatorq;
+optimizationResults.actuatorqdotOpt                 = tempLeg.(EEselection).actuatorqdot;
+optimizationResults.actuatorTorqueOpt               = tempLeg.(EEselection).actuatorTorque;
+optimizationResults.penaltyMinOpt                   = penaltyMin;
+optimizationResults.linkMassOpt                     = linkMassOpt;
+optimizationResults.totalLinkMassOpt                = totalLinkMassOpt;
+optimizationResults.deltaqMaxOpt                    = deltaqMaxOpt;
+optimizationResults.qdotMaxOpt                      = qdotMaxOpt;
+optimizationResults.jointTorqueMaxOpt               = jointTorqueMaxOpt;
+optimizationResults.jointPowerMaxOpt                = jointPowerMaxOpt;
+optimizationResults.actuatordeltaqMaxOpt            = actuatordeltaqMaxOpt;
+optimizationResults.actuatorqdotMaxOpt              = actuatorqdotMaxOpt;
+optimizationResults.actuatorTorqueMaxOpt            = actuatorTorqueMaxOpt;
+optimizationResults.gaSettings                      = output;
+optimizationResults.activeTorqueOpt                 = tempLeg.activeTorqueOpt;
+optimizationResults.activePowerOpt                  = tempLeg.activePowerOpt;
+optimizationResults.passiveTorqueOpt                = tempLeg.passiveTorqueOpt;
+optimizationResults.passivePowerOpt                 = tempLeg.passivePowerOpt;
+optimizationResults.kSpringJointOpt                 = kSpringJointOpt.(EEselection);
+optimizationResults.mechEnergyActiveOpt             = mechEnergyActiveOpt;
+optimizationResults.mechEnergyPerCycleActiveOpt     = mechEnergyPerCycleActiveOpt;

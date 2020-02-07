@@ -1,4 +1,4 @@
-function  [transmissionMass, transmissionGearRatio] = getTransmissionProperties(transmissionMethod, actuateJointDirectly, robot, robotSelection, jointNames, linkNames, linkCount)
+function  transmissionMass = getTransmissionProperties(transmissionMethod, actuateJointDirectly, robot, robotSelection, jointNames, linkNames, linkCount)
 % Based on the selected transmission method and whether the joint is
 % actuated remotely or directly, compute the additional mass on all preceding links.
 
@@ -45,14 +45,4 @@ function  [transmissionMass, transmissionGearRatio] = getTransmissionProperties(
             end
         end
     end
-    
-    %% Get transmission gearing ratio
-    % For remote and directly actuated joints
-    % GearRatio = input speed/ output speed
-    % Front legs                       Hind legs
-    transmissionGearRatio.HAA(1) = 1;  transmissionGearRatio.HAA(2) = 1;
-    transmissionGearRatio.HFE(1) = 1;  transmissionGearRatio.HFE(2) = 1;
-    transmissionGearRatio.KFE(1) = 1;  transmissionGearRatio.KFE(2) = 1;
-    transmissionGearRatio.AFE(1) = 1;  transmissionGearRatio.AFE(2) = 1;
-    transmissionGearRatio.DFE(1) = 1;  transmissionGearRatio.DFE(2) = 1;    
 end

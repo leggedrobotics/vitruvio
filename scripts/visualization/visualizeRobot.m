@@ -13,13 +13,13 @@
     bodyHeight      = robotProperties.baseHeight;
     displayTorso    = robotVisualization.torso;
     
-    outerPosition = [0 0 1 1]; % Fullscreen
-    %outerPosition = [0.5 0 0.5 0.5]; % Top right corner
+    %outerPosition = [0 0 1 1]; % Fullscreen
+    outerPosition = [0.5 0.5 0.5 0.5]; % Top right corner
     
     if optimized && data.basicProperties.optimizedLegs.(EEselection)
-        robot = data.(EEselection).rigidBodyModelStanceOpt;
+        robot = data.(EEselection).rigidBodyModelSwingOpt;
     else
-        robot = data.(EEselection).rigidBodyModelStance;
+        robot = data.(EEselection).rigidBodyModelSwing;
     end
     
     % Specify dimensions of torso if applicable

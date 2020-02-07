@@ -7,8 +7,9 @@ clear;
 close all;
 
 %% Enter path to bag containing trajectory data
-pathToTrajectoryData =  '/Users/michaelchadwick/Documents/git/vitruvio/data/extractedBags/matlab_ANYmalBear_slowTrotExtendedxNom.bag';
-saveName = 'ANYmalBearSlowTrotExtendedxNom.mat';
+%pathToTrajectoryData =  '/Users/michaelchadwick/Documents/git/vitruvio/data/extractedBags/matlab_ANYmalBear_slowTrotExtendedxNom.bag';
+pathToTrajectoryData =  '/Users/michaelchadwick/Documents/git/report and validation/Validation/inertia comparison/matlab_ANYmalBear_fastTrotNom.bag';
+saveName = 'ANYmalBear_fastTrotNom.mat';
 legCount = 4; % Specify number of legs from 1 to 4.
 m = 38.8;   % mass of the robot
 

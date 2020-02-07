@@ -15,7 +15,7 @@ function [J_P, C_0EE, r_H_01, r_H_02, r_H_03, r_H_04, r_H_05, r_H_0EE]  = jointT
   hipParalleltoBody   = Leg.basicProperties.hipParalleltoBody;  
   
   % Compute the relative homogeneous transformation matrices.
-  l_hip = Leg.robotProperties.hip(selectFrontHind).length;
+  l_hip   = Leg.robotProperties.hip(selectFrontHind).length;
   l_thigh = Leg.robotProperties.thigh(selectFrontHind).length;
   l_shank = Leg.robotProperties.shank(selectFrontHind).length;
   if linkCount > 2
@@ -29,9 +29,9 @@ function [J_P, C_0EE, r_H_01, r_H_02, r_H_03, r_H_04, r_H_05, r_H_0EE]  = jointT
   % rotation about y. The rotation about the body x and z are neglected but
   % assumed small for forward motion on even terrain.
   T_0H = [cos(-rotBodyY), 0, sin(-rotBodyY), 0;
-         0,               1, 0,             0;
+         0,               1, 0,              0;
         -sin(-rotBodyY),  0, cos(-rotBodyY), 0;
-         0,               0, 0,             1];
+         0,               0, 0,              1];
      
   % transformation from nominal HAA point with coord. sys aligned with body frame to HAA frame   
   % rotation about x of hip attachment frame (HAA rotation)
@@ -46,7 +46,7 @@ function [J_P, C_0EE, r_H_01, r_H_02, r_H_03, r_H_04, r_H_05, r_H_0EE]  = jointT
        T_12 = [cos(q(2)), 0,  sin(q(2)),  hipOffsetDirection*l_hip;
                0,         1,  0,          0;
               -sin(q(2)), 0,  cos(q(2)),  0;
-                0,         0,  0,          1];  
+                0,         0,  0,         1];  
    else
        T_12 = [cos(q(2)), 0,  sin(q(2)),  0;
                0,         1,  0,          0;
@@ -134,7 +134,7 @@ function [J_P, C_0EE, r_H_01, r_H_02, r_H_03, r_H_04, r_H_05, r_H_0EE]  = jointT
   r_H_02 = T_02(1:3,4); % HFE
   r_H_03 = T_03(1:3,4); % KFE
   r_H_04 = T_04(1:3,4); % EE or AFE
-  r_H_05 = [0; 0; 0];   % zeros if these joints do not exist
+  r_H_05 = [0; 0; 0];   % Zeros if these joints do not exist. Overwrite if they do exist.
   r_H_06 = [0; 0; 0]; 
 
   if (linkCount == 3) || (linkCount == 4)

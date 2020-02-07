@@ -23,6 +23,7 @@ function penalty = computePenalty(actuatorProperties, imposeJointLimits, heurist
     tempLeg.base = Leg.base;
     tempLeg.(EEselection).force = Leg.(EEselection).force;
     tempLeg.basicProperties = Leg.basicProperties;
+    tempLeg.actuatorProperties = Leg.actuatorProperties;
     
     % Update robot properties with newly computed leg design parameters, unit in meters
     robotProperties.hip(selectFrontHind).length = linkLengths(1);
@@ -87,26 +88,18 @@ function penalty = computePenalty(actuatorProperties, imposeJointLimits, heurist
         [tempLeg.(EEselection).q, tempLeg.(EEselection).r.HAA, tempLeg.(EEselection).r.HFE, tempLeg.(EEselection).r.KFE, tempLeg.(EEselection).r.AFE, tempLeg.(EEselection).r.DFE, tempLeg.(EEselection).r.EE] = inverseKinematics(tempLeg, heuristic, qLiftoff, meanCyclicMotionHipEE, EEselection);
 
         %% Build robot model with joint angles from inverse kinematics tempLeg
-        gravitySwing  = [0 0 -9.81]; % During swing phase, apply gravity
-        gravityStance = [0 0 0]; % Do not apply gravity term in stance as the end-effector forces already include the weight of the legs and additional gravity here would be double counting the gravitational weight on the joints
+        gravitySwing  = [0 0 -9.81]; 
         tempLeg.(EEselection).rigidBodyModelSwing  = buildRobotRigidBodyModel(gravitySwing, actuatorProperties, actuateJointDirectly, linkCount, robotProperties, tempLeg, EEselection);
-        tempLeg.(EEselection).rigidBodyModelStance = buildRobotRigidBodyModel(gravityStance, actuatorProperties, actuateJointDirectly, linkCount, robotProperties, tempLeg, EEselection);
         
         %% Get joint velocities and accelerations with finite differences
         [tempLeg.(EEselection).qdot, tempLeg.(EEselection).qdotdot] = getJointVelocitiesUsingFiniteDifference(EEselection, tempLeg, dt);
         tempLeg.(EEselection).q = tempLeg.(EEselection).q(1:end-2,:); % remove the two supplementary points for position after solving for joint speed and acceleration 
         
-        %% Get joint torques using inverse dynamics
+        %% Get joint torques
         externalForce = Leg.(EEselection).force(:,1:3);
-        tempLeg.(EEselection).jointTorqueKinetic = getKineticJointTorques(externalForce, tempLeg, EEselection, meanCyclicMotionHipEE);
-        tempLeg.(EEselection).jointTorqueDynamic = inverseDynamics(EEselection, tempLeg, meanCyclicMotionHipEE, linkCount);
-        
-        tempLeg.(EEselection).jointTorque = tempLeg.(EEselection).jointTorqueKinetic + tempLeg.(EEselection).jointTorqueDynamic;
-        
-        % Smoothen the torque using moving average
-        for j = 1:length(Leg.(EEselection).jointTorque(1,:))
-            tempLeg.(EEselection).jointTorque(:,j) = smooth(tempLeg.(EEselection).jointTorque(:,j));
-        end
+        tempLeg.(EEselection).jointTorqueStance = getStanceJointTorques(externalForce, tempLeg, EEselection, meanCyclicMotionHipEE);
+        tempLeg.(EEselection).jointTorqueSwing = getSwingJointTorques(EEselection, tempLeg, meanCyclicMotionHipEE, linkCount);
+        tempLeg.(EEselection).jointTorque = tempLeg.(EEselection).jointTorqueStance + tempLeg.(EEselection).jointTorqueSwing;
 
         %% Mechanical power at joint
         jointPowerInitial = Leg.(EEselection).jointTorque .* Leg.(EEselection).qdot(:,1:end-1);
@@ -431,6 +424,7 @@ function penalty = computePenalty(actuatorProperties, imposeJointLimits, heurist
         trackingError = sqrt(sum(trackingError.^2,2)); % Magnitude of tracking error at each timestep
         if max(trackingError) > 0.001 % If tracking error ever exceeds this tolerance, impose a penalty.
             trackingErrorPenalty = 10;
+            %disp('Large tracking error')
         else
             trackingErrorPenalty = 0;
         end
@@ -453,6 +447,7 @@ function penalty = computePenalty(actuatorProperties, imposeJointLimits, heurist
         % Apply penalty if the lowest joint is ever too close to the ground                 
         if any(lowestJoint - groundHeight(1:length(lowestJoint)) < allowableHeightAboveGround)
             jointBelowGroundPenalty = 10;
+            %disp('Joint below ground')
         else
             jointBelowGroundPenalty = 0;
         end
@@ -465,6 +460,7 @@ function penalty = computePenalty(actuatorProperties, imposeJointLimits, heurist
         % Apply penalty if KFE joint is ever above HFE joint
         if any(jointHeightKFE > jointHeightHFE)
             KFEAboveHFEPenalty = 0;
+            %disp('KFE joint above HFE joint')
         else
             KFEAboveHFEPenalty = 0;
         end
@@ -495,6 +491,7 @@ function penalty = computePenalty(actuatorProperties, imposeJointLimits, heurist
             maxOffsetHFE2EEdes = max(sqrt(sum(offsetHFE2EEdes.^2,2))); % max euclidian distance from HFE to desired EE position
             if maxOffsetHFE2EEdes > allowableExtension*sum(linkLengths(2:end))
                 maximumExtensionPenalty = 10;
+                %disp('Maximum allowable extension exceeded')
             else 
                 maximumExtensionPenalty = 0;
             end
@@ -526,6 +523,6 @@ function penalty = computePenalty(actuatorProperties, imposeJointLimits, heurist
                   optimizationProperties.penaltyWeight.maximumExtension * maximumExtensionPenalty + ...
                   10*torqueLimitPenalty + ...
                   10*speedLimitPenalty  + ...
-                  10*powerLimitPenalty  + ...
+                  10*powerLimitPenalty;
     end
 end

@@ -1,7 +1,7 @@
 function [] = plotJointDataForAllLegs(data, data2, optimizeLeg, saveFiguresToPDF)
     %% Select which plots are to be displayed
     displayJointLevelPlots         = true;
-    displayActuatorLevelPlots      = true;
+    displayActuatorLevelPlots      = false;
     displayActivePassiveLevelPlots = false;
     displayMotorLevelPlots         = false;
 
@@ -390,7 +390,7 @@ function [] = plotJointDataForAllLegs(data, data2, optimizeLeg, saveFiguresToPDF
         %% Joint Velocity
         figure('name', 'Joint Velocity', 'DefaultAxesFontSize', 10, 'units','normalized','outerposition',outerPosition)
         set(gcf,'color','w')
-        plotTitle = {'\omega_{HAA}','\omega_{HFE}','\omega_{KFE}','\omega_{AFE}','\omega_{DFE}'};
+        plotTitle = {'Joint qdot_{HAA}','Joint qdot_{HFE}','Joint qdot_{KFE}','Joint qdot_{AFE}','Joint qdot_{DFE}'};
         for i = 1:legCount
             k = 1; % Plot title index
             EEselection = EEnames(i,:);
@@ -766,7 +766,7 @@ function [] = plotJointDataForAllLegs(data, data2, optimizeLeg, saveFiguresToPDF
         %% Actuator Velocity
         figure('name', 'Actuator Velocity', 'DefaultAxesFontSize', 10, 'units','normalized','outerposition',outerPosition)
         set(gcf,'color','w')
-        plotTitle = {'Actuator \omega_{HAA}','Actuator \omega_{HFE}','Actuator \omega_{KFE}','Actuator \omega_{AFE}','Actuator \omega_{DFE}'};
+        plotTitle = {'Actuator Vel_{HAA}','Actuator Vel_{HFE}','Actuator Vel_{KFE}','Actuator Vel_{AFE}','Actuator Vel_{DFE}'};
         for i = 1:legCount
             k = 1; % plot title index
             EEselection = EEnames(i,:);

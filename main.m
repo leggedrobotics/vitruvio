@@ -54,7 +54,7 @@ hipParalleltoBody = true;
 
 % Simulate additional payload as point mass at CoM
 payload.simulateAdditionalPayload = false;
-payload.mass = 1; % kg
+payload.mass = 0.36; % kg
 
 % Model springs in parallel with each joint.
 springInParallelWithJoints = false;
@@ -79,7 +79,7 @@ robotVisualization.oneLeg      = false;  % View a single leg tracking the trajec
 robotVisualization.allLegs     = true;   % View motion with all legs (incompatible with averageStepsForCyclicalMotion = true)
 robotVisualization.torso       = false;  % Also displays a torso at the front of the robot, dimensions defined in visualizeRobot.m
 
-viewPlots.motionData           = false;  % CoM position, speed. EE position and forces. Trajectory to be tracked.
+viewPlots.motionData           = true;  % CoM position, speed. EE position and forces. Trajectory to be tracked.
 viewPlots.rangeOfMotionPlots   = false;  % Range of motion of leg for given link lengths and angle limits
 viewPlots.efficiencyMap        = false;  % Actuator operating efficiency map
 viewPlots.jointDataPlot        = true;  % By default only joint level speed, torque, power, and energy are plotted. Actuator/motor/spring level plots can be turned on in plotJointDataForAllLegs.m.
@@ -94,7 +94,7 @@ optimizationProperties.viz.displayBestCurrentDesign = true; % Display chart of c
 %%% Add your trajectory data file here with name class_task %%%
 dataSelection.yourTrajectoryData = false;
 %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
-dataSelection.universal_trot    = true;
+dataSelection.universal_trot    = false;
 dataSelection.universal_stairs  = false;
 dataSelection.speedy_stairs     = false;
 dataSelection.speedy_gallop     = false;
@@ -103,38 +103,48 @@ dataSelection.massivo_stairs    = false;
 dataSelection.centaur_walk      = false;
 dataSelection.centaur_stairs    = false;
 dataSelection.mini_pronk        = false;
-dataSelection.hopper_hop = false;
+dataSelection.hopper_hop        = false;
 
-dataSelection.ANYmalBear_pushup = false;
-dataSelection.ANYmalBear_fastTrotExtendedxNom3 = false; 
+dataSelection.ANYmalBear_pushup                = false;
+dataSelection.ANYmalBear_fastTrotExtendedxNom3 = true; 
 dataSelection.ANYmalBear_slowTrotExtendedxNom  = false;
 
-dataSelection.vitruvian_bipedPushupSquat  = false;
-dataSelection.vitruvian_bipedHop          = false;
-dataSelection.vitruvian_bipedFastWalk     = false;
+% Inertia comparison
+% dataSelection.ANYmalBear_trotminCOT     = false;
+% dataSelection.ANYmalBear_trotminTorque  = false;
+% dataSelection.ANYmalBear_trotNom        = false;
+% 
+% dataSelection.ANYmalBear_fastTrotNom       = false;
+% dataSelection.ANYmalBear_fastTrotMinTorque = false;
+% dataSelection.ANYmalBear_fastTrotMinCOT    = false;
+
+% Prototype
+% dataSelection.vitruvianBiped_PushupSquat  = false;
+% dataSelection.vitruvianBiped_Hop          = false;
+% dataSelection.vitruvianBiped_FastWalk     = false;
 
 optimizationCount = 1; % Set to 1 to run the optimization only once. For values >1 the leg is reoptimized with the same settings. This allows for an easy check if the same optimal solution is found each time the optimization is run.
 
 %% Toggle optimization for each leg
 optimizationProperties.runOptimization = false; % If true, selected legs will be optimize
 % Select which legs are to be optimized
-optimizeLeg.LF = true; 
-optimizeLeg.RF = false; 
+optimizeLeg.LF = false; 
+optimizeLeg.RF = true; 
 optimizeLeg.LH = false; 
 optimizeLeg.RH = false;
 
 %% Set optimization properties
 % Set number of generations and population size
-optimizationProperties.options.maxGenerations = 10;
-optimizationProperties.options.populationSize = 10;
+optimizationProperties.options.maxGenerations = 40;
+optimizationProperties.options.populationSize = 100;
 
 % Impose limits on maximum joint torque, speed and power.
 % The limiting values are defined for each actuator in getActuatorProperties. A penalty term is incurred
 % for violations of these limits.
 imposeJointLimits.maxTorque = false;
-imposeJointLimits.maxqdot   = true;
+imposeJointLimits.maxqdot   = false;
 imposeJointLimits.maxPower  = false;
-imposeJointLimits.limitingValue = 1; % Specified as a ratio of the actuator limit. Penalize when actuators loaded beyond this value.
+imposeJointLimits.limitingValue = 0.95; % Specified as a ratio of the actuator limit. Penalize when actuators loaded beyond this value.
 
 % Set weights for cost function terms. Total means summed over all
 % joints in the leg.
@@ -144,7 +154,7 @@ imposeJointLimits.limitingValue = 1; % Specified as a ratio of the actuator limi
 % the tranmission ratio is 1, actuator and joint level are equivalent.
 optimizationProperties.penaltyWeight.totalSwingTorque   = 0;   % Terms which penalize swing/stance are only used when averageStepsForCyclicalMotion = true
 optimizationProperties.penaltyWeight.totalStanceTorque  = 0;
-optimizationProperties.penaltyWeight.totalTorque        = 0;
+optimizationProperties.penaltyWeight.totalTorque        = 1;
 optimizationProperties.penaltyWeight.totalTorqueHFE     = 0;
 optimizationProperties.penaltyWeight.totalTorqueKFE     = 0;
 optimizationProperties.penaltyWeight.swingTorqueHFE     = 0;
@@ -159,9 +169,9 @@ optimizationProperties.penaltyWeight.maxTorque          = 0;
 optimizationProperties.penaltyWeight.maxqdot            = 0;
 optimizationProperties.penaltyWeight.maxPower           = 0;    % Only considers power terms > 0
 optimizationProperties.penaltyWeight.antagonisticPower  = 0;    % Seeks to minimize antagonistic power which improves power quality
-optimizationProperties.penaltyWeight.mechCoT            = 1;    % Mechanical cost of transport contribution of optimized leg
+optimizationProperties.penaltyWeight.mechCoT            = 0;    % Mechanical cost of transport contribution of optimized leg
 optimizationProperties.penaltyWeight.maximumExtension   = true; % Large penalty incurred if leg extends beyond allowable amount
-optimizationProperties.allowableExtension               = 0.9;  % Penalize extension above this ratio of total possible extension
+optimizationProperties.allowableExtension               = 0.95;  % Penalize extension above this ratio of total possible extension
 
 %% Set upper and lower bounds on each design parameter as ratio of nominal value.
 % Link lengths
@@ -190,8 +200,8 @@ optimizationProperties.bounds.upperBoundMultiplier.transmissionGearRatio.HAA = 1
 optimizationProperties.bounds.lowerBoundMultiplier.transmissionGearRatio.HFE = 1;
 optimizationProperties.bounds.upperBoundMultiplier.transmissionGearRatio.HFE = 1;
 
-optimizationProperties.bounds.lowerBoundMultiplier.transmissionGearRatio.KFE = 0.5;
-optimizationProperties.bounds.upperBoundMultiplier.transmissionGearRatio.KFE = 2;
+optimizationProperties.bounds.lowerBoundMultiplier.transmissionGearRatio.KFE = 1;
+optimizationProperties.bounds.upperBoundMultiplier.transmissionGearRatio.KFE = 1;
 
 optimizationProperties.bounds.lowerBoundMultiplier.transmissionGearRatio.AFE = 1;
 optimizationProperties.bounds.upperBoundMultiplier.transmissionGearRatio.AFE = 1;

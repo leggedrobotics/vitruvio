@@ -311,13 +311,11 @@ end
 
 %% Build robot rigid body model
 fprintf('Creating and visualizing robot rigid body model. \n');
-gravitySwing  = [0 0 -9.81]; % During swing phase, apply gravity
-gravityStance = [0 0 0]; % Do not apply gravity term in stance as the end-effector forces already include the weight of the legs and additional gravity here would be double counting the gravitational weight on the joints
+gravitySwing  = [0 0 -9.81]; % During swing phase, apply gravity.
 
 for i = 1:legCount
     EEselection = EEnames(i,:);
     Leg.(EEselection).rigidBodyModelSwing = buildRobotRigidBodyModel(gravitySwing, actuatorProperties, actuateJointDirectly, linkCount, robotProperties, Leg, EEselection);
-    Leg.(EEselection).rigidBodyModelStance = buildRobotRigidBodyModel(gravityStance, actuatorProperties, actuateJointDirectly, linkCount, robotProperties, Leg, EEselection);
 end
 
 %% Get joint velocities with finite differences
@@ -328,19 +326,37 @@ for i = 1:legCount
     Leg.(EEselection).q = Leg.(EEselection).q(1:end-2,:); % remove the two supplementary points for position after solving for joint speed and acceleration 
 end
 
-%% Get joint torques using inverse dynamics
-fprintf('Computing joint torques using inverse dynamics. \n');
+%% Get joint torques as sum of kinetic term due to EE forces and dynamic term due to joint inertia
+fprintf('Computing joint torques. \n');
 for i = 1:legCount
     EEselection = EEnames(i,:);
     externalForce = Leg.(EEselection).force(:,1:3);
-    Leg.(EEselection).jointTorqueKinetic = getKineticJointTorques(externalForce, Leg, EEselection, meanCyclicMotionHipEE);
-    Leg.(EEselection).jointTorqueDynamic = inverseDynamics(EEselection, Leg, meanCyclicMotionHipEE, linkCount);
-    Leg.(EEselection).jointTorque = Leg.(EEselection).jointTorqueKinetic + Leg.(EEselection).jointTorqueDynamic;
-    % Smoothen the torque data using moving average filter
-    for j = 1:length(Leg.(EEselection).jointTorque(1,:))
-        Leg.(EEselection).jointTorque(:,j) = smooth(Leg.(EEselection).jointTorque(:,j));
-    end
+    Leg.(EEselection).jointTorqueStance = getStanceJointTorques(externalForce, Leg, EEselection, meanCyclicMotionHipEE);
+    Leg.(EEselection).jointTorqueSwing = getSwingJointTorques(EEselection, Leg, meanCyclicMotionHipEE, linkCount);
+    Leg.(EEselection).jointTorque = Leg.(EEselection).jointTorqueStance + Leg.(EEselection).jointTorqueSwing;
 end
+
+%% FOR PAPER
+% Compare magnitude of dynamic and static torque contributions
+% figure()
+% subplot(2,1,1)
+%     hold on
+%     title('Joint Torque HFE')
+%     plot(Leg.(EEselection).jointTorqueStance(:,2), 'r')
+%     plot(Leg.(EEselection).jointTorqueSwing(:,2), 'b')
+%     plot(Leg.(EEselection).jointTorque(:,2), 'k:')
+%     grid on
+%     hold off
+%     legend('Stance', 'Swing', 'Total')
+% subplot(2,1,2)
+%     hold on
+%     title('Joint Torque KFE')
+%     plot(Leg.(EEselection).jointTorqueStance(:,3), 'r')
+%     plot(Leg.(EEselection).jointTorqueSwing(:,3),'b')
+%     plot(Leg.(EEselection).jointTorque(:,3), 'k:')
+%     legend('Stance', 'Swing', 'Total')
+%     grid on
+%     hold off    
 
 %% Get joint power -> this is the mechanical power required at the joint
 fprintf('Computing joint power. \n');
@@ -407,6 +423,7 @@ for i = 1:legCount
 end
 
 %% Save link lengths and mass
+Leg.robotProperties.mass.totalLegMass = 0;
 for i = 1:legCount
     EEselection = EEnames(i,:);
     if strcmp(EEselection,'LF') || strcmp(EEselection,'RF')
@@ -418,14 +435,19 @@ for i = 1:legCount
                                   robotProperties.thigh(selectFrontHind).mass, ...
                                   robotProperties.shank(selectFrontHind).mass];
     Leg.(EEselection).EEMass = robotProperties.EE(selectFrontHind).mass;
+    Leg.(EEselection).actuatorMass = actuatorProperties.mass.HAA + actuatorProperties.mass.HFE + actuatorProperties.mass.KFE;
     
     if linkCount > 2
         Leg.(EEselection).linkMass(end+1) = robotProperties.foot(selectFrontHind).mass;
+        Leg.(EEselection).actuatorMass =  Leg.(EEselection).actuatorMass + actuatorProperties.mass.AFE;
     end
     if linkCount > 3
         Leg.(EEselection).linkMass(end+1) = robotProperties.phalanges(selectFrontHind).mass;
+        Leg.(EEselection).actuatorMass =  Leg.(EEselection).actuatorMass + actuatorProperties.mass.DFE;
     end
     Leg.(EEselection).totalLinkMass = sum(Leg.(EEselection).linkMass);
+    % Total mass of all leg links, actuators and end-effectors
+    Leg.robotProperties.mass.totalLegMass = Leg.robotProperties.mass.totalLegMass + Leg.(EEselection).totalLinkMass + Leg.(EEselection).EEMass + Leg.(EEselection).actuatorMass;
 end
 %% Get meta parameters
 fprintf('Computing meta parameters. \n');
@@ -503,7 +525,7 @@ if optimizationProperties.runOptimization % master toggle in main
 
             fprintf('Saving optimization results. \n');
             % Save all the results of the optimization
-            Leg.(EEselection).rigidBodyModelStanceOpt                        = optimizationResults.rigidBodyModelStanceOpt;
+            Leg.(EEselection).rigidBodyModelSwingOpt                        = optimizationResults.rigidBodyModelSwingOpt;
             Leg.(EEselection).jointTorqueOpt                                 = optimizationResults.jointTorqueOpt;
             Leg.(EEselection).qOpt                                           = optimizationResults.qOpt;
             Leg.(EEselection).qdotOpt                                        = optimizationResults.qdotOpt;

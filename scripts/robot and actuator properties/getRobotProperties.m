@@ -58,6 +58,16 @@ function robotProperties = getRobotProperties(robotSelection, transmissionMethod
     robot.yourRobot.phalanges(1).radius = 0.015;
     robot.yourRobot.phalanges(2).radius = 0.015;
 
+    % Transmission Ratio
+    % For remote and directly actuated joints
+    % GearRatio = input speed/ output speed
+    % Front legs                                        Hind legs
+    robot.yourRobot.transmissionGearRatio.HAA(1) = 1;  robot.yourRobot.transmissionGearRatio.HAA(2) = 1;
+    robot.yourRobot.transmissionGearRatio.HFE(1) = 1;  robot.yourRobot.transmissionGearRatio.HFE(2) = 1;
+    robot.yourRobot.transmissionGearRatio.KFE(1) = 1;  robot.yourRobot.transmissionGearRatio.KFE(2) = 1;
+    robot.yourRobot.transmissionGearRatio.AFE(1) = 1;  robot.yourRobot.transmissionGearRatio.AFE(2) = 1;
+    robot.yourRobot.transmissionGearRatio.DFE(1) = 1;  robot.yourRobot.transmissionGearRatio.DFE(2) = 1;    
+        
     % Joint angle limits (used only in reachable positions plot)
     % q1 HAA, q2 HFE, q3 KFE, q4 AFE
     robot.yourRobot.q1.minAngle = -pi;
@@ -98,8 +108,8 @@ function robotProperties = getRobotProperties(robotSelection, transmissionMethod
     % Offset from nominal CoM position to base hip attachment for each leg.
     robot.ANYmalBear.xNom(1) = 0.225;
     robot.ANYmalBear.xNom(2) = 0.225;
-    robot.ANYmalBear.yNom(1) = 0.11;
-    robot.ANYmalBear.yNom(2) = 0.11;
+    robot.ANYmalBear.yNom(1) = 0.11 - 0.05;
+    robot.ANYmalBear.yNom(2) = 0.11 - 0.05;
     robot.ANYmalBear.zNom = 0; % offset from CoM to HAA in z direction. Positive value means HAA above CoM.
     
     robot.ANYmalBear.nomHipPos.LF = [ robot.ANYmalBear.xNom(1),  robot.ANYmalBear.yNom(1), robot.ANYmalBear.zNom];
@@ -110,10 +120,10 @@ function robotProperties = getRobotProperties(robotSelection, transmissionMethod
     % link lengths [m]
     robot.ANYmalBear.hip(1).length   = 0.112;
     robot.ANYmalBear.hip(2).length   = 0.112;
-    robot.ANYmalBear.thigh(1).length = 0.25; 
-    robot.ANYmalBear.thigh(2).length = 0.25;
-    robot.ANYmalBear.shank(1).length = 0.33;
-    robot.ANYmalBear.shank(2).length = 0.33;
+    robot.ANYmalBear.thigh(1).length = 0.33; %0.3919; %0.1459; %minTorque    ; %0.3919 minCOT; %0.25; 
+    robot.ANYmalBear.thigh(2).length = 0.33; %0.3959; %0.1699; %minTorque; %0.3959 minCOT; %0.25;
+    robot.ANYmalBear.shank(1).length = 0.25; %0.3047; %0.3452; % minTorque %0.3047 minCOT; %0.33;
+    robot.ANYmalBear.shank(2).length = 0.25; %0.2966; %0.3245;% minTorque; %0.2966 minCOT; %0.33;
     robot.ANYmalBear.foot(1).length  = 0.16;
     robot.ANYmalBear.foot(2).length  = 0.16;
     robot.ANYmalBear.phalanges(1).length = 0.1;
@@ -131,6 +141,16 @@ function robotProperties = getRobotProperties(robotSelection, transmissionMethod
     robot.ANYmalBear.phalanges(1).radius = 0.015;
     robot.ANYmalBear.phalanges(2).radius = 0.015;
 
+    % Transmission Ratio
+    % For remote and directly actuated joints
+    % GearRatio = input speed/ output speed
+    % Front legs                                        Hind legs
+    robot.ANYmalBear.transmissionGearRatio.HAA(1) = 1;  robot.ANYmalBear.transmissionGearRatio.HAA(2) = 1;
+    robot.ANYmalBear.transmissionGearRatio.HFE(1) = 1;  robot.ANYmalBear.transmissionGearRatio.HFE(2) = 1;
+    robot.ANYmalBear.transmissionGearRatio.KFE(1) = 1;  robot.ANYmalBear.transmissionGearRatio.KFE(2) = 1;
+    robot.ANYmalBear.transmissionGearRatio.AFE(1) = 1;  robot.ANYmalBear.transmissionGearRatio.AFE(2) = 1;
+    robot.ANYmalBear.transmissionGearRatio.DFE(1) = 1;  robot.ANYmalBear.transmissionGearRatio.DFE(2) = 1;    
+    
     % joint angle limits
     % q1 HAA, q2 HFE, q3 KFE, q4 AFE
     robot.ANYmalBear.q1.minAngle = -pi;
@@ -188,6 +208,16 @@ function robotProperties = getRobotProperties(robotSelection, transmissionMethod
     robot.vitruvianBiped.foot(1).radius = 0.015;
     robot.vitruvianBiped.phalanges(1).radius = 0.015;
 
+    % Transmission Ratio
+    % For remote and directly actuated joints
+    % GearRatio = input speed/ output speed
+    % Front legs
+    robot.vitruvianBiped.transmissionGearRatio.HAA(1) = 1;
+    robot.vitruvianBiped.transmissionGearRatio.HFE(1) = 1;
+    robot.vitruvianBiped.transmissionGearRatio.KFE(1) = 1;
+    robot.vitruvianBiped.transmissionGearRatio.AFE(1) = 1;
+    robot.vitruvianBiped.transmissionGearRatio.DFE(1) = 1;   
+        
     % joint angle limits
     % q1 HAA, q2 HFE, q3 KFE, q4 AFE
     robot.vitruvianBiped.q1.minAngle = -pi;
@@ -248,6 +278,16 @@ function robotProperties = getRobotProperties(robotSelection, transmissionMethod
     robot.universal.phalanges(1).length = 0.05;
     robot.universal.phalanges(2).length = 0.1;
 
+    % Transmission Ratio
+    % For remote and directly actuated joints
+    % GearRatio = input speed/ output speed
+    % Front legs                                        Hind legs
+    robot.universal.transmissionGearRatio.HAA(1) = 1;  robot.universal.transmissionGearRatio.HAA(2) = 1;
+    robot.universal.transmissionGearRatio.HFE(1) = 1;  robot.universal.transmissionGearRatio.HFE(2) = 1;
+    robot.universal.transmissionGearRatio.KFE(1) = 1;  robot.universal.transmissionGearRatio.KFE(2) = 1;
+    robot.universal.transmissionGearRatio.AFE(1) = 1;  robot.universal.transmissionGearRatio.AFE(2) = 1;
+    robot.universal.transmissionGearRatio.DFE(1) = 1;  robot.universal.transmissionGearRatio.DFE(2) = 1;    
+        
     % link radius [m]
     % update these values
     robot.universal.hip(1).radius = 0.015;
@@ -321,6 +361,16 @@ function robotProperties = getRobotProperties(robotSelection, transmissionMethod
     robot.speedy.phalanges(1).length = 0.1;
     robot.speedy.phalanges(2).length = 0.1;
 
+    % Transmission Ratio
+    % For remote and directly actuated joints
+    % GearRatio = input speed/ output speed
+    % Front legs                                        Hind legs
+    robot.speedy.transmissionGearRatio.HAA(1) = 1;  robot.speedy.transmissionGearRatio.HAA(2) = 1;
+    robot.speedy.transmissionGearRatio.HFE(1) = 1;  robot.speedy.transmissionGearRatio.HFE(2) = 1;
+    robot.speedy.transmissionGearRatio.KFE(1) = 1;  robot.speedy.transmissionGearRatio.KFE(2) = 1;
+    robot.speedy.transmissionGearRatio.AFE(1) = 1;  robot.speedy.transmissionGearRatio.AFE(2) = 1;
+    robot.speedy.transmissionGearRatio.DFE(1) = 1;  robot.speedy.transmissionGearRatio.DFE(2) = 1;    
+        
     % link radius [m]
     robot.speedy.hip(1).radius = 0.015;
     robot.speedy.hip(2).radius = 0.015;
@@ -394,6 +444,16 @@ function robotProperties = getRobotProperties(robotSelection, transmissionMethod
     robot.massivo.phalanges(1).length = 0.05;
     robot.massivo.phalanges(2).length = 0.05;
 
+    % Transmission Ratio
+    % For remote and directly actuated joints
+    % GearRatio = input speed/ output speed
+    % Front legs                                        Hind legs
+    robot.massivo.transmissionGearRatio.HAA(1) = 1;  robot.massivo.transmissionGearRatio.HAA(2) = 1;
+    robot.massivo.transmissionGearRatio.HFE(1) = 1;  robot.massivo.transmissionGearRatio.HFE(2) = 1;
+    robot.massivo.transmissionGearRatio.KFE(1) = 1;  robot.massivo.transmissionGearRatio.KFE(2) = 1;
+    robot.massivo.transmissionGearRatio.AFE(1) = 1;  robot.massivo.transmissionGearRatio.AFE(2) = 1;
+    robot.massivo.transmissionGearRatio.DFE(1) = 1;  robot.massivo.transmissionGearRatio.DFE(2) = 1;    
+        
     % link radius [m]
     robot.massivo.hip(1).radius = 0.02;
     robot.massivo.hip(2).radius = 0.02;
@@ -466,6 +526,16 @@ function robotProperties = getRobotProperties(robotSelection, transmissionMethod
     robot.centaur.phalanges(1).length = 0.05;
     robot.centaur.phalanges(2).length = 0.05;
 
+    % Transmission Ratio
+    % For remote and directly actuated joints
+    % GearRatio = input speed/ output speed
+    % Front legs                                        Hind legs
+    robot.centaur.transmissionGearRatio.HAA(1) = 1;  robot.centaur.transmissionGearRatio.HAA(2) = 1;
+    robot.centaur.transmissionGearRatio.HFE(1) = 1;  robot.centaur.transmissionGearRatio.HFE(2) = 1;
+    robot.centaur.transmissionGearRatio.KFE(1) = 1;  robot.centaur.transmissionGearRatio.KFE(2) = 1;
+    robot.centaur.transmissionGearRatio.AFE(1) = 1;  robot.centaur.transmissionGearRatio.AFE(2) = 1;
+    robot.centaur.transmissionGearRatio.DFE(1) = 1;  robot.centaur.transmissionGearRatio.DFE(2) = 1;    
+        
     % link radius [m]
     robot.centaur.hip(1).radius = 0.02;
     robot.centaur.hip(2).radius = 0.02;
@@ -537,6 +607,16 @@ function robotProperties = getRobotProperties(robotSelection, transmissionMethod
     robot.mini.phalanges(1).length = 0.05;
     robot.mini.phalanges(2).length = 0.05;
 
+    % Transmission Ratio
+    % For remote and directly actuated joints
+    % GearRatio = input speed/ output speed
+    % Front legs                                        Hind legs
+    robot.mini.transmissionGearRatio.HAA(1) = 1;  robot.mini.transmissionGearRatio.HAA(2) = 1;
+    robot.mini.transmissionGearRatio.HFE(1) = 1;  robot.mini.transmissionGearRatio.HFE(2) = 1;
+    robot.mini.transmissionGearRatio.KFE(1) = 1;  robot.mini.transmissionGearRatio.KFE(2) = 1;
+    robot.mini.transmissionGearRatio.AFE(1) = 1;  robot.mini.transmissionGearRatio.AFE(2) = 1;
+    robot.mini.transmissionGearRatio.DFE(1) = 1;  robot.mini.transmissionGearRatio.DFE(2) = 1;    
+        
     % link radius [m]
     robot.mini.hip(1).radius = 0.015;
     robot.mini.hip(2).radius = 0.015;
@@ -594,6 +674,16 @@ function robotProperties = getRobotProperties(robotSelection, transmissionMethod
     robot.hopper.foot(1).length = 0.05;
     robot.hopper.phalanges(1).length = 0.05;
 
+    % Transmission Ratio
+    % For remote and directly actuated joints
+    % GearRatio = input speed/ output speed
+    % Front legs
+    robot.hopper.transmissionGearRatio.HAA(1) = 1;
+    robot.hopper.transmissionGearRatio.HFE(1) = 1;
+    robot.hopper.transmissionGearRatio.KFE(1) = 1;
+    robot.hopper.transmissionGearRatio.AFE(1) = 1;
+    robot.hopper.transmissionGearRatio.DFE(1) = 1;   
+        
     % link radius [m]
     robot.hopper.hip(1).radius = 0.015;
     robot.hopper.thigh(1).radius = 0.015;
@@ -621,7 +711,7 @@ function robotProperties = getRobotProperties(robotSelection, transmissionMethod
 
      %% Compute link mass and inertia for selected robot
      % Additional mass due to transmission
-     [transmissionMass, transmissionGearRatio] = getTransmissionProperties(transmissionMethod, actuateJointDirectly, robot, robotSelection, jointNames, linkNames, linkCount);
+     transmissionMass = getTransmissionProperties(transmissionMethod, actuateJointDirectly, robot, robotSelection, jointNames, linkNames, linkCount);
         % Link mass [kg] and inertia [kg.m^2] based on cylindrical link
         % with constant density. Density is dependent on link density and
         % transmission mass.
@@ -639,18 +729,7 @@ function robotProperties = getRobotProperties(robotSelection, transmissionMethod
             robot.(robotSelection).(linkNames{i})(j).inertia = (1/3)*robot.(robotSelection).(linkNames{i})(j).mass*robot.(robotSelection).(linkNames{i})(j).length^2;
         end
     end
-    
-    for i = 1:length(jointNames)
-        if robot.(robotSelection).legCount > 2
-            frontHindIndex = 2; % Robot has front and hind legs.
-        else
-            frontHindIndex = 1; % Robot only has 'front' legs.
-        end
-        for j = 1:frontHindIndex % (1 = front, 2 = hind)
-            robot.(robotSelection).transmissionGearRatio.(jointNames(i,:))(j) = transmissionGearRatio.(jointNames(i,:))(j);
-        end
-    end
-    
+       
     %% Load in the parameters of the selected robot into the struct robotProperties which is then used by the rest of the program  
     robotProperties = robot.(robotSelection);
 end
