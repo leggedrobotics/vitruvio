@@ -216,7 +216,7 @@ for i = 1:linkCount+1
 end
 
 % Update link mass with assumption of constant density cylinder
-robotProperties.hip(selectFrontHind).mass   = robotProperties.legDensity.hip(selectFrontHind) * pi*(robotProperties.hip(selectFrontHind).radius)^2   * abs(linkLengths(1));
+robotProperties.hip(selectFrontHind).mass   = robotProperties.legDensity.hip(selectFrontHind)   * pi*(robotProperties.hip(selectFrontHind).radius)^2   * abs(linkLengths(1));
 robotProperties.thigh(selectFrontHind).mass = robotProperties.legDensity.thigh(selectFrontHind) * pi*(robotProperties.thigh(selectFrontHind).radius)^2 * abs(linkLengths(2));
 robotProperties.shank(selectFrontHind).mass = robotProperties.legDensity.shank(selectFrontHind) * pi*(robotProperties.shank(selectFrontHind).radius)^2 * abs(linkLengths(3));
 

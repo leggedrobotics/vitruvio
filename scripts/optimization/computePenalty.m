@@ -40,11 +40,16 @@ function penalty = computePenalty(actuatorProperties, imposeJointLimits, heurist
     robotProperties.hip(selectFrontHind).mass = robotProperties.legDensity.hip(selectFrontHind) * pi*(robotProperties.hip(selectFrontHind).radius)^2   * abs(linkLengths(1));
     robotProperties.thigh(selectFrontHind).mass = robotProperties.legDensity.thigh(selectFrontHind) * pi*(robotProperties.thigh(selectFrontHind).radius)^2 * abs(linkLengths(2));
     robotProperties.shank(selectFrontHind).mass = robotProperties.legDensity.shank(selectFrontHind) * pi*(robotProperties.shank(selectFrontHind).radius)^2 * abs(linkLengths(3));
+   
+    tempLeg.linkMass = robotProperties.hip(selectFrontHind).mass + robotProperties.thigh(selectFrontHind).mass + robotProperties.shank(selectFrontHind).mass;
+    
     if (linkCount == 3) || (linkCount == 4)
         robotProperties.foot(selectFrontHind).mass = robotProperties.legDensity.foot(selectFrontHind) * pi*(robotProperties.foot(selectFrontHind).radius)^2 * abs(linkLengths(4));
+        tempLeg.linkMass = tempLeg.linkMass + robotProperties.foot(selectFrontHind).mass;
     end
     if linkCount == 4
         robotProperties.phalanges(selectFrontHind).mass = robotProperties.legDensity.phalanges(selectFrontHind) * pi*(robotProperties.phalanges(selectFrontHind).radius)^2 * abs(linkLengths(5));
+        tempLeg.linkMass = robotProperties.phalanges(selectFrontHind).mass;
     end
 
     tempLeg.robotProperties = robotProperties;
@@ -280,8 +285,12 @@ function penalty = computePenalty(actuatorProperties, imposeJointLimits, heurist
         end
 
         if W_mechCoT>0
-            mechCoTInitial = Leg.metaParameters.CoT.(EEselection);
-            mechCoT = getCostOfTransport(Leg.CoM.meanVelocity, jointPower, robotProperties);
+            % Here COT is not the total robot COT, rather the relative COT
+            % of each leg which can be penalized equivalently to penalizing
+            % the total COT.
+            mechCoTInitial = Leg.metaParameters.CoTContribution.(EEselection);
+            CoTContributionMass = tempLeg.linkMass + Leg.robotProperties.mass.trunk/Leg.basicProperties.legCount;
+            mechCoT = getCostOfTransportPenaltyContribution(Leg.CoM.meanVelocity, jointPower, CoTContributionMass);
         end
         
         if W_totalMechEnergy>0

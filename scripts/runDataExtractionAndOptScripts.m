@@ -336,28 +336,6 @@ for i = 1:legCount
     Leg.(EEselection).jointTorque = Leg.(EEselection).jointTorqueStance + Leg.(EEselection).jointTorqueSwing;
 end
 
-%% FOR PAPER
-% Compare magnitude of dynamic and static torque contributions
-% figure()
-% subplot(2,1,1)
-%     hold on
-%     title('Joint Torque HFE')
-%     plot(Leg.(EEselection).jointTorqueStance(:,2), 'r')
-%     plot(Leg.(EEselection).jointTorqueSwing(:,2), 'b')
-%     plot(Leg.(EEselection).jointTorque(:,2), 'k:')
-%     grid on
-%     hold off
-%     legend('Stance', 'Swing', 'Total')
-% subplot(2,1,2)
-%     hold on
-%     title('Joint Torque KFE')
-%     plot(Leg.(EEselection).jointTorqueStance(:,3), 'r')
-%     plot(Leg.(EEselection).jointTorqueSwing(:,3),'b')
-%     plot(Leg.(EEselection).jointTorque(:,3), 'k:')
-%     legend('Stance', 'Swing', 'Total')
-%     grid on
-%     hold off    
-
 %% Get joint power -> this is the mechanical power required at the joint
 fprintf('Computing joint power. \n');
 for i = 1:legCount
@@ -424,6 +402,7 @@ end
 
 %% Save link lengths and mass
 Leg.robotProperties.mass.totalLegMass = 0;
+Leg.robotProperties.mass.totalLinkMass = 0;
 for i = 1:legCount
     EEselection = EEnames(i,:);
     if strcmp(EEselection,'LF') || strcmp(EEselection,'RF')
@@ -447,13 +426,17 @@ for i = 1:legCount
     end
     Leg.(EEselection).totalLinkMass = sum(Leg.(EEselection).linkMass);
     % Total mass of all leg links, actuators and end-effectors
-    Leg.robotProperties.mass.totalLegMass = Leg.robotProperties.mass.totalLegMass + Leg.(EEselection).totalLinkMass + Leg.(EEselection).EEMass + Leg.(EEselection).actuatorMass;
+    Leg.robotProperties.mass.totalLinkMass = Leg.robotProperties.mass.totalLinkMass + Leg.(EEselection).totalLinkMass;
+    Leg.robotProperties.mass.legMass.(EEselection) = Leg.(EEselection).totalLinkMass + Leg.(EEselection).EEMass + Leg.(EEselection).actuatorMass;
+    Leg.robotProperties.mass.totalLegMass = Leg.robotProperties.mass.totalLegMass + Leg.robotProperties.mass.legMass.(EEselection);
 end
+Leg.robotProperties.mass.trunk = Leg.robotProperties.mass.total - Leg.robotProperties.mass.totalLegMass;
+
 %% Get meta parameters
 fprintf('Computing meta parameters. \n');
 
 Leg.CoM.velocity = trajectoryData.base.velocity(floor(removalRatioStart*length(trajectoryData.base.velocity))+1:floor((1-removalRatioEnd)*length(trajectoryData.base.velocity)),:);
-Leg.CoM.meanVelocity = mean(Leg.CoM.velocity(:,1));
+Leg.CoM.meanVelocity = mean(Leg.CoM.velocity(:,1)); % average velocity in x direction
 Leg.metaParameters.CoT.total = 0; % initialize total cost of transport
 
 for i = 1:legCount
@@ -462,10 +445,16 @@ for i = 1:legCount
     % Cost of transport
     power = Leg.(EEselection).jointPower;
     v = Leg.CoM.meanVelocity;
-    Leg.metaParameters.CoT.(EEselection) = getCostOfTransport(v, power, robotProperties);
-   
+    m = robotProperties.mass.total;
+    Leg.metaParameters.CoT.(EEselection) = getCostOfTransport(v, power, m);
+    
     % Add contribution of each leg to get the total CoT
     Leg.metaParameters.CoT.total = Leg.metaParameters.CoT.total + Leg.metaParameters.CoT.(EEselection); 
+    
+    % COT contribution for comparison in cost function if we optimize the
+    % leg. This only considers leg mass, not the total robot mass.
+    CoTContributionMass = sum(Leg.(EEselection).linkMass) + Leg.robotProperties.mass.trunk/Leg.basicProperties.legCount;
+    Leg.metaParameters.CoTContribution.(EEselection) = getCostOfTransportPenaltyContribution(v, power, CoTContributionMass);
     
     % Power quality
     Leg.metaParameters.powerQuality.(EEselection) = computePowerQuality(power);
@@ -569,10 +558,40 @@ if optimizationProperties.runOptimization % master toggle in main
             Leg.(EEselection).mechEnergyActiveOpt                            = optimizationResults.mechEnergyActiveOpt;
             Leg.(EEselection).mechEnergyPerCycleActiveOpt                    = optimizationResults.mechEnergyPerCycleActiveOpt;
             
-            % compute CoT and power quality
-             power = Leg.(EEselection).jointPowerOpt;
-             Leg.metaParameters.CoTOpt.(EEselection) = getCostOfTransport(v, power, robotProperties);
-             Leg.metaParameters.powerQualityOpt.(EEselection) = computePowerQuality(power);
+            % Compute power quality
+            power = Leg.(EEselection).jointPowerOpt;
+            Leg.metaParameters.powerQualityOpt.(EEselection) = computePowerQuality(power);
+        end
+    end
+        
+        Leg.metaParameters.CoTOpt.total = 0;
+        
+        % Mass of actuators and EE is totalLegMass - totalLinkMass from the
+        % nominal design. Start with this mass then add optimized link
+        % masses.
+        Leg.robotProperties.mass.totalLegMassOpt = Leg.robotProperties.mass.totalLegMass - Leg.robotProperties.mass.totalLinkMass; 
+        for i = 1:legCount
+            EEselection = EEnames(i,:);
+            Leg.robotProperties.mass.legMassOpt.(EEselection) = 0;
+            if optimizeLeg.(EEselection)
+                Leg.robotProperties.mass.totalLegMassOpt = Leg.robotProperties.mass.totalLegMassOpt + Leg.(EEselection).totalLinkMassOpt;
+            else
+                Leg.robotProperties.mass.totalLegMassOpt = Leg.robotProperties.mass.totalLegMassOpt + Leg.(EEselection).totalLinkMass;
+            end
+        end
+        
+        Leg.robotProperties.mass.totalOpt = Leg.robotProperties.mass.totalLegMassOpt + Leg.robotProperties.mass.trunk;
+        for i = 1:legCount
+            EEselection = EEnames(i,:);
+            if optimizeLeg.(EEselection)
+                power = Leg.(EEselection).jointPowerOpt;
+            else 
+                power = Leg.(EEselection).jointPower;
+            end
+            m = Leg.robotProperties.mass.totalOpt;
+            v = Leg.CoM.meanVelocity;
+            Leg.metaParameters.CoTOpt.(EEselection) = getCostOfTransport(v, power, m);
+            Leg.metaParameters.CoTOpt.total  =  Leg.metaParameters.CoTOpt.total + Leg.metaParameters.CoTOpt.(EEselection);
         end
     end
 end

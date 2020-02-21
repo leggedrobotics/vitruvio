@@ -45,8 +45,8 @@ suggestedRemovalRatioEnd.ANYmalBear_trot   = 0.3;
 suggestedRemovalRatioStart.ANYmalBearFast_trot = 0.2;
 suggestedRemovalRatioEnd.ANYmalBearFast_trot   = 0;
 
-suggestedRemovalRatioStart.ANYmalBear_fastTrotExtendedxNom3 = 0; %0.4;
-suggestedRemovalRatioEnd.ANYmalBear_fastTrotExtendedxNom3   = 0; %0.4;
+suggestedRemovalRatioStart.ANYmalBear_fastTrotExtendedxNom3 = 0;
+suggestedRemovalRatioEnd.ANYmalBear_fastTrotExtendedxNom3   = 0;
 
 suggestedRemovalRatioStart.ANYmalBear_trotminTorque = 0.35;
 suggestedRemovalRatioEnd.ANYmalBear_trotminTorque   = 0.35; 
@@ -66,8 +66,8 @@ suggestedRemovalRatioEnd.ANYmalBear_fastTrotMinTorque   = 0.35;
 suggestedRemovalRatioStart.ANYmalBear_trotNom = 0; 
 suggestedRemovalRatioEnd.ANYmalBear_trotNom   = 0; 
 
-suggestedRemovalRatioStart.ANYmalBear_slowTrotExtendedxNom = 0; %0.35;
-suggestedRemovalRatioEnd.ANYmalBear_slowTrotExtendedxNom   = 0; %0.35;
+suggestedRemovalRatioStart.ANYmalBear_slowTrotExtendedxNom = 0;
+suggestedRemovalRatioEnd.ANYmalBear_slowTrotExtendedxNom   = 0;
 
 suggestedRemovalRatioStart.vitruvianBiped_pushupSquat = 0;
 suggestedRemovalRatioEnd.vitruvianBiped_pushupSquat   = 0.05;

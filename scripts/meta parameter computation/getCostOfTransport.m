@@ -1,6 +1,5 @@
-function CoT = getCostOfTransport(v, power, robotProperties)
+function CoT = getCostOfTransport(v, power, m)
 % CoT = power / m*g*v
-    m = robotProperties.mass.total;
     g = 9.81;
 
     % set negative power to zero, no regeneration

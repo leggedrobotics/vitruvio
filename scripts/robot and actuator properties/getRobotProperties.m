@@ -89,14 +89,14 @@ function robotProperties = getRobotProperties(robotSelection, transmissionMethod
 %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%    
      %% ANYmal Bear
     robot.ANYmalBear.mass.total = 38.8; 
+    % ANYmal Bear trunk mass: 17.1313 kg
     robot.ANYmalBear.legCount   = 4;
     
     % Density of each link
     % kg/m^3. Density values calculated to give correct link mass when link
     % approximated as solid cylinder.
-    
-    robot.ANYmalBear.legDensity.hip(1)       = 9728.3;   robot.ANYmalBear.legDensity.hip(2)     = 9728.3;
-    robot.ANYmalBear.legDensity.thigh(1)     = 5826.3;   robot.ANYmalBear.legDensity.thigh(2)   = 5826.3;
+    robot.ANYmalBear.legDensity.hip(1)       = 9728.3;   robot.ANYmalBear.legDensity.hip(2)       = 9728.3;
+    robot.ANYmalBear.legDensity.thigh(1)     = 5826.3;   robot.ANYmalBear.legDensity.thigh(2)     = 5826.3;
     robot.ANYmalBear.legDensity.shank(1)     = 888.2668; robot.ANYmalBear.legDensity.shank(2)     = 888.2668;
     robot.ANYmalBear.legDensity.foot(1)      = 800;      robot.ANYmalBear.legDensity.foot(2)      = 800;
     robot.ANYmalBear.legDensity.phalanges(1) = 800;      robot.ANYmalBear.legDensity.phalanges(2) = 800;    
@@ -120,10 +120,10 @@ function robotProperties = getRobotProperties(robotSelection, transmissionMethod
     % link lengths [m]
     robot.ANYmalBear.hip(1).length   = 0.112;
     robot.ANYmalBear.hip(2).length   = 0.112;
-    robot.ANYmalBear.thigh(1).length = 0.33; %0.3919; %0.1459; %minTorque    ; %0.3919 minCOT; %0.25; 
-    robot.ANYmalBear.thigh(2).length = 0.33; %0.3959; %0.1699; %minTorque; %0.3959 minCOT; %0.25;
-    robot.ANYmalBear.shank(1).length = 0.25; %0.3047; %0.3452; % minTorque %0.3047 minCOT; %0.33;
-    robot.ANYmalBear.shank(2).length = 0.25; %0.2966; %0.3245;% minTorque; %0.2966 minCOT; %0.33;
+    robot.ANYmalBear.thigh(1).length = 0.25;  
+    robot.ANYmalBear.thigh(2).length = 0.25; 
+    robot.ANYmalBear.shank(1).length = 0.33; 
+    robot.ANYmalBear.shank(2).length = 0.33; 
     robot.ANYmalBear.foot(1).length  = 0.16;
     robot.ANYmalBear.foot(2).length  = 0.16;
     robot.ANYmalBear.phalanges(1).length = 0.1;
@@ -571,8 +571,8 @@ function robotProperties = getRobotProperties(robotSelection, transmissionMethod
     robot.mini.legCount   = 4;
 
     % Density of each link %kg/m^3
-    robot.mini.legDensity.hip(1)       = 900;   robot.mini.legDensity.hip(2)       = 900;
-    robot.mini.legDensity.thigh(1)     = 900;   robot.mini.legDensity.thigh(2)     = 900;
+    robot.mini.legDensity.hip(1)       = 900;     robot.mini.legDensity.hip(2)       = 900;
+    robot.mini.legDensity.thigh(1)     = 900;     robot.mini.legDensity.thigh(2)     = 900;
     robot.mini.legDensity.shank(1)     = 900;     robot.mini.legDensity.shank(2)     = 900;
     robot.mini.legDensity.foot(1)      = 900;     robot.mini.legDensity.foot(2)      = 900;
     robot.mini.legDensity.phalanges(1) = 900;     robot.mini.legDensity.phalanges(2) = 900;
