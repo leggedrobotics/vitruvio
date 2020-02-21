@@ -74,7 +74,7 @@ heuristic.torqueAngle.kTorsionalSpring = 50; % Spring constant for torsional spr
 
 %% Visualization toggles
 saveFiguresToPDF               = false;  % Figures are saved to results.pdf in current folder. This adds significant computation time.
-robotVisualization.view        = true;   % Visualization of nominal robot
+robotVisualization.view        = false;   % Visualization of nominal robot
 robotVisualization.oneLeg      = false;  % View a single leg tracking the trajectory.
 robotVisualization.allLegs     = true;   % View motion with all legs (incompatible with averageStepsForCyclicalMotion = true)
 robotVisualization.torso       = false;  % Also displays a torso at the front of the robot, dimensions defined in visualizeRobot.m
