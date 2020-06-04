@@ -1,4 +1,3 @@
-%function [] = visualizeRobot(linkCount, robotProperties, Leg, meanCyclicMotionHipEE, EEselection, robotVisualization, dataExtraction, optimized, saveFiguresToPDF, fileName) 
  function visualizeRobot(data, EEselection, fileName, robotVisualization, optimized) 
 
     EEnames         = data.basicProperties.EEnames;
@@ -12,6 +11,8 @@
     bodyWidth       = robotProperties.baseWidth;
     bodyHeight      = robotProperties.baseHeight;
     displayTorso    = robotVisualization.torso;
+    
+    createGif = robotVisualization.createGif;
     
     %outerPosition = [0 0 1 1]; % Fullscreen
     outerPosition = [0.5 0.5 0.5 0.5]; % Top right corner
@@ -36,8 +37,9 @@
     
     groundGridlines = linspace(-1,99,101);
 
-    myMap = [65 105 225]/225; % Royal blue
-        
+    myMap  = [65 105 225]/225; % Royal blue
+    myMap2 = [65 105 225]/225; % Royal blue (ground colour)
+    
     for i = 1:legCount
         hipViz.(EEnames(i,:))       = [];
         thighViz.(EEnames(i,:))     = [];
@@ -49,9 +51,9 @@
     
     % Axis limits - adjust manually based on size of robot
     if robotVisualization.oneLeg
-        xlimit = [-0.2, 0.4];
-        ylimit = [-0.3, 0.3];
-        zlimit = [-0.55, 0.4];
+        xlimit = 2*[-0.2, 0.4];
+        ylimit = 2*[-0.3, 0.3];
+        zlimit = 2*[-0.55, 0.4];
     else
         xlimit = [-1.05, 1.05];
         ylimit = [-1, 1];
@@ -129,19 +131,19 @@
     for i = 1:finalPlottingIndex
         if optimized && data.basicProperties.optimizedLegs.(EEselection)
             if (linkCount == 2) 
-                config.(EEselection)(i,:) = [-data.(EEselection).body.eulerAngles(i,2), ... %body rotation about inertial y
+                config.(EEselection)(i,:) = [data.(EEselection).body.eulerAngles(i,2), ... %body rotation about inertial y
                                               data.(EEselection).qOpt(i,1), ... % HAA
                                               data.(EEselection).qOpt(i,2), ... % HFE
                                               data.(EEselection).qOpt(i,3)];    % KFE
 
             elseif (linkCount == 3)    
-                config.(EEselection)(i,:) = [-data.(EEselection).body.eulerAngles(i,2), ... %body rotation about inertial y
+                config.(EEselection)(i,:) = [data.(EEselection).body.eulerAngles(i,2), ... %body rotation about inertial y
                                               data.(EEselection).qOpt(i,1), ... % HAA
                                               data.(EEselection).qOpt(i,2), ... % HFE
                                               data.(EEselection).qOpt(i,3), ... % KFE
                                               data.(EEselection).qOpt(i,4)];    % AFE    
             elseif (linkCount == 4)
-                config.(EEselection)(i,:) = [-data.(EEselection).body.eulerAngles(i,2), ... %body rotation about inertial y
+                config.(EEselection)(i,:) = [data.(EEselection).body.eulerAngles(i,2), ... %body rotation about inertial y
                                               data.(EEselection).qOpt(i,1), ... % HAA
                                               data.(EEselection).qOpt(i,2), ... % HFE
                                               data.(EEselection).qOpt(i,3), ... % KFE
@@ -150,19 +152,19 @@
             end
         else
             if (linkCount == 2) 
-                config.(EEselection)(i,:) = [-data.(EEselection).body.eulerAngles(i,2), ... %body rotation about inertial y
+                config.(EEselection)(i,:) = [data.(EEselection).body.eulerAngles(i,2), ... %body rotation about inertial y
                                               data.(EEselection).q(i,1), ... % HAA
                                               data.(EEselection).q(i,2), ... % HFE
                                               data.(EEselection).q(i,3)];    % KFE
 
             elseif (linkCount == 3)    
-                config.(EEselection)(i,:) = [-data.(EEselection).body.eulerAngles(i,2), ... %body rotation about inertial y
+                config.(EEselection)(i,:) = [data.(EEselection).body.eulerAngles(i,2), ... %body rotation about inertial y
                                               data.(EEselection).q(i,1), ... % HAA
                                               data.(EEselection).q(i,2), ... % HFE
                                               data.(EEselection).q(i,3), ... % KFE
                                               data.(EEselection).q(i,4)];    % AFE    
             elseif (linkCount == 4)
-                config.(EEselection)(i,:) = [-data.(EEselection).body.eulerAngles(i,2), ... %body rotation about inertial y
+                config.(EEselection)(i,:) = [data.(EEselection).body.eulerAngles(i,2), ... %body rotation about inertial y
                                               data.(EEselection).q(i,1), ... % HAA
                                               data.(EEselection).q(i,2), ... % HFE
                                               data.(EEselection).q(i,3), ... % KFE
@@ -207,7 +209,7 @@
     if robotVisualization.oneLeg  
         for i = 1:finalPlottingIndex
             % Set frames = on to see the rigid body tree of the leg
-            show(robot,config.(EEselection)(i,:), 'Frames', 'on');
+            show(robot,config.(EEselection)(i,:), 'Frames', 'off');
             grid off
             xlim([xlimit(1) xlimit(2)]);
             ylim([ylimit(1) ylimit(2)]);
@@ -284,19 +286,21 @@
             end
 
             % Save to gif
-            if mod(i,2) % Save every 2nd frame into gif
-                % Capture the plot as an image 
-                frame = getframe(f1); 
-                im = frame2im(frame); 
-                [imind,cm] = rgb2ind(im,256); 
-                % Write to the GIF File 
-                if i == 1 && isequal(EEselection, 'LF')
-                    imwrite(imind,cm,fileName,'gif', 'Loopcount',inf); 
-                else 
-                    imwrite(imind,cm, fileName,'gif','WriteMode','append'); 
-                end 
-            end  
-            hold off
+            if createGif
+                if mod(i,2) % Save every 2nd frame into gif
+                    % Capture the plot as an image 
+                    frame = getframe(f1); 
+                    im = frame2im(frame); 
+                    [imind,cm] = rgb2ind(im,256); 
+                    % Write to the GIF File 
+                    if i == 1 && isequal(EEselection, 'LF')
+                        imwrite(imind,cm,fileName,'gif', 'Loopcount',inf); 
+                    else 
+                        imwrite(imind,cm, fileName,'gif','WriteMode','append'); 
+                    end 
+                end  
+                hold off
+            end
         end
    end
         
@@ -396,8 +400,8 @@
                     end
                     
                         %% Plot ground and stairs
-                        groundColor = myMap;
-                        groundColorStairs =  myMap;
+                        groundColor = myMap2;
+                        groundColorStairs =  myMap2;
                         delete(groundViz)
                         groundViz = patch(groundCoordinatesX(1,:), groundCoordinatesY(1,:), [0 0 0 0], groundColor, 'FaceAlpha', 0.4, 'LineStyle', '-', 'LineWidth', 0.5);
                         delete(stairViz);
@@ -422,60 +426,70 @@
                         delete(shankViz.(EEnames(k,:)));
                         delete(footViz.(EEnames(k,:)));
                         delete(phalangesViz.(EEnames(k,:)));
-                        
-                        % Display end effectors as spheres
-                        EEviz.(EEnames(k,:)) = surf(xNom.(EEnames(k,:))+xEE+data.(EEnames(k,:)).r.EE(i,1),yNom.(EEnames(k,:))+yEE+data.(EEnames(k,:)).r.EE(i,2),zNom.(EEnames(k,:))+zEE+data.(EEnames(k,:)).r.EE(i,3)-groundCoordinatesZ(i,1), 'edgecolor', 'none');
-                        colormap(myMap);
-                        
+                   
                         % Display links as cylinders
                         if ~optimized || (optimized && ~data.basicProperties.optimizedLegs.(EEnames(k,:)))
-                            rHAA = [xNom.(EEnames(k,:))+data.(EEnames(k,:)).r.HAA(i,1), yNom.(EEnames(k,:))+data.(EEnames(k,:)).r.HAA(i,2), zNom.(EEnames(k,:))+data.(EEnames(k,:)).r.HAA(i,3)];
-                            rHFE = [xNom.(EEnames(k,:))+data.(EEnames(k,:)).r.HFE(i,1), yNom.(EEnames(k,:))+data.(EEnames(k,:)).r.HFE(i,2), zNom.(EEnames(k,:))+data.(EEnames(k,:)).r.HFE(i,3)];
-                            rKFE = [xNom.(EEnames(k,:))+data.(EEnames(k,:)).r.KFE(i,1), yNom.(EEnames(k,:))+data.(EEnames(k,:)).r.KFE(i,2), zNom.(EEnames(k,:))+ data.(EEnames(k,:)).r.KFE(i,3)];
-                            rAFE = [xNom.(EEnames(k,:))+data.(EEnames(k,:)).r.AFE(i,1), yNom.(EEnames(k,:))+data.(EEnames(k,:)).r.AFE(i,2), zNom.(EEnames(k,:))+ data.(EEnames(k,:)).r.AFE(i,3)];
-                            rDFE = [xNom.(EEnames(k,:))+data.(EEnames(k,:)).r.DFE(i,1), yNom.(EEnames(k,:))+data.(EEnames(k,:)).r.DFE(i,2), zNom.(EEnames(k,:))+ data.(EEnames(k,:)).r.DFE(i,3)];
-                            rEE  = [xNom.(EEnames(k,:))+data.(EEnames(k,:)).r.EE(i,1),  yNom.(EEnames(k,:))+data.(EEnames(k,:)).r.EE(i,2),  zNom.(EEnames(k,:))+data.(EEnames(k,:)).r.EE(i,3)];
+                            rHAA = [xNom.(EEnames(k,:)) + data.(EEnames(k,:)).r.HAA(i,1), yNom.(EEnames(k,:)) + data.(EEnames(k,:)).r.HAA(i,2), zNom.(EEnames(k,:)) + data.(EEnames(k,:)).r.HAA(i,3)];
+                            rHFE = [xNom.(EEnames(k,:)) + data.(EEnames(k,:)).r.HFE(i,1), yNom.(EEnames(k,:)) + data.(EEnames(k,:)).r.HFE(i,2), zNom.(EEnames(k,:)) + data.(EEnames(k,:)).r.HFE(i,3)];
+                            rKFE = [xNom.(EEnames(k,:)) + data.(EEnames(k,:)).r.KFE(i,1), yNom.(EEnames(k,:)) + data.(EEnames(k,:)).r.KFE(i,2), zNom.(EEnames(k,:)) + data.(EEnames(k,:)).r.KFE(i,3)];
+                            rAFE = [xNom.(EEnames(k,:)) + data.(EEnames(k,:)).r.AFE(i,1), yNom.(EEnames(k,:)) + data.(EEnames(k,:)).r.AFE(i,2), zNom.(EEnames(k,:)) + data.(EEnames(k,:)).r.AFE(i,3)];
+                            rDFE = [xNom.(EEnames(k,:)) + data.(EEnames(k,:)).r.DFE(i,1), yNom.(EEnames(k,:)) + data.(EEnames(k,:)).r.DFE(i,2), zNom.(EEnames(k,:)) + data.(EEnames(k,:)).r.DFE(i,3)];
+                            rEE  = [xNom.(EEnames(k,:)) + data.(EEnames(k,:)).r.EE(i,1),  yNom.(EEnames(k,:)) + data.(EEnames(k,:)).r.EE(i,2),  zNom.(EEnames(k,:)) + data.(EEnames(k,:)).r.EE(i,3)];
                         end
                         if optimized && data.basicProperties.optimizedLegs.(EEnames(k,:)) % If the selected leg has been optimized, use optimized link lengths
-                            rHAA = [xNom.(EEnames(k,:))+data.(EEnames(k,:)).rOpt.HAA(i,1), yNom.(EEnames(k,:))+data.(EEnames(k,:)).rOpt.HAA(i,2), zNom.(EEnames(k,:))+ data.(EEnames(k,:)).rOpt.HAA(i,3)];
-                            rHFE = [xNom.(EEnames(k,:))+data.(EEnames(k,:)).rOpt.HFE(i,1), yNom.(EEnames(k,:))+data.(EEnames(k,:)).rOpt.HFE(i,2), zNom.(EEnames(k,:))+ data.(EEnames(k,:)).rOpt.HFE(i,3)];
-                            rKFE = [xNom.(EEnames(k,:))+data.(EEnames(k,:)).rOpt.KFE(i,1), yNom.(EEnames(k,:))+data.(EEnames(k,:)).rOpt.KFE(i,2), zNom.(EEnames(k,:))+ data.(EEnames(k,:)).rOpt.KFE(i,3)];
-                            rAFE = [xNom.(EEnames(k,:))+data.(EEnames(k,:)).rOpt.AFE(i,1), yNom.(EEnames(k,:))+data.(EEnames(k,:)).rOpt.AFE(i,2), zNom.(EEnames(k,:))+ data.(EEnames(k,:)).rOpt.AFE(i,3)];
-                            rDFE = [xNom.(EEnames(k,:))+data.(EEnames(k,:)).rOpt.DFE(i,1), yNom.(EEnames(k,:))+data.(EEnames(k,:)).rOpt.DFE(i,2), zNom.(EEnames(k,:))+ data.(EEnames(k,:)).rOpt.DFE(i,3)];
-                            rEE  = [xNom.(EEnames(k,:))+data.(EEnames(k,:)).rOpt.EE(i,1),  yNom.(EEnames(k,:))+data.(EEnames(k,:)).r.EE(i,2),     zNom.(EEnames(k,:))+ data.(EEnames(k,:)).r.EE(i,3)];
+                            rHAA = [xNom.(EEnames(k,:)) + data.(EEnames(k,:)).rOpt.HAA(i,1), yNom.(EEnames(k,:)) + data.(EEnames(k,:)).rOpt.HAA(i,2), zNom.(EEnames(k,:)) + data.(EEnames(k,:)).rOpt.HAA(i,3)];
+                            rHFE = [xNom.(EEnames(k,:)) + data.(EEnames(k,:)).rOpt.HFE(i,1), yNom.(EEnames(k,:)) + data.(EEnames(k,:)).rOpt.HFE(i,2), zNom.(EEnames(k,:)) + data.(EEnames(k,:)).rOpt.HFE(i,3)];
+                            rKFE = [xNom.(EEnames(k,:)) + data.(EEnames(k,:)).rOpt.KFE(i,1), yNom.(EEnames(k,:)) + data.(EEnames(k,:)).rOpt.KFE(i,2), zNom.(EEnames(k,:)) + data.(EEnames(k,:)).rOpt.KFE(i,3)];
+                            rAFE = [xNom.(EEnames(k,:)) + data.(EEnames(k,:)).rOpt.AFE(i,1), yNom.(EEnames(k,:)) + data.(EEnames(k,:)).rOpt.AFE(i,2), zNom.(EEnames(k,:)) + data.(EEnames(k,:)).rOpt.AFE(i,3)];
+                            rDFE = [xNom.(EEnames(k,:)) + data.(EEnames(k,:)).rOpt.DFE(i,1), yNom.(EEnames(k,:)) + data.(EEnames(k,:)).rOpt.DFE(i,2), zNom.(EEnames(k,:)) + data.(EEnames(k,:)).rOpt.DFE(i,3)];
+                            rEE  = [xNom.(EEnames(k,:)) + data.(EEnames(k,:)).rOpt.EE(i,1),  yNom.(EEnames(k,:)) + data.(EEnames(k,:)).rOpt.EE(i,2),  zNom.(EEnames(k,:)) + data.(EEnames(k,:)).rOpt.EE(i,3)];
                         end
                         
-                        [x1,y1,z1] = cylinder2P(robotProperties.hip(selectFrontHind).radius, 8, rHAA,rHFE);
-                        [x2,y2,z2] = cylinder2P(robotProperties.thigh(selectFrontHind).radius, 8,rHFE,rKFE);
-                        [x3,y3,z3] = cylinder2P(robotProperties.shank(selectFrontHind).radius, 8,rKFE,rAFE);
-                        hipViz.(EEnames(k,:)) = surf(x1, y1, z1- groundCoordinatesZ(i,1), 'edgecolor', edgeColor, 'LineWidth', 0.01);
+                        [x1,y1,z1] = cylinder2P(robotProperties.hip(selectFrontHind).radius, 8, rHAA, rHFE);
+                        [x2,y2,z2] = cylinder2P(robotProperties.thigh(selectFrontHind).radius, 8,rHFE, rKFE);
+                        [x3,y3,z3] = cylinder2P(robotProperties.shank(selectFrontHind).radius, 8,rKFE, rAFE);
+                        hipViz.(EEnames(k,:))   = surf(x1, y1, z1- groundCoordinatesZ(i,1), 'edgecolor', edgeColor, 'LineWidth', 0.01);
                         thighViz.(EEnames(k,:)) = surf(x2, y2, z2- groundCoordinatesZ(i,1), 'edgecolor', edgeColor, 'LineWidth', 0.01);
                         shankViz.(EEnames(k,:)) = surf(x3, y3, z3- groundCoordinatesZ(i,1), 'edgecolor', edgeColor, 'LineWidth', 0.01);   
                         
                         if linkCount > 2 
-                            [x4,y4,z4] = cylinder2P(robotProperties.foot(selectFrontHind).radius, 8,rAFE,rDFE);
+                            [x4,y4,z4] = cylinder2P(robotProperties.foot(selectFrontHind).radius, 8, rAFE, rDFE);
                             footViz.(EEnames(k,:)) = surf(x4, y4, z4- groundCoordinatesZ(i,1), 'edgecolor', edgeColor, 'LineWidth', 0.1);
                         end
                         
                         if linkCount == 4
-                            [x5,y5,z5] = cylinder2P(robotProperties.phalanges(selectFrontHind).radius, 8,rDFE,rEE);
+                            [x5,y5,z5] = cylinder2P(robotProperties.phalanges(selectFrontHind).radius, 8, rDFE, rEE);
                             phalangesViz.(EEnames(k,:)) = surf(x5, y5, z5-groundCoordinatesZ(i,1), 'edgecolor', edgeColor, 'LineWidth', 0.1);
                         end
+                        
+                        % Display end effectors as spheres
+%                         EEviz.(EEnames(k,:)) = surf(xNom.(EEnames(k,:))+xEE+data.(EEnames(k,:)).r.EE(i,1), ... 
+%                                                     yNom.(EEnames(k,:))+yEE+data.(EEnames(k,:)).r.EE(i,2), ...
+%                                                     zNom.(EEnames(k,:))+zEE+data.(EEnames(k,:)).r.EE(i,3)-groundCoordinatesZ(i,1), 'edgecolor', 'none');
+                        
+                        EEviz.(EEnames(k,:)) = surf(rEE(1,1) + xEE, ... 
+                                                    rEE(1,2) + yEE, ...
+                                                    rEE(1,3) + zEE - groundCoordinatesZ(i,1), 'edgecolor', 'none');
+                                                
+                                                colormap(myMap);
+                    
                     end
                     hold off   
             
             %% Save gif and svg
-            if mod(i,3)==0 || i==1% Save every 3rd frame into gif
-                  % Capture f1 as image and save to .gif
-                  frame = getframe(f1); 
-                  im = frame2im(frame); 
-                  [imind,cm] = rgb2ind(im,256);
-                  if i == 1 
-                      imwrite(imind,cm,fileName,'gif', 'Loopcount',inf); 
-                  else 
-                      imwrite(imind,cm, fileName,'gif','WriteMode','append'); 
-                  end 
-            end 
+            if createGif
+                if mod(i,3)==0 || i==1% Save every 3rd frame into gif
+                      % Capture f1 as image and save to .gif
+                      frame = getframe(f1); 
+                      im = frame2im(frame); 
+                      [imind,cm] = rgb2ind(im,256);
+                      if i == 1 
+                          imwrite(imind,cm,fileName,'gif', 'Loopcount',inf); 
+                      else 
+                          imwrite(imind,cm, fileName,'gif','WriteMode','append'); 
+                      end 
+                end 
+            end
         end
     end
  end

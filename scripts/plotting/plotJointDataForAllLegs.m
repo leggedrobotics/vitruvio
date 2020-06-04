@@ -1,9 +1,14 @@
 function [] = plotJointDataForAllLegs(data, data2, optimizeLeg, saveFiguresToPDF)
     %% Select which plots are to be displayed
-    displayJointLevelPlots         = true;
-    displayActuatorLevelPlots      = false;
-    displayActivePassiveLevelPlots = false;
-    displayMotorLevelPlots         = false;
+    displayJointLevelPlots = true;
+    displayMotorLevelPlots = false;
+    displayActuatorLevelPlots = true;
+
+    if sum(data.LF.kSpringJoint) ~= 0
+        displayActivePassiveLevelPlots = true;
+    else 
+        displayActivePassiveLevelPlots = false;
+    end
 
     % Read parameters
     legCount                      = data.basicProperties.legCount;
@@ -362,7 +367,7 @@ function [] = plotJointDataForAllLegs(data, data2, optimizeLeg, saveFiguresToPDF
                     p(3) = plot(data.time(startTimeIndex:startTimeIndex+length(jointqOpt.(EEselection))-1),  jointqOpt.(EEselection)(:,j), lineColourOpt, 'LineWidth', LineWidth);
                 end
 
-                if j == 1 % only show legend on HAA subplots
+                if i == 1 && j == 1 % only show legend on top left subplot
                     if plotDataSet2 
                         legend([p(1) p(2)],'approximated inertia', 'exact inertia')
                     elseif optimizeLeg.(EEselection)
@@ -373,9 +378,9 @@ function [] = plotJointDataForAllLegs(data, data2, optimizeLeg, saveFiguresToPDF
                 if j == linkCount+1
                     xlabel('Time [s]')
                 end
-               % if strcmp('LF', EEselection)
+                if i == 1
                     ylabel('Position [rad]')
-               % end
+                end
                 xlim(xlimit.time)
                 ylim(ylimit.q)
                 title([EEselection, ' ', plotTitle{k}])
@@ -409,7 +414,7 @@ function [] = plotJointDataForAllLegs(data, data2, optimizeLeg, saveFiguresToPDF
                 p(4) = line([min(xlim),max(xlim)],[data.actuatorProperties.maxqdotLimit.(jointNames(j,:)), data.actuatorProperties.maxqdotLimit.(jointNames(j,:))], 'Color', 'k', 'LineStyle', '--');
                 p(5) = line([min(xlim),max(xlim)],[-data.actuatorProperties.maxqdotLimit.(jointNames(j,:)), -data.actuatorProperties.maxqdotLimit.(jointNames(j,:))], 'Color', 'k', 'LineStyle', '--');            
 
-                if j == 1 % Only show legend on HAA subplots
+                if i == 1 && j == 1 % only show legend on top left subplot
                     if plotDataSet2 && max(ylimit.qdot) > data.actuatorProperties.maxqdotLimit.(jointNames(j,:)) % If actuator limits visible on plot
                         legend([p(1) p(2) p(4)], 'approximated inertia', 'exact inertia', 'actuator limits')
                     elseif plotDataSet2 % Actuator limits not visible
@@ -463,7 +468,7 @@ function [] = plotJointDataForAllLegs(data, data2, optimizeLeg, saveFiguresToPDF
                 p(4) = line([min(xlim),max(xlim)],[data.actuatorProperties.maxTorqueLimit.(jointNames(j,:)), data.actuatorProperties.maxTorqueLimit.(jointNames(j,:))], 'Color', 'k', 'LineStyle', '--');
                 p(5) = line([min(xlim),max(xlim)],[-data.actuatorProperties.maxTorqueLimit.(jointNames(j,:)), -data.actuatorProperties.maxTorqueLimit.(jointNames(j,:))], 'Color', 'k', 'LineStyle', '--');               
 
-                if j == 1 % only show legend on HAA subplots
+                if i == 1 && j == 1 % only show legend on top left subplot
                     if plotDataSet2 && max(ylimit.torque) > data.actuatorProperties.maxTorqueLimit.(jointNames(j,:)) % If actuator limits visible on plot
                         legend([p(1) p(2) p(4)], 'approximated inertia', 'exact inertia', 'actuator limits')
                     elseif plotDataSet2 % Actuator limits not visible
@@ -494,6 +499,44 @@ function [] = plotJointDataForAllLegs(data, data2, optimizeLeg, saveFiguresToPDF
             export_fig results.pdf -nocrop -append
         end  
 
+        
+%         %% Joint Torque - effect of inertia in stance for paper revision
+%         figure('name', 'Joint Torque with Inertia in Stance', 'DefaultAxesFontSize', 10, 'units','normalized','outerposition',outerPosition)
+%         set(gcf,'color','w')
+%         plotTitle = {'Joint \tau_{HAA}','Joint \tau_{HFE}','Joint \tau_{KFE}','Joint \tau_{AFE}','Joint \tau_{DFE}'};
+%         for i = 1:legCount
+%             k = 1; % plot title index
+%             EEselection = EEnames(i,:);
+%             for j = 1:linkCount+1
+%                 subplot(linkCount+1, legCount, i + (j-1)*legCount);
+%                 hold on
+%                 patch(X.(EEselection), 2*Y_torque.(EEselection), patchColor, 'FaceAlpha', patchAlpha, 'EdgeAlpha', 0)            
+%                 p(1) = plot(data.time(startTimeIndex:startTimeIndex+length(jointTorque.(EEselection))-1),  jointTorque.(EEselection)(:,j), lineColour, 'LineWidth', LineWidth);
+%                 p(2) = plot(data.time(startTimeIndex:startTimeIndex+length(jointTorque.(EEselection))-1),  data.(EEselection).jointTorque_stanceTorqueIncluded(:,j), lineColourOpt, 'LineWidth', LineWidth);
+%                 p(3) = plot(data.time(startTimeIndex:startTimeIndex+length(jointTorque.(EEselection))-1),  data.(EEselection).jointTorque_stanceTorqueIncluded(:,j)-jointTorque.(EEselection)(:,j), 'Color', 'k', 'LineStyle', '--');
+%                 
+%                 if i == 1 && j == 1 % only show legend on top left subplot
+%                     legend([p(1) p(2) p(3)], 'stance inertia neglected', 'stance inertia included', 'torque due to stance inertia')
+%                 end
+%                 
+%                 grid on
+%                 if j == linkCount+1
+%                     xlabel('Time [s]')
+%                 end
+%                 if strcmp('LF', EEselection)
+%                     ylabel('Torque [Nm]')
+%                 end
+%                 xlim(xlimit.time)
+%                 ylim(ylimit.torque)
+%                 title([EEselection, ' ', plotTitle{k}])
+%                 k = k+1;
+%                 hold off
+%             end
+%         end
+%         if saveFiguresToPDF
+%             export_fig results.pdf -nocrop -append
+%         end  
+%         
        %% Joint Power
         figure('name', 'Joint Power', 'DefaultAxesFontSize', 10, 'units','normalized','outerposition',outerPosition)
         set(gcf,'color','w')
@@ -516,7 +559,7 @@ function [] = plotJointDataForAllLegs(data, data2, optimizeLeg, saveFiguresToPDF
                 p(4) = line([min(xlim),max(xlim)],[data.actuatorProperties.maxPowerLimit.(jointNames(j,:)), data.actuatorProperties.maxPowerLimit.(jointNames(j,:))], 'Color', 'k', 'LineStyle', '--');
                 grid on
 
-                if j == 1 % only show legend on HAA subplots
+                if i == 1 && j == 1 % only show legend on top left subplot
                     if plotDataSet2 && max(ylimit.power) > data.actuatorProperties.maxPowerLimit.(jointNames(j,:)) % If actuator limits visible on plot
                         legend([p(1) p(2) p(4)], 'approximated inertia', 'exact inertia', 'actuator limits')
                     elseif plotDataSet2 % Actuator limits not visible
@@ -566,7 +609,7 @@ function [] = plotJointDataForAllLegs(data, data2, optimizeLeg, saveFiguresToPDF
                     p(3) = plot(data.time(startTimeIndex:startTimeIndex+length(mechEnergyOpt.(EEselection))-1),  mechEnergyOpt.(EEselection)(:,j), lineColourOpt, 'LineWidth', LineWidth);
                 end
 
-                if j == 1 % only show legend on HAA subplots
+                if i == 1 && j == 1 % only show legend on top left subplot
                     if plotDataSet2 
                         legend([p(1) p(2)], 'approximated inertia', 'exact inertia')
                     elseif optimizeLeg.(EEselection)
@@ -630,7 +673,7 @@ function [] = plotJointDataForAllLegs(data, data2, optimizeLeg, saveFiguresToPDF
                 p(10) = line([min(xlim),max(xlim)],[data.actuatorProperties.maxTorqueLimit.(jointNames(j,:)), data.actuatorProperties.maxTorqueLimit.(jointNames(j,:))], 'Color', 'k', 'LineStyle', '--');
                 p(11) = line([min(xlim),max(xlim)],[-data.actuatorProperties.maxTorqueLimit.(jointNames(j,:)), -data.actuatorProperties.maxTorqueLimit.(jointNames(j,:))], 'Color', 'k', 'LineStyle', '--');               
 
-                if j == 1 % only show legend on HAA subplots
+                if i == 1 && j == 1 % only show legend on top left subplot
                     if ~optimizeLeg.(EEselection) && max(ylimit.torque) > data.actuatorProperties.maxTorqueLimit.(jointNames(j,:)) % If actuator limits visible on plot
                         legend([p(1) p(2) p(3) p(10)], 'active torque', 'passive torque', 'joint torque', 'actuator limits')
                     elseif ~optimizeLeg.(EEselection) && max(ylimit.torque) < data.actuatorProperties.maxTorqueLimit.(jointNames(j,:)) % Actuator limits not visible
@@ -687,7 +730,7 @@ function [] = plotJointDataForAllLegs(data, data2, optimizeLeg, saveFiguresToPDF
                 % plot actuator limits on the same plot
                 p(10) = line([min(xlim),max(xlim)],[data.actuatorProperties.maxPowerLimit.(jointNames(j,:)), data.actuatorProperties.maxPowerLimit.(jointNames(j,:))], 'Color', 'k', 'LineStyle', '--');
 
-                if j == 1 % only show legend on HAA subplots
+                if i == 1 && j == 1 % only show legend on top left subplot
                     if ~optimizeLeg.(EEselection) && max(ylimit.torque) > data.actuatorProperties.maxTorqueLimit.(jointNames(j,:)) % If actuator limits visible on plot
                         legend([p(1) p(2) p(3) p(10)], 'active power', 'passive power', 'joint power', 'actuator limits')
                     elseif ~optimizeLeg.(EEselection) && max(ylimit.torque) < data.actuatorProperties.maxTorqueLimit.(jointNames(j,:)) % Actuator limits not visible
@@ -735,7 +778,7 @@ function [] = plotJointDataForAllLegs(data, data2, optimizeLeg, saveFiguresToPDF
                     p(3) = plot(data.time(startTimeIndex:startTimeIndex+length(mechEnergyActiveOpt.(EEselection))-1),  mechEnergyActiveOpt.(EEselection)(:,j), lineColourOpt, 'LineWidth', LineWidth);
                 end
 
-                if j == 1 % only show legend on HAA subplots
+                if i == 1 && j == 1 % only show legend on top left subplot
                     if plotDataSet2 
                         legend([p(1) p(2)], 'approximated inertia', 'exact inertia')
                     elseif optimizeLeg.(EEselection)
@@ -785,7 +828,7 @@ function [] = plotJointDataForAllLegs(data, data2, optimizeLeg, saveFiguresToPDF
                 p(4) = line([min(xlim),max(xlim)],[data.actuatorProperties.maxqdotLimit.(jointNames(j,:)), data.actuatorProperties.maxqdotLimit.(jointNames(j,:))], 'Color', 'k', 'LineStyle', '--');
                 p(5) = line([min(xlim),max(xlim)],[-data.actuatorProperties.maxqdotLimit.(jointNames(j,:)), -data.actuatorProperties.maxqdotLimit.(jointNames(j,:))], 'Color', 'k', 'LineStyle', '--');            
 
-                if j == 1 % only show legend on HAA subplots
+                if i == 1 && j == 1 % only show legend on top left subplot
                     if plotDataSet2 && max(ylimit.qdot) > data.actuatorProperties.maxqdotLimit.(jointNames(j,:)) % If actuator limits visible on plot
                         legend([p(1) p(2) p(4)], 'approximated inertia', 'exact inertia', 'actuator limits')
                     elseif plotDataSet2 % Actuator limits not visible
@@ -839,7 +882,7 @@ function [] = plotJointDataForAllLegs(data, data2, optimizeLeg, saveFiguresToPDF
                 p(4) = line([min(xlim),max(xlim)],[data.actuatorProperties.maxTorqueLimit.(jointNames(j,:)), data.actuatorProperties.maxTorqueLimit.(jointNames(j,:))], 'Color', 'k', 'LineStyle', '--');
                 p(5) = line([min(xlim),max(xlim)],[-data.actuatorProperties.maxTorqueLimit.(jointNames(j,:)), -data.actuatorProperties.maxTorqueLimit.(jointNames(j,:))], 'Color', 'k', 'LineStyle', '--');               
 
-                if j == 1 % only show legend on HAA subplots
+                if i == 1 && j == 1 % only show legend on top left subplot
                     if plotDataSet2 && max(ylimit.torque) > data.actuatorProperties.maxTorqueLimit.(jointNames(j,:)) % If actuator limits visible on plot
                         legend([p(1) p(2) p(4)], 'approximated inertia', 'exact inertia', 'actuator limits')
                     elseif plotDataSet2 % Actuator limits not visible
@@ -894,7 +937,7 @@ function [] = plotJointDataForAllLegs(data, data2, optimizeLeg, saveFiguresToPDF
                 p(4) = line([min(xlim),max(xlim)],[data.actuatorProperties.maxPowerLimit.(jointNames(j,:)), data.actuatorProperties.maxPowerLimit.(jointNames(j,:))], 'Color', 'k', 'LineStyle', '--');
                 grid on
 
-                if j == 1 % only show legend on HAA subplots
+                if i == 1 && j == 1 % only show legend on top left subplot
                     if plotDataSet2 && max(ylimit.power) > data.actuatorProperties.maxPowerLimit.(jointNames(j,:)) % If actuator limits visible on plot
                         legend([p(1) p(2) p(4)], 'approximated inertia', 'exact inertia', 'actuator limits')
                     elseif plotDataSet2 % Actuator limits not visible
@@ -944,7 +987,7 @@ function [] = plotJointDataForAllLegs(data, data2, optimizeLeg, saveFiguresToPDF
                     p(3) = plot(data.time(startTimeIndex:startTimeIndex+length(elecEnergyOpt.(EEselection))-1),  elecEnergyOpt.(EEselection)(:,j), lineColourOpt, 'LineWidth', LineWidth);
                 end
 
-                if j == 1 % only show legend on HAA subplots
+                if i == 1 && j == 1 % only show legend on top left subplot
                     if plotDataSet2 
                         legend([p(1) p(2)], 'approximated inertia', 'exact inertia')
                     elseif optimizeLeg.(EEselection)

@@ -7,11 +7,10 @@ clear;
 close all;
 
 %% Enter path to bag containing trajectory data
-%pathToTrajectoryData =  '/Users/michaelchadwick/Documents/git/vitruvio/data/extractedBags/matlab_ANYmalBear_slowTrotExtendedxNom.bag';
-pathToTrajectoryData =  '/Users/michaelchadwick/Documents/git/report and validation/Validation/inertia comparison/matlab_ANYmalBear_fastTrotNom.bag';
-saveName = 'ANYmalBear_fastTrotNom.mat';
+pathToTrajectoryData =  'pathToBagFile.bag';
+saveName = 'trajectoryDataFileName.mat';
 legCount = 4; % Specify number of legs from 1 to 4.
-m = 38.8;   % mass of the robot
+m = 40;   % mass of the robot used in Towr
 
 %% Extract the desired 3D vectors from the bag
 bag_all = rosbag(pathToTrajectoryData);
@@ -34,7 +33,7 @@ bag_base_acc  = select(bag, 'Topic', 'base_acc');
 ts_base_acc = timeseries(bag_base_acc, 'Z');
 
 % Base rotation
-motion.quat = [ts_base_pos.Data(:,7) -ts_base_pos.Data(:,4) -ts_base_pos.Data(:,5) -ts_base_pos.Data(:,6)];
+motion.quat = [ts_base_pos.Data(:,7) ts_base_pos.Data(:,4) ts_base_pos.Data(:,5) ts_base_pos.Data(:,6)];
 
 % End effector motion
 bag_foot_0 = select(bag, 'Topic', 'foot_pos_0');

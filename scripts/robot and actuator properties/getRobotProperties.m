@@ -12,8 +12,8 @@ function robotProperties = getRobotProperties(robotSelection, transmissionMethod
     % Density of each link
     % kg/m^3. Density values calculated to give correct link mass when link
     % approximated as solid cylinder.
-    robot.yourRobot.legDensity.hip(1)       = 9728.3;   robot.yourRobot.legDensity.hip(2)     = 9728.3;
-    robot.yourRobot.legDensity.thigh(1)     = 5826.3;   robot.yourRobot.legDensity.thigh(2)   = 5826.3;
+    robot.yourRobot.legDensity.hip(1)       = 9728.3;   robot.yourRobot.legDensity.hip(2)       = 9728.3;
+    robot.yourRobot.legDensity.thigh(1)     = 5826.3;   robot.yourRobot.legDensity.thigh(2)     = 5826.3;
     robot.yourRobot.legDensity.shank(1)     = 888.2668; robot.yourRobot.legDensity.shank(2)     = 888.2668;
     robot.yourRobot.legDensity.foot(1)      = 800;      robot.yourRobot.legDensity.foot(2)      = 800;
     robot.yourRobot.legDensity.phalanges(1) = 800;      robot.yourRobot.legDensity.phalanges(2) = 800;    
@@ -47,14 +47,14 @@ function robotProperties = getRobotProperties(robotSelection, transmissionMethod
     robot.yourRobot.phalanges(2).length = 0.1;
 
     % Link radius [m] (only used to calculate link mass as solid cylinder)
-    robot.yourRobot.hip(1).radius = 0.015;
-    robot.yourRobot.hip(2).radius = 0.015;
+    robot.yourRobot.hip(1).radius   = 0.015;
+    robot.yourRobot.hip(2).radius   = 0.015;
     robot.yourRobot.thigh(1).radius = 0.015;
     robot.yourRobot.thigh(2).radius = 0.015;
     robot.yourRobot.shank(1).radius = 0.015;
     robot.yourRobot.shank(2).radius = 0.015;
-    robot.yourRobot.foot(1).radius = 0.015;
-    robot.yourRobot.foot(2).radius = 0.015;
+    robot.yourRobot.foot(1).radius  = 0.015;
+    robot.yourRobot.foot(2).radius  = 0.015;
     robot.yourRobot.phalanges(1).radius = 0.015;
     robot.yourRobot.phalanges(2).radius = 0.015;
 
@@ -68,7 +68,7 @@ function robotProperties = getRobotProperties(robotSelection, transmissionMethod
     robot.yourRobot.transmissionGearRatio.AFE(1) = 1;  robot.yourRobot.transmissionGearRatio.AFE(2) = 1;
     robot.yourRobot.transmissionGearRatio.DFE(1) = 1;  robot.yourRobot.transmissionGearRatio.DFE(2) = 1;    
         
-    % Joint angle limits (used only in reachable positions plot)
+    % Joint angle limits (used only in reachable positions plot, they do not impose any limits on the motion)
     % q1 HAA, q2 HFE, q3 KFE, q4 AFE
     robot.yourRobot.q1.minAngle = -pi;
     robot.yourRobot.q1.maxAngle = pi;
@@ -108,9 +108,9 @@ function robotProperties = getRobotProperties(robotSelection, transmissionMethod
     % Offset from nominal CoM position to base hip attachment for each leg.
     robot.ANYmalBear.xNom(1) = 0.225;
     robot.ANYmalBear.xNom(2) = 0.225;
-    robot.ANYmalBear.yNom(1) = 0.11 - 0.05;
-    robot.ANYmalBear.yNom(2) = 0.11 - 0.05;
-    robot.ANYmalBear.zNom = 0; % offset from CoM to HAA in z direction. Positive value means HAA above CoM.
+    robot.ANYmalBear.yNom(1) = 0.14;
+    robot.ANYmalBear.yNom(2) = 0.14;
+    robot.ANYmalBear.zNom    = 0; % offset from CoM to HAA in z direction. Positive value means HAA above CoM.
     
     robot.ANYmalBear.nomHipPos.LF = [ robot.ANYmalBear.xNom(1),  robot.ANYmalBear.yNom(1), robot.ANYmalBear.zNom];
     robot.ANYmalBear.nomHipPos.LH = [-robot.ANYmalBear.xNom(2),  robot.ANYmalBear.yNom(2), robot.ANYmalBear.zNom];
@@ -120,24 +120,24 @@ function robotProperties = getRobotProperties(robotSelection, transmissionMethod
     % link lengths [m]
     robot.ANYmalBear.hip(1).length   = 0.112;
     robot.ANYmalBear.hip(2).length   = 0.112;
-    robot.ANYmalBear.thigh(1).length = 0.25;  
-    robot.ANYmalBear.thigh(2).length = 0.25; 
-    robot.ANYmalBear.shank(1).length = 0.33; 
-    robot.ANYmalBear.shank(2).length = 0.33; 
+    robot.ANYmalBear.thigh(1).length = 0.25;
+    robot.ANYmalBear.thigh(2).length = 0.25;
+    robot.ANYmalBear.shank(1).length = 0.33;
+    robot.ANYmalBear.shank(2).length = 0.33;
     robot.ANYmalBear.foot(1).length  = 0.16;
     robot.ANYmalBear.foot(2).length  = 0.16;
     robot.ANYmalBear.phalanges(1).length = 0.1;
     robot.ANYmalBear.phalanges(2).length = 0.1;
 
     % link radius [m]
-    robot.ANYmalBear.hip(1).radius = 0.015;
-    robot.ANYmalBear.hip(2).radius = 0.015;
+    robot.ANYmalBear.hip(1).radius   = 0.015;
+    robot.ANYmalBear.hip(2).radius   = 0.015;
     robot.ANYmalBear.thigh(1).radius = 0.015;
     robot.ANYmalBear.thigh(2).radius = 0.015;
     robot.ANYmalBear.shank(1).radius = 0.015;
     robot.ANYmalBear.shank(2).radius = 0.015;
-    robot.ANYmalBear.foot(1).radius = 0.015;
-    robot.ANYmalBear.foot(2).radius = 0.015;
+    robot.ANYmalBear.foot(1).radius  = 0.015;
+    robot.ANYmalBear.foot(2).radius  = 0.015;
     robot.ANYmalBear.phalanges(1).radius = 0.015;
     robot.ANYmalBear.phalanges(2).radius = 0.015;
 
@@ -169,73 +169,6 @@ function robotProperties = getRobotProperties(robotSelection, transmissionMethod
      robot.ANYmalBear.baseWidth  = 0.24;
      robot.ANYmalBear.baseHeight = 0.2;     
      
-     %% Vitruvian Biped
-    robot.vitruvianBiped.mass.total = 2.21; 
-    robot.vitruvianBiped.legCount   = 2;
-    
-    % Density of each link
-    robot.vitruvianBiped.legDensity.hip(1)       = 1004;    
-    robot.vitruvianBiped.legDensity.thigh(1)     = 1117.3;  
-    robot.vitruvianBiped.legDensity.shank(1)     = 1004; 
-    robot.vitruvianBiped.legDensity.foot(1)      = 1004;  
-    robot.vitruvianBiped.legDensity.phalanges(1) = 1004; 
-    
-    % End effector mass
-    robot.vitruvianBiped.EE(1).mass = 0.0025;
-
-    % offset from CoM to HAA for each leg.
-    robot.vitruvianBiped.xNom(1) = 0; %0.05;
-    robot.vitruvianBiped.yNom(1) = 0.085;
-    robot.vitruvianBiped.zNom = 0.03; % offset from CoM to HAA in z direction. Positive value means HAA above CoM.
-    
-    robot.vitruvianBiped.nomHipPos.LF = [robot.vitruvianBiped.xNom(1),  robot.vitruvianBiped.yNom(1), robot.vitruvianBiped.zNom];
-    robot.vitruvianBiped.nomHipPos.RF = [robot.vitruvianBiped.xNom(1), -robot.vitruvianBiped.yNom(1), robot.vitruvianBiped.zNom];
-
-    % link lengths [m]
-    % fore, hind
-    robot.vitruvianBiped.hip(1).length = 0.0001;
-    robot.vitruvianBiped.thigh(1).length = 0.1936; %0.1936, 0.25
-    robot.vitruvianBiped.shank(1).length = 0.25;
-    robot.vitruvianBiped.foot(1).length = 0.05;
-    robot.vitruvianBiped.phalanges(1).length = 0.05;
-
-    % link radius [m]
-    % These were selected to get the correct mass value considering the
-    % material density and link length.
-    robot.vitruvianBiped.hip(1).radius = 0.015;
-    robot.vitruvianBiped.thigh(1).radius = 0.015; 
-    robot.vitruvianBiped.shank(1).radius = 0.015;
-    robot.vitruvianBiped.foot(1).radius = 0.015;
-    robot.vitruvianBiped.phalanges(1).radius = 0.015;
-
-    % Transmission Ratio
-    % For remote and directly actuated joints
-    % GearRatio = input speed/ output speed
-    % Front legs
-    robot.vitruvianBiped.transmissionGearRatio.HAA(1) = 1;
-    robot.vitruvianBiped.transmissionGearRatio.HFE(1) = 1;
-    robot.vitruvianBiped.transmissionGearRatio.KFE(1) = 1;
-    robot.vitruvianBiped.transmissionGearRatio.AFE(1) = 1;
-    robot.vitruvianBiped.transmissionGearRatio.DFE(1) = 1;   
-        
-    % joint angle limits
-    % q1 HAA, q2 HFE, q3 KFE, q4 AFE
-    robot.vitruvianBiped.q1.minAngle = -pi;
-    robot.vitruvianBiped.q1.maxAngle = pi;
-    robot.vitruvianBiped.q2.minAngle = -2*pi;
-    robot.vitruvianBiped.q2.maxAngle = 2*pi;
-    robot.vitruvianBiped.q3.minAngle = -2*pi;
-    robot.vitruvianBiped.q3.maxAngle = 2*pi;
-    robot.vitruvianBiped.q4.minAngle = -pi;
-    robot.vitruvianBiped.q4.maxAngle = pi;
-    robot.vitruvianBiped.q5.minAngle = -pi;
-    robot.vitruvianBiped.q5.maxAngle = pi;
-
-     % Base dimensions used for visualization - visualized as a box
-     robot.vitruvianBiped.baseLength = 0.08;
-     robot.vitruvianBiped.baseWidth  = 0.15;
-     robot.vitruvianBiped.baseHeight = 0.08;
-     
      %% Universal
     robot.universal.mass.total = 39.53; % (with payload)
     robot.universal.legCount = 4;
@@ -256,7 +189,7 @@ function robotProperties = getRobotProperties(robotSelection, transmissionMethod
     robot.universal.xNom(2) = 0.25;
     robot.universal.yNom(1) = 0.19;
     robot.universal.yNom(2) = 0.19;
-    robot.universal.zNom = 0; % offset from CoM to hip attachment
+    robot.universal.zNom = 0;
 
     % row order:    LF LH RF RH
     % column order: x, y, z
@@ -267,14 +200,14 @@ function robotProperties = getRobotProperties(robotSelection, transmissionMethod
 
     % link lengths [m]
     % fore, hind
-    robot.universal.hip(1).length = 0.14;
-    robot.universal.hip(2).length = 0.14;
+    robot.universal.hip(1).length   = 0.14;
+    robot.universal.hip(2).length   = 0.14;
     robot.universal.thigh(1).length = 0.35;
     robot.universal.thigh(2).length = 0.35;
     robot.universal.shank(1).length = 0.45;
     robot.universal.shank(2).length = 0.45;
-    robot.universal.foot(1).length = 0.2;
-    robot.universal.foot(2).length = 0.2;
+    robot.universal.foot(1).length  = 0.2;
+    robot.universal.foot(2).length  = 0.2;
     robot.universal.phalanges(1).length = 0.05;
     robot.universal.phalanges(2).length = 0.1;
 
@@ -290,14 +223,14 @@ function robotProperties = getRobotProperties(robotSelection, transmissionMethod
         
     % link radius [m]
     % update these values
-    robot.universal.hip(1).radius = 0.015;
-    robot.universal.hip(2).radius = 0.015;
+    robot.universal.hip(1).radius   = 0.015;
+    robot.universal.hip(2).radius   = 0.015;
     robot.universal.thigh(1).radius = 0.015;
     robot.universal.thigh(2).radius = 0.015;
     robot.universal.shank(1).radius = 0.015;
     robot.universal.shank(2).radius = 0.015;
-    robot.universal.foot(1).radius = 0.015;
-    robot.universal.foot(2).radius = 0.015;
+    robot.universal.foot(1).radius  = 0.015;
+    robot.universal.foot(2).radius  = 0.015;
     robot.universal.phalanges(1).radius = 0.015;
     robot.universal.phalanges(2).radius = 0.015;
 
@@ -318,88 +251,6 @@ function robotProperties = getRobotProperties(robotSelection, transmissionMethod
      robot.universal.baseWidth  = 0.4;
      robot.universal.baseLength = 0.75;
      robot.universal.baseHeight = 0.2;
-     
-    %% Speedy 
-    robot.speedy.mass.total = 22.52;
-    robot.speedy.legCount   = 4;
-    
-    % Density of each link
-    robot.speedy.legDensity.hip(1)       = 900;   robot.speedy.legDensity.hip(2)       = 900;
-    robot.speedy.legDensity.thigh(1)     = 900;   robot.speedy.legDensity.thigh(2)     = 900;
-    robot.speedy.legDensity.shank(1)     = 900;     robot.speedy.legDensity.shank(2)     = 900;
-    robot.speedy.legDensity.foot(1)      = 900;     robot.speedy.legDensity.foot(2)      = 900;
-    robot.speedy.legDensity.phalanges(1) = 900;     robot.speedy.legDensity.phalanges(2) = 900;
-    
-    % End effector mass
-    robot.speedy.EE(1).mass = 0.1;
-    robot.speedy.EE(2).mass = 0.1;    
-
-    % Offset from CoM to each hip
-    robot.speedy.xNom(1) = 0.25;
-    robot.speedy.xNom(2) = 0.25;
-    robot.speedy.yNom(1) = 0.1; % front
-    robot.speedy.yNom(2) = 0.18; % hind
-    robot.speedy.zNom = 0;
-
-    % row order:    LF LH RF RH
-    % column order: x, y, z
-    robot.speedy.nomHipPos.LF = [robot.speedy.xNom(1), robot.speedy.yNom(1), robot.speedy.zNom];
-    robot.speedy.nomHipPos.LH = [-robot.speedy.xNom(2), robot.speedy.yNom(2), robot.speedy.zNom];
-    robot.speedy.nomHipPos.RF = [robot.speedy.xNom(1), -robot.speedy.yNom(1), robot.speedy.zNom];
-    robot.speedy.nomHipPos.RH = [-robot.speedy.xNom(2), -robot.speedy.yNom(2), robot.speedy.zNom];
-
-    % link lengths [m]
-    % fore, hind
-    robot.speedy.hip(1).length = 0.15;
-    robot.speedy.hip(2).length = 0.15;
-    robot.speedy.thigh(1).length = 0.4;
-    robot.speedy.thigh(2).length = 0.4;
-    robot.speedy.shank(1).length = 0.4;
-    robot.speedy.shank(2).length = 0.4;
-    robot.speedy.foot(1).length = 0.15;
-    robot.speedy.foot(2).length = 0.15;
-    robot.speedy.phalanges(1).length = 0.1;
-    robot.speedy.phalanges(2).length = 0.1;
-
-    % Transmission Ratio
-    % For remote and directly actuated joints
-    % GearRatio = input speed/ output speed
-    % Front legs                                        Hind legs
-    robot.speedy.transmissionGearRatio.HAA(1) = 1;  robot.speedy.transmissionGearRatio.HAA(2) = 1;
-    robot.speedy.transmissionGearRatio.HFE(1) = 1;  robot.speedy.transmissionGearRatio.HFE(2) = 1;
-    robot.speedy.transmissionGearRatio.KFE(1) = 1;  robot.speedy.transmissionGearRatio.KFE(2) = 1;
-    robot.speedy.transmissionGearRatio.AFE(1) = 1;  robot.speedy.transmissionGearRatio.AFE(2) = 1;
-    robot.speedy.transmissionGearRatio.DFE(1) = 1;  robot.speedy.transmissionGearRatio.DFE(2) = 1;    
-        
-    % link radius [m]
-    robot.speedy.hip(1).radius = 0.015;
-    robot.speedy.hip(2).radius = 0.015;
-    robot.speedy.thigh(1).radius = 0.015;
-    robot.speedy.thigh(2).radius = 0.015;
-    robot.speedy.shank(1).radius = 0.015;
-    robot.speedy.shank(2).radius = 0.015;
-    robot.speedy.foot(1).radius = 0.015;
-    robot.speedy.foot(2).radius = 0.015;
-    robot.speedy.phalanges(1).radius = 0.015;
-    robot.speedy.phalanges(2).radius = 0.015;
-
-    % joint angle limits
-    % q1 HAA, q2 HFE, q3 KFE, q4 AFE
-    robot.speedy.q1.minAngle = -pi;
-    robot.speedy.q1.maxAngle = pi;
-    robot.speedy.q2.minAngle = -pi/2;
-    robot.speedy.q2.maxAngle = pi/2;
-    robot.speedy.q3.minAngle = -pi;
-    robot.speedy.q3.maxAngle = pi;
-    robot.speedy.q4.minAngle = -pi;
-    robot.speedy.q4.maxAngle = pi;
-    robot.speedy.q5.minAngle = -pi;
-    robot.speedy.q5.maxAngle = pi;
-    
-     % Base dimensions used for visualization - visualized as a box
-     robot.speedy.baseLength = 0.8;
-     robot.speedy.baseWidth  = 0.2;
-     robot.speedy.baseHeight = 0.2;
      
      %% Massivo 
     robot.massivo.mass.total = 80; % (with payload)
@@ -422,7 +273,7 @@ function robotProperties = getRobotProperties(robotSelection, transmissionMethod
     robot.massivo.xNom(2) = 0.276;
     robot.massivo.yNom(1) = 0.3;
     robot.massivo.yNom(2) = 0.3;
-    robot.massivo.zNom = -0.0487;
+    robot.massivo.zNom    = -0.0487;
 
     % row order:    LF LH RF RH
     % column order: x, y, z
@@ -433,14 +284,14 @@ function robotProperties = getRobotProperties(robotSelection, transmissionMethod
 
     % link lengths [m]
     % fore, hind
-    robot.massivo.hip(1).length = 0.15;
-    robot.massivo.hip(2).length = 0.15;
+    robot.massivo.hip(1).length   = 0.15;
+    robot.massivo.hip(2).length   = 0.15;
     robot.massivo.thigh(1).length = 0.45;
     robot.massivo.thigh(2).length = 0.45;
     robot.massivo.shank(1).length = 0.45;
     robot.massivo.shank(2).length = 0.45;
-    robot.massivo.foot(1).length = 0.1;
-    robot.massivo.foot(2).length = 0.1;
+    robot.massivo.foot(1).length  = 0.1;
+    robot.massivo.foot(2).length  = 0.1;
     robot.massivo.phalanges(1).length = 0.05;
     robot.massivo.phalanges(2).length = 0.05;
 
@@ -455,14 +306,14 @@ function robotProperties = getRobotProperties(robotSelection, transmissionMethod
     robot.massivo.transmissionGearRatio.DFE(1) = 1;  robot.massivo.transmissionGearRatio.DFE(2) = 1;    
         
     % link radius [m]
-    robot.massivo.hip(1).radius = 0.02;
-    robot.massivo.hip(2).radius = 0.02;
+    robot.massivo.hip(1).radius   = 0.02;
+    robot.massivo.hip(2).radius   = 0.02;
     robot.massivo.thigh(1).radius = 0.02;
     robot.massivo.thigh(2).radius = 0.02;
     robot.massivo.shank(1).radius = 0.02;
     robot.massivo.shank(2).radius = 0.02;
-    robot.massivo.foot(1).radius = 0.02;
-    robot.massivo.foot(2).radius = 0.02;
+    robot.massivo.foot(1).radius  = 0.02;
+    robot.massivo.foot(2).radius  = 0.02;
     robot.massivo.phalanges(1).radius = 0.02;
     robot.massivo.phalanges(2).radius = 0.02;
 
@@ -502,9 +353,9 @@ function robotProperties = getRobotProperties(robotSelection, transmissionMethod
     % offset from CoM to each hip
     robot.centaur.xNom(1) = 0.1451;
     robot.centaur.xNom(2) = 0.407;
-    robot.centaur.yNom(1) = 0.3;
-    robot.centaur.yNom(2) = 0.3;
-    robot.centaur.zNom = 0; %-0.553 + 0.5043; This value is not correct
+    robot.centaur.yNom(1) = 0.25;
+    robot.centaur.yNom(2) = 0.25;
+    robot.centaur.zNom = 0;
 
     % row order:    LF LH RF RH
     % column order: x, y, z
@@ -517,9 +368,9 @@ function robotProperties = getRobotProperties(robotSelection, transmissionMethod
     % fore, hind
     robot.centaur.hip(1).length = 0.15;
     robot.centaur.hip(2).length = 0.15;
-    robot.centaur.thigh(1).length = 0.35;
-    robot.centaur.thigh(2).length = 0.35;
-    robot.centaur.shank(1).length = 0.4;
+    robot.centaur.thigh(1).length = 0.4;
+    robot.centaur.thigh(2).length = 0.4;
+    robot.centaur.shank(1).length = 0.4; 
     robot.centaur.shank(2).length = 0.4;
     robot.centaur.foot(1).length = 0.05;
     robot.centaur.foot(2).length = 0.05;
@@ -537,14 +388,14 @@ function robotProperties = getRobotProperties(robotSelection, transmissionMethod
     robot.centaur.transmissionGearRatio.DFE(1) = 1;  robot.centaur.transmissionGearRatio.DFE(2) = 1;    
         
     % link radius [m]
-    robot.centaur.hip(1).radius = 0.02;
-    robot.centaur.hip(2).radius = 0.02;
+    robot.centaur.hip(1).radius   = 0.02;
+    robot.centaur.hip(2).radius   = 0.02;
     robot.centaur.thigh(1).radius = 0.02;
     robot.centaur.thigh(2).radius = 0.02;
     robot.centaur.shank(1).radius = 0.02;
     robot.centaur.shank(2).radius = 0.02;
-    robot.centaur.foot(1).radius = 0.02;
-    robot.centaur.foot(2).radius = 0.02;
+    robot.centaur.foot(1).radius  = 0.02;
+    robot.centaur.foot(2).radius  = 0.02;
     robot.centaur.phalanges(1).radius = 0.02;
     robot.centaur.phalanges(2).radius = 0.02;
 
@@ -563,7 +414,7 @@ function robotProperties = getRobotProperties(robotSelection, transmissionMethod
 
      % Base dimensions used for visualization - visualized as a box
      robot.centaur.baseLength = 0.7;
-     robot.centaur.baseWidth  = 0.7;
+     robot.centaur.baseWidth  = 0.5;
      robot.centaur.baseHeight = 0.1;
      
     %% Mini 
@@ -596,14 +447,14 @@ function robotProperties = getRobotProperties(robotSelection, transmissionMethod
 
     % link lengths [m]
     % fore, hind
-    robot.mini.hip(1).length = 0.05;
-    robot.mini.hip(2).length = -0.05;
+    robot.mini.hip(1).length   = 0.05;
+    robot.mini.hip(2).length   = 0.05;
     robot.mini.thigh(1).length = 0.15;
     robot.mini.thigh(2).length = 0.15;
     robot.mini.shank(1).length = 0.15;
     robot.mini.shank(2).length = 0.15;
-    robot.mini.foot(1).length = 0.05;
-    robot.mini.foot(2).length = 0.05;
+    robot.mini.foot(1).length  = 0.05;
+    robot.mini.foot(2).length  = 0.05;
     robot.mini.phalanges(1).length = 0.05;
     robot.mini.phalanges(2).length = 0.05;
 
@@ -618,14 +469,14 @@ function robotProperties = getRobotProperties(robotSelection, transmissionMethod
     robot.mini.transmissionGearRatio.DFE(1) = 1;  robot.mini.transmissionGearRatio.DFE(2) = 1;    
         
     % link radius [m]
-    robot.mini.hip(1).radius = 0.015;
-    robot.mini.hip(2).radius = 0.015;
+    robot.mini.hip(1).radius   = 0.015;
+    robot.mini.hip(2).radius   = 0.015;
     robot.mini.thigh(1).radius = 0.015;
     robot.mini.thigh(2).radius = 0.015;
     robot.mini.shank(1).radius = 0.015;
     robot.mini.shank(2).radius = 0.015;
-    robot.mini.foot(1).radius = 0.015;
-    robot.mini.foot(2).radius = 0.015;
+    robot.mini.foot(1).radius  = 0.015;
+    robot.mini.foot(2).radius  = 0.015;
     robot.mini.phalanges(1).radius = 0.015;
     robot.mini.phalanges(2).radius = 0.015;
 
@@ -647,68 +498,6 @@ function robotProperties = getRobotProperties(robotSelection, transmissionMethod
      robot.mini.baseWidth  = 0.2;
      robot.mini.baseHeight = 0.1;
      
-     %% defaultHopper 
-    robot.hopper.mass.total = 10; % this value is incorrect
-    robot.hopper.legCount   = 1;
-    
-    % Density of each link
-    robot.hopper.legDensity.hip(1)       = 900;   robot.hopper.legDensity.hip(2)         = 900;
-    robot.hopper.legDensity.thigh(1)     = 900;   robot.hopper.legDensity.thigh(2)       = 900;
-    robot.hopper.legDensity.shank(1)     = 900;     robot.hopper.legDensity.shank(2)     = 900;
-    robot.hopper.legDensity.foot(1)      = 900;     robot.hopper.legDensity.foot(2)      = 900;
-    robot.hopper.legDensity.phalanges(1) = 900;     robot.hopper.legDensity.phalanges(2) = 900;
-    
-    % End effector mass
-    robot.hopper.EE(1).mass = 0.1;
-
-    robot.hopper.xNom(1) = 0;
-    robot.hopper.yNom(1) = 0;
-    robot.hopper.zNom =  0.1;
-
-    robot.hopper.nomHipPos.LF = [robot.hopper.xNom(1), robot.hopper.yNom(1), robot.hopper.zNom];
-
-    % link lengths [m]
-    robot.hopper.hip(1).length = 0.01;
-    robot.hopper.thigh(1).length = 0.45;
-    robot.hopper.shank(1).length = 0.45;
-    robot.hopper.foot(1).length = 0.05;
-    robot.hopper.phalanges(1).length = 0.05;
-
-    % Transmission Ratio
-    % For remote and directly actuated joints
-    % GearRatio = input speed/ output speed
-    % Front legs
-    robot.hopper.transmissionGearRatio.HAA(1) = 1;
-    robot.hopper.transmissionGearRatio.HFE(1) = 1;
-    robot.hopper.transmissionGearRatio.KFE(1) = 1;
-    robot.hopper.transmissionGearRatio.AFE(1) = 1;
-    robot.hopper.transmissionGearRatio.DFE(1) = 1;   
-        
-    % link radius [m]
-    robot.hopper.hip(1).radius = 0.015;
-    robot.hopper.thigh(1).radius = 0.015;
-    robot.hopper.shank(1).radius = 0.015;
-    robot.hopper.foot(1).radius = 0.015;
-    robot.hopper.phalanges(1).radius = 0.015;
-
-    % joint angle limits
-    % q1 HAA, q2 HFE, q3 KFE, q4 AFE
-    robot.hopper.q1.minAngle = -pi;
-    robot.hopper.q1.maxAngle = pi;
-    robot.hopper.q2.minAngle = -pi/2;
-    robot.hopper.q2.maxAngle = pi/2;
-    robot.hopper.q3.minAngle = -pi;
-    robot.hopper.q3.maxAngle = pi;
-    robot.hopper.q4.minAngle = -pi;
-    robot.hopper.q4.maxAngle = pi;
-    robot.hopper.q5.minAngle = -pi;
-    robot.hopper.q5.maxAngle = pi;
-
-     % Base dimensions used for visualization - visualized as a box
-     robot.hopper.baseLength = 0.2;
-     robot.hopper.baseWidth  = 0.2;
-     robot.hopper.baseHeight = 0.2;
-
      %% Compute link mass and inertia for selected robot
      % Additional mass due to transmission
      transmissionMass = getTransmissionProperties(transmissionMethod, actuateJointDirectly, robot, robotSelection, jointNames, linkNames, linkCount);

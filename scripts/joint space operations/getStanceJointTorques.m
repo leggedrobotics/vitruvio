@@ -10,7 +10,7 @@ function jointTorque = getStanceJointTorques(externalForce, Leg, EEselection, me
         componentName = {'EE', 'HFE', 'KFE', 'hip', 'thigh', 'shank'};
     elseif linkCount == 3
         componentName = {'EE', 'HFE', 'KFE', 'AFE', 'hip', 'thigh', 'shank', 'foot'};
-    elseif linkCount == 3
+    elseif linkCount == 4
         componentName = {'EE', 'HFE', 'KFE', 'AFE', 'DFE' 'hip', 'thigh', 'shank', 'foot', 'phalanges'};    
     end
     
@@ -23,10 +23,14 @@ function jointTorque = getStanceJointTorques(externalForce, Leg, EEselection, me
     % J'*F = torque. Compute the contribution for external EE forces due to
     % ground contact and gravitational forces on EE, link and actuator masses.
     
+    torqueComponentMass = zeros(length(Leg.(EEselection).q(:,1)), linkCount+2);
+    torqueEEForce       = zeros(length(Leg.(EEselection).q(:,1)), linkCount+2);
+    jointTorque         = zeros(length(Leg.(EEselection).q(:,1)), linkCount+1);
+    
     for i = 1:length(Leg.(EEselection).q(:,1))
        
-        torqueComponentMass(i,:) = zeros(1, linkCount+2); % Initialize as zero then add torque due to each component in the leg.
-        q        = Leg.(EEselection).q(i,1:end-1);
+        %torqueComponentMass(i,:) = zeros(1, linkCount+2); % Initialize as zero then add torque due to each component in the leg.
+        q = Leg.(EEselection).q(i,1:end-1);
         rotBodyY = meanCyclicMotionHipEE.body.eulerAngles.(EEselection)(i,2);
         
         % Get Jacobian to EE for external forces.
@@ -45,9 +49,7 @@ function jointTorque = getStanceJointTorques(externalForce, Leg, EEselection, me
                     else
                         componentWeight = [0; 0; gravity*Leg.actuatorProperties.mass.([componentName{k}])]; 
                     end
-                    % Compute torque due to each component weight. This is
-                    % only due to the weight and not due to
-                    % inertia/acceleration which is neglected.
+                    % Compute torque due to each component weight. This is only due to the weight and not due to inertia/acceleration which is neglected.
                     torqueComponentMass(i,:) = torqueComponentMass(i,:) + (J_P_component.([componentName{k}])' * componentWeight)';
                 end
             end
@@ -57,19 +59,6 @@ function jointTorque = getStanceJointTorques(externalForce, Leg, EEselection, me
         torqueEEForce(i,:) = J_P' * externalForce(i,:)'; % Torque due to EE forces
         jointTorque(i,:) = torqueEEForce(i,1:end-1) + torqueComponentMass(i,1:end-1); % Last column is torque at EE which is always zero
     end
-%     
-%     close all
-%     figure(1)
-%     subplot(2,1,1)
-%     plot(torqueEEForce(:,2), 'r')
-%     grid on
-%     hold on
-%     plot(torqueComponentMass(:,2), 'b')
-%     subplot(2,1,2)
-%     plot(torqueEEForce(:,3), 'r')
-%     hold on
-%     plot(torqueComponentMass(:,3), 'b')
-%     grid on
     
     % The actuators need to supply the reaction torques (ie the negative)
     jointTorque = -jointTorque;

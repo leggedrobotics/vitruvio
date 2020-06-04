@@ -1,4 +1,4 @@
-function penalty = computePenalty(actuatorProperties, imposeJointLimits, heuristic, legDesignParameters, actuateJointDirectly, linkCount, optimizationProperties, robotProperties, selectFrontHind, taskSelection, dt, configSelection, EEselection, meanCyclicMotionHipEE, hipParalleltoBody, Leg, actuatorEfficiency, actuatorSelection, dataExtraction, springInParallelWithJoints, kSpringJoint, q0SpringJoint)
+function [penalty, tempLeg] = computePenalty(actuatorProperties, imposeJointLimits, heuristic, legDesignParameters, actuateJointDirectly, linkCount, optimizationProperties, robotProperties, selectFrontHind, taskSelection, dt, configSelection, EEselection, meanCyclicMotionHipEE, hipParalleltoBody, Leg, actuatorEfficiency, actuatorSelection, dataExtraction, springInParallelWithJoints, kSpringJoint, q0SpringJoint)
     jointNames = ['HAA'; 'HFE'; 'KFE'; 'AFE'; 'DFE'];
 
     % Design parameters always start with [links(3-5), transmission ratio (3-5), springs parallel to joints (3-5), AFE/DFE spring]    
@@ -10,28 +10,39 @@ function penalty = computePenalty(actuatorProperties, imposeJointLimits, heurist
     
     if springInParallelWithJoints
         kSpringJoint.(EEselection) = legDesignParameters(2*jointCount+1:3*jointCount);
+        tempLeg.(EEselection).kSpringJoint = kSpringJoint.(EEselection);
+    else
+        tempLeg.(EEselection).kSpringJoint = zeros(1, jointCount);
     end
 
     if linkCount > 2 && heuristic.torqueAngle.apply
         kTorsionalSpring = legDesignParameters(end-1);
         thetaLiftoff_des = legDesignParameters(end);
+        tempLeg.(EEselection).kTorsionalSpring = kTorsionalSpring;
+        tempLeg.(EEselection).thetaLiftoff_des = thetaLiftoff_des;
     else 
         kTorsionalSpring = heuristic.torqueAngle.kTorsionalSpring;
         thetaLiftoff_des = heuristic.torqueAngle.thetaLiftoff_des;
+        tempLeg.(EEselection).kTorsionalSpring = kTorsionalSpring;
+        tempLeg.(EEselection).thetaLiftoff_des = thetaLiftoff_des;
     end
 
     tempLeg.base = Leg.base;
     tempLeg.(EEselection).force = Leg.(EEselection).force;
     tempLeg.basicProperties = Leg.basicProperties;
     tempLeg.actuatorProperties = Leg.actuatorProperties;
+    tempLeg.(EEselection).linkLengths = linkLengths;
+    tempLeg.(EEselection).transmissionGearRatio = transmissionGearRatio;
     
     % Update robot properties with newly computed leg design parameters, unit in meters
     robotProperties.hip(selectFrontHind).length = linkLengths(1);
     robotProperties.thigh(selectFrontHind).length = linkLengths(2);
     robotProperties.shank(selectFrontHind).length = linkLengths(3);
+    
     if (linkCount == 3) || (linkCount == 4)
         robotProperties.foot(selectFrontHind).length = linkLengths(4);
     end
+    
     if linkCount == 4
         robotProperties.phalanges(selectFrontHind).length = linkLengths(5);
     end
@@ -47,19 +58,21 @@ function penalty = computePenalty(actuatorProperties, imposeJointLimits, heurist
         robotProperties.foot(selectFrontHind).mass = robotProperties.legDensity.foot(selectFrontHind) * pi*(robotProperties.foot(selectFrontHind).radius)^2 * abs(linkLengths(4));
         tempLeg.linkMass = tempLeg.linkMass + robotProperties.foot(selectFrontHind).mass;
     end
+    
     if linkCount == 4
         robotProperties.phalanges(selectFrontHind).mass = robotProperties.legDensity.phalanges(selectFrontHind) * pi*(robotProperties.phalanges(selectFrontHind).radius)^2 * abs(linkLengths(5));
         tempLeg.linkMass = robotProperties.phalanges(selectFrontHind).mass;
     end
 
     tempLeg.robotProperties = robotProperties;
+    
     %% qAFE, qDFE torque based heuristic computation
     if (heuristic.torqueAngle.apply == true) && (linkCount > 2)
         % Save the updated spring parameters back into the heuristic struct to
         % be used in the next iteration of the simulation
         heuristic.torqueAngle.kTorsionalSpring = kTorsionalSpring;
         heuristic.torqueAngle.thetaLiftoff_des = thetaLiftoff_des;
-        [qLiftoff.(EEselection)] = computeqLiftoffFinalJoint(heuristic, hipAttachmentOffset, linkCount, meanCyclicMotionHipEE, robotProperties, EEselection, configSelection, hipParalleltoBody);
+        [qLiftoff.(EEselection)] = computeqLiftoffFinalJoint(tempLeg, heuristic, linkCount, meanCyclicMotionHipEE, robotProperties, EEselection, configSelection, hipParalleltoBody);
         EE_force = Leg.(EEselection).force(1,1:3);
         rotBodyY = -meanCyclicMotionHipEE.body.eulerAngles.(EEselection)(1,2); % rotation of body about inertial y
         qPrevious = qLiftoff.(EEselection);
@@ -88,7 +101,6 @@ function penalty = computePenalty(actuatorProperties, imposeJointLimits, heurist
         penalty = 100;
         %disp('Iteration skipped due to tracking error')
     else 
-        
         %% Inverse kinematics
         [tempLeg.(EEselection).q, tempLeg.(EEselection).r.HAA, tempLeg.(EEselection).r.HFE, tempLeg.(EEselection).r.KFE, tempLeg.(EEselection).r.AFE, tempLeg.(EEselection).r.DFE, tempLeg.(EEselection).r.EE] = inverseKinematics(tempLeg, heuristic, qLiftoff, meanCyclicMotionHipEE, EEselection);
 
@@ -100,8 +112,16 @@ function penalty = computePenalty(actuatorProperties, imposeJointLimits, heurist
         [tempLeg.(EEselection).qdot, tempLeg.(EEselection).qdotdot] = getJointVelocitiesUsingFiniteDifference(EEselection, tempLeg, dt);
         tempLeg.(EEselection).q = tempLeg.(EEselection).q(1:end-2,:); % remove the two supplementary points for position after solving for joint speed and acceleration 
         
+        %% Scale EE forces to reflect the change in the leg mass
+        nominalForce = Leg.(EEselection).force(:,1:3); % initial external force
+        nominalLinkMass = Leg.(EEselection).totalLinkMass;
+        updatedLinkMass = tempLeg.linkMass;
+        deltaMass = updatedLinkMass - nominalLinkMass;
+        nominalRobotMass = Leg.robotProperties.mass.total;
+        massScalingFactor = 1 + deltaMass/nominalRobotMass;
+        externalForce = nominalForce * massScalingFactor; % The force acting at the end effector is the force computed in Towr scaled by the percent change in mass of the robot.
+        
         %% Get joint torques
-        externalForce = Leg.(EEselection).force(:,1:3);
         tempLeg.(EEselection).jointTorqueStance = getStanceJointTorques(externalForce, tempLeg, EEselection, meanCyclicMotionHipEE);
         tempLeg.(EEselection).jointTorqueSwing = getSwingJointTorques(EEselection, tempLeg, meanCyclicMotionHipEE, linkCount);
         tempLeg.(EEselection).jointTorque = tempLeg.(EEselection).jointTorqueStance + tempLeg.(EEselection).jointTorqueSwing;
@@ -120,17 +140,19 @@ function penalty = computePenalty(actuatorProperties, imposeJointLimits, heurist
         jointPowerInitial(jointPowerInitial<0) = 0;
         jointPower(jointPower<0) = 0;
 
+        %% Get active and passive torques for spring modeled in parallel with joint
         if springInParallelWithJoints
             q0SpringJoint.(EEselection) = mean(tempLeg.(EEselection).q(:,1:end-1)); % Set undeformed spring position to mean position. This can be updated in optimizer.
             [tempLeg.(EEselection).activeTorque, tempLeg.(EEselection).passiveTorque] = getActiveAndPassiveTorque(kSpringJoint, q0SpringJoint, Leg, EEselection, linkCount);
-            tempLeg.(EEselection).activePower  = tempLeg.(EEselection).activeTorque  .* tempLeg.(EEselection).qdot(:,1:end-1);
-            tempLeg.(EEselection).passivePower = tempLeg.(EEselection).passiveTorque .* tempLeg.(EEselection).qdot(:,1:end-1);
         else
             tempLeg.(EEselection).activeTorque = tempLeg.(EEselection).jointTorque;
-            tempLeg.(EEselection).passiveTorque = 0;
+            tempLeg.(EEselection).passiveTorque = zeros(size(tempLeg.(EEselection).activeTorque));
             q0SpringJoint.(EEselection) = 0;
         end  
         
+        tempLeg.(EEselection).activePower  = tempLeg.(EEselection).activeTorque  .* tempLeg.(EEselection).qdot(:,1:end-1);
+        tempLeg.(EEselection).passivePower = tempLeg.(EEselection).passiveTorque .* tempLeg.(EEselection).qdot(:,1:end-1);
+       
         %% Get actuator torque and speed as result of gearing between actuator and joint
         % This is the required output torque and speed from the actuator to produce
         % the joint torque and speed.
@@ -143,8 +165,13 @@ function penalty = computePenalty(actuatorProperties, imposeJointLimits, heurist
         end
 
         %% Get electrical power and efficiency at each operating point
-        [tempLeg.(EEselection).electricalPower, tempLeg.(EEselection).operatingPointEfficiency] = computeElectricalPowerInput(tempLeg, EEselection, actuatorProperties, linkCount, actuatorEfficiency, actuatorSelection);
-
+        if Leg.robotProperties.computeEfficiencyMaps 
+            [tempLeg.(EEselection).electricalPower, tempLeg.(EEselection).operatingPointEfficiency] = computeElectricalPowerInput(tempLeg, EEselection, actuatorProperties, linkCount, actuatorEfficiency, actuatorSelection);
+        else
+            tempLeg.(EEselection).electricalPower = tempLeg.(EEselection).jointPower;
+            tempLeg.(EEselection).operatingPointEfficiency = 1;
+        end
+            
         %% Energy consumption 
         % Here we assume no recuperation of energy possible. This means the
         % negative power terms are set to zero. Integral computed using trapezoids.
