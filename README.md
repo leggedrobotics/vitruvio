@@ -64,7 +64,7 @@ The intended work flow is as follows:
    1. High level robot design decisions are made including quantity of legs, robot mass, center of mass height and end effector positions in nominal stance.
    2. Based on these decisions, the inertia tensor for the nominal stance robot at its COM are computed from a simplified CAD model.
    3. These design parameters and inertia tensors are input into a new robot model in _TOWR_ and the motion is simulated for a given task by specifying gait, goal position, duration and terrain.
-   4. The simulated ROSbag is imported into _Vitruvio_ and saved as a .mat file.
+   4. The simulated ROSbag is imported into _Vitruvio_ using the provided `importMotionData.m` script and saved as a .mat file.
    5. The user makes high level design decisions in _Vitruvio_ and runs the simulation to obtain the required joint speed, torque, power, energy for tracking the motion. If applicable, the optimized leg design parameters are also returned along with comparison of the results for the nominal and optimized leg. These are all recorded in a structure named __results__.
    6. The user can adapt high level design aspects and the cost function terms as desired in the `main.m` script.
    7. If toggled on in `main.m`, a PDF file and txt file are automatically generated containing all the figures and command window printouts created during the simulation. 
@@ -72,7 +72,7 @@ The intended work flow is as follows:
 ## Example
 
 To run _Vitruvio_, open `main.m` and review the different options which can be toggled on/off. These include high level design decisions, visualization options and selection of robots to be optimized. 
-The toggles have been set to simulate the universal robot class performing a trot motion using the nominal robot properties read in from the `scripts/robot and actuator properties/getRobotProperties.m` script. 
+The toggles have been set to simulate the ANYmal robot class performing a trotting motion using the nominal robot properties read in from the `scripts/robot and actuator properties/getRobotProperties.m` script. 
 
 Run `main.m` and observe the result. The motion is visualized and several plots are generated to show the trajectory and joint data. The values are saved in a structure named _results_. This structure contains all the relevant input and output data of the simulation.
 
@@ -97,10 +97,10 @@ First the trajectory data must be input into _Vitruvio_. Drop the ROSbag generat
 New robots are added in `scripts/robot and actuator properties/getRobotProperties.m`. Here you must specify geometric properties such as the positions of the HAA joints relative to the COM, the nominal link lengths, densities, end-effector mass. New actuators can be added in `scripts/robot and actuator properties/getActuatorProperties.m` by specifying the actuator mass and limits.
 
 ## Limitations
-Currently _Vitruvio_ only fully considers pitch of the base and neglects roll and yaw. As such, only straight line and stair climbing motions can be anaylzed. Motions that involve turning are not properly tracked.
+Currently _Vitruvio_ only fully considers pitch of the base and neglects roll and yaw. Motions that involve turning are not properly tracked. Note that for fast motions with heavy legs, the sigle rigid body dynamics model used in the trajectory optimization begin to break down and the results will lose accuracy.
 
 ## License
-Copyright 2019 Michael Chadwick
+Copyright 2020 Michael Chadwick
 
 Redistribution and use in source and binary forms, with or without modification, are permitted provided that the following conditions are met:
 
