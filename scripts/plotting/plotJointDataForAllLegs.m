@@ -1,8 +1,8 @@
-function [] = plotJointDataForAllLegs(data, data2, optimizeLeg, saveFiguresToPDF)
+function [] = plotJointDataForAllLegs(viewPlots, data, data2, optimizeLeg, saveFiguresToPDF)
     %% Select which plots are to be displayed
-    displayJointLevelPlots = true;
-    displayMotorLevelPlots = false;
-    displayActuatorLevelPlots = true;
+    displayJointLevelPlots    = true;
+    displayMotorLevelPlots    = viewPlots.displayMotorLevelPlots;
+    displayActuatorLevelPlots = viewPlots.displayActuatorLevelPlots;
 
     if sum(data.LF.kSpringJoint) ~= 0
         displayActivePassiveLevelPlots = true;

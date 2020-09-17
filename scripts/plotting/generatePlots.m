@@ -15,20 +15,10 @@ if viewPlots.motionData
     fprintf('Plotting motion data. \n')
     plotMotionData(data, saveFiguresToPDF);
 end
-%% Range of motion plot
-if viewPlots.rangeOfMotionPlots
-    fprintf('Plotting range of motion. \n')    
-    plotRangeOfMotion(data, saveFiguresToPDF);
-end
 %% Joint data
 if viewPlots.jointDataPlot
     fprintf('Plotting actuator speed, torque, power and energy data. \n')    
-    plotJointDataForAllLegs(data,[], optimizeLeg, saveFiguresToPDF) % Can optionally plot a second data set on the same axes
-end
-%% Meta parameters
-if viewPlots.metaParameterPlot
-    fprintf('Plotting meta parameters. \n')
-    plotMetaParameters(data, saveFiguresToPDF)
+    plotJointDataForAllLegs(viewPlots, data,[], optimizeLeg, saveFiguresToPDF) % Can optionally plot a second data set on the same axes
 end
 %% Motor efficiency
 if viewPlots.efficiencyMap

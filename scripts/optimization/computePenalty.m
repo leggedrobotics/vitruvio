@@ -1,4 +1,8 @@
 function [penalty, tempLeg] = computePenalty(actuatorProperties, imposeJointLimits, heuristic, legDesignParameters, actuateJointDirectly, linkCount, optimizationProperties, robotProperties, selectFrontHind, taskSelection, dt, configSelection, EEselection, meanCyclicMotionHipEE, hipParalleltoBody, Leg, actuatorEfficiency, actuatorSelection, dataExtraction, springInParallelWithJoints, kSpringJoint, q0SpringJoint)
+    
+    setPreferredTransmissionRatio = true;
+    preferredTransmissionRatio = 1;
+    
     jointNames = ['HAA'; 'HFE'; 'KFE'; 'AFE'; 'DFE'];
 
     % Design parameters always start with [links(3-5), transmission ratio (3-5), springs parallel to joints (3-5), AFE/DFE spring]    
@@ -9,10 +13,13 @@ function [penalty, tempLeg] = computePenalty(actuatorProperties, imposeJointLimi
     transmissionGearRatio = legDesignParameters(jointCount+1:2*jointCount);
     
     if springInParallelWithJoints
-        kSpringJoint.(EEselection) = legDesignParameters(2*jointCount+1:3*jointCount);
-        tempLeg.(EEselection).kSpringJoint = kSpringJoint.(EEselection);
+        kSpringJoint = legDesignParameters(2*jointCount+1:3*jointCount);
+        q0SpringJoint(1:linkCount+1) = legDesignParameters(3*jointCount+1:4*jointCount);
+        tempLeg.(EEselection).kSpringJoint = kSpringJoint;
+        tempLeg.(EEselection).q0SpringJoint = [0 0 -1.6835 0 0]; %q0SpringJoint;
     else
-        tempLeg.(EEselection).kSpringJoint = zeros(1, jointCount);
+        tempLeg.(EEselection).kSpringJoint  = zeros(1, jointCount);
+        tempLeg.(EEselection).q0SpringJoint = zeros(1, jointCount);
     end
 
     if linkCount > 2 && heuristic.torqueAngle.apply
@@ -48,22 +55,23 @@ function [penalty, tempLeg] = computePenalty(actuatorProperties, imposeJointLimi
     end
 
     % Update link mass with assumption of constant density cylinder
-    robotProperties.hip(selectFrontHind).mass = robotProperties.legDensity.hip(selectFrontHind) * pi*(robotProperties.hip(selectFrontHind).radius)^2   * abs(linkLengths(1));
-    robotProperties.thigh(selectFrontHind).mass = robotProperties.legDensity.thigh(selectFrontHind) * pi*(robotProperties.thigh(selectFrontHind).radius)^2 * abs(linkLengths(2));
-    robotProperties.shank(selectFrontHind).mass = robotProperties.legDensity.shank(selectFrontHind) * pi*(robotProperties.shank(selectFrontHind).radius)^2 * abs(linkLengths(3));
+    robotProperties.hip(selectFrontHind).mass   = robotProperties.legDensity.hip(selectFrontHind) * pi * (robotProperties.hip(selectFrontHind).radius)^2   * abs(linkLengths(1));
+    robotProperties.thigh(selectFrontHind).mass = robotProperties.legDensity.thigh(selectFrontHind) * pi * (robotProperties.thigh(selectFrontHind).radius)^2 * abs(linkLengths(2));
+    robotProperties.shank(selectFrontHind).mass = robotProperties.legDensity.shank(selectFrontHind) * pi * (robotProperties.shank(selectFrontHind).radius)^2 * abs(linkLengths(3));
    
-    tempLeg.linkMass = robotProperties.hip(selectFrontHind).mass + robotProperties.thigh(selectFrontHind).mass + robotProperties.shank(selectFrontHind).mass;
+    tempLeg.linkMass = [robotProperties.hip(selectFrontHind).mass robotProperties.thigh(selectFrontHind).mass robotProperties.shank(selectFrontHind).mass];
     
     if (linkCount == 3) || (linkCount == 4)
         robotProperties.foot(selectFrontHind).mass = robotProperties.legDensity.foot(selectFrontHind) * pi*(robotProperties.foot(selectFrontHind).radius)^2 * abs(linkLengths(4));
-        tempLeg.linkMass = tempLeg.linkMass + robotProperties.foot(selectFrontHind).mass;
+        tempLeg.linkMass = [tempLeg.linkMass robotProperties.foot(selectFrontHind).mass];
     end
     
     if linkCount == 4
         robotProperties.phalanges(selectFrontHind).mass = robotProperties.legDensity.phalanges(selectFrontHind) * pi*(robotProperties.phalanges(selectFrontHind).radius)^2 * abs(linkLengths(5));
-        tempLeg.linkMass = robotProperties.phalanges(selectFrontHind).mass;
+        tempLeg.linkMass = [tempLeg.linkMass robotProperties.phalanges(selectFrontHind).mass];
     end
 
+    tempLeg.totalLinkMass = sum(tempLeg.linkMass);
     tempLeg.robotProperties = robotProperties;
     
     %% qAFE, qDFE torque based heuristic computation
@@ -115,7 +123,7 @@ function [penalty, tempLeg] = computePenalty(actuatorProperties, imposeJointLimi
         %% Scale EE forces to reflect the change in the leg mass
         nominalForce = Leg.(EEselection).force(:,1:3); % initial external force
         nominalLinkMass = Leg.(EEselection).totalLinkMass;
-        updatedLinkMass = tempLeg.linkMass;
+        updatedLinkMass = tempLeg.totalLinkMass;
         deltaMass = updatedLinkMass - nominalLinkMass;
         nominalRobotMass = Leg.robotProperties.mass.total;
         massScalingFactor = 1 + deltaMass/nominalRobotMass;
@@ -142,12 +150,11 @@ function [penalty, tempLeg] = computePenalty(actuatorProperties, imposeJointLimi
 
         %% Get active and passive torques for spring modeled in parallel with joint
         if springInParallelWithJoints
-            q0SpringJoint.(EEselection) = mean(tempLeg.(EEselection).q(:,1:end-1)); % Set undeformed spring position to mean position. This can be updated in optimizer.
-            [tempLeg.(EEselection).activeTorque, tempLeg.(EEselection).passiveTorque] = getActiveAndPassiveTorque(kSpringJoint, q0SpringJoint, Leg, EEselection, linkCount);
+            %q0SpringJoint.(EEselection) = mean(tempLeg.(EEselection).q(:,1:end-1)); % Set undeformed spring position to mean position. This can be updated in optimizer.
+            [tempLeg.(EEselection).activeTorque, tempLeg.(EEselection).passiveTorque] = getActiveAndPassiveTorque(kSpringJoint, q0SpringJoint, tempLeg, EEselection, linkCount);
         else
             tempLeg.(EEselection).activeTorque = tempLeg.(EEselection).jointTorque;
             tempLeg.(EEselection).passiveTorque = zeros(size(tempLeg.(EEselection).activeTorque));
-            q0SpringJoint.(EEselection) = 0;
         end  
         
         tempLeg.(EEselection).activePower  = tempLeg.(EEselection).activeTorque  .* tempLeg.(EEselection).qdot(:,1:end-1);
@@ -177,6 +184,9 @@ function [penalty, tempLeg] = computePenalty(actuatorProperties, imposeJointLimi
         % negative power terms are set to zero. Integral computed using trapezoids.
         [tempLeg.(EEselection).mechEnergy, tempLeg.metaParameters.mechEnergyPerCycle.(EEselection), tempLeg.(EEselection).elecEnergy, tempLeg.metaParameters.elecEnergyPerCycle.(EEselection)]  = computeEnergyConsumption(jointPower, tempLeg.(EEselection).electricalPower, dt);
 
+        % Active energy consumption
+        [tempLeg.(EEselection).mechEnergyActive, tempLeg.metaParameters.mechEnergyPerCycleActive.(EEselection), ~, ~]  = computeEnergyConsumption(tempLeg.(EEselection).activePower, tempLeg.(EEselection).electricalPower, dt);
+
         %% Load in penalty weights
         W_totalSwingTorque    = optimizationProperties.penaltyWeight.totalSwingTorque;
         W_totalStanceTorque   = optimizationProperties.penaltyWeight.totalStanceTorque;
@@ -190,6 +200,7 @@ function [penalty, tempLeg] = computePenalty(actuatorProperties, imposeJointLimi
         W_totalPower          = optimizationProperties.penaltyWeight.totalPower;
         W_totalMechEnergy     = optimizationProperties.penaltyWeight.totalMechEnergy;
         W_totalElecEnergy     = optimizationProperties.penaltyWeight.totalElecEnergy;
+        W_totalMechEnergyActive = optimizationProperties.penaltyWeight.totalMechEnergyActive;
         W_averageEfficiency   = optimizationProperties.penaltyWeight.averageEfficiency;
         W_maxTorque           = optimizationProperties.penaltyWeight.maxTorque;
         W_maxqdot             = optimizationProperties.penaltyWeight.maxqdot;
@@ -329,7 +340,15 @@ function [penalty, tempLeg] = computePenalty(actuatorProperties, imposeJointLimi
                 totalMechEnergy    = sum(tempLeg.(EEselection).mechEnergy(end,:));
             end
         end
-
+        
+        if W_totalMechEnergyActive>0
+            totalMechEnergyActiveInitial = sum(Leg.(EEselection).mechEnergyActive(end,:)); % sum of mech energy consumed over all active joints during the motion
+            totalMechEnergyActive    = sum(tempLeg.(EEselection).mechEnergyActive(end,:));
+        else
+            totalMechEnergyActiveInitial = sum(Leg.(EEselection).mechEnergy(end,:));
+            totalMechEnergyActive    = sum(tempLeg.(EEselection).mechEnergy(end,:));
+        end
+        
         if W_totalElecEnergy>0
             if linkCount>2 && heuristic.torqueAngle.apply     
                 totalElecEnergyInitial    = sum(Leg.(EEselection).elecEnergy(end,1:end-1)); % sum of elec energy consumed over all active joints during the motion
@@ -338,7 +357,6 @@ function [penalty, tempLeg] = computePenalty(actuatorProperties, imposeJointLimi
                 totalElecEnergyInitial    = sum(Leg.(EEselection).elecEnergy(end,:)); % sum of elec energy consumed over all joints during the motion
                 totalElecEnergy    = sum(tempLeg.(EEselection).elecEnergy(end,:));        
             end
-
         end
 
         if W_averageEfficiency>0    
@@ -443,7 +461,7 @@ function [penalty, tempLeg] = computePenalty(actuatorProperties, imposeJointLimi
             speedViolation = (maxActuatorqdot(1:jointCount) - maxqdotLimit(1:jointCount))./maxqdotLimit(1:jointCount);
             speedViolation(speedViolation<0)=0;
             speedLimitPenalty = 1+sum(speedViolation);
-            %disp('Exceeded speed limit')
+           % disp('Exceeded speed limit')
         end
 
         if imposeJointLimits.maxPower && any(maxJointPower > imposeJointLimits.limitingValue * maxPowerLimit)
@@ -460,7 +478,7 @@ function [penalty, tempLeg] = computePenalty(actuatorProperties, imposeJointLimi
         trackingError = sqrt(sum(trackingError.^2,2)); % Magnitude of tracking error at each timestep
         if max(trackingError) > 0.001 % If tracking error ever exceeds this tolerance, impose a penalty.
             trackingErrorPenalty = 10;
-            %disp('Large tracking error')
+           % disp('Large tracking error')
         else
             trackingErrorPenalty = 0;
         end
@@ -494,6 +512,7 @@ function [penalty, tempLeg] = computePenalty(actuatorProperties, imposeJointLimi
        jointHeightKFE = tempLeg.(EEselection).r.KFE(:,3);
 
         % Apply penalty if KFE joint is ever above HFE joint
+        % Currently this penalty term is not being used.
         if any(jointHeightKFE > jointHeightHFE)
             KFEAboveHFEPenalty = 0;
             %disp('KFE joint above HFE joint')
@@ -533,6 +552,11 @@ function [penalty, tempLeg] = computePenalty(actuatorProperties, imposeJointLimi
             end
         end
 
+        %% Prefer transmission ratio gamma of 1 - if the transmission does not affect the penalty, it will move towards one
+        if setPreferredTransmissionRatio
+            transmissionPenalty = 0.01*mean(abs(transmissionGearRatio - preferredTransmissionRatio));
+        end
+        
         %% Compute total penalty as sum of optimization goal related penalty terms and soft constraints
         penalty = W_totalTorque         * (totalTorque/totalTorqueInitial) + ...
                   W_totalTorqueHFE      * (totalTorqueHFE/totalTorqueHFEInitial) + ...
@@ -551,6 +575,7 @@ function [penalty, tempLeg] = computePenalty(actuatorProperties, imposeJointLimi
                   W_mechCoT             * (mechCoT/mechCoTInitial)          + ...
                   W_totalMechEnergy     * (totalMechEnergy/totalMechEnergyInitial)     + ... 
                   W_totalElecEnergy     * (totalElecEnergy/totalElecEnergyInitial)     + ...
+                  W_totalMechEnergyActive * (totalMechEnergyActive/totalMechEnergyActiveInitial)     + ... 
                   W_averageEfficiency   / (averageEfficiency/averageEfficiencyInitial)     + ... % minimize 1/efficiency
                   trackingErrorPenalty        + ...
                   jointBelowGroundPenalty     + ...
@@ -559,6 +584,7 @@ function [penalty, tempLeg] = computePenalty(actuatorProperties, imposeJointLimi
                   optimizationProperties.penaltyWeight.maximumExtension * maximumExtensionPenalty + ...
                   10*torqueLimitPenalty + ...
                   10*speedLimitPenalty  + ...
-                  10*powerLimitPenalty;
+                  10*powerLimitPenalty + ...
+                  transmissionPenalty;
     end
 end

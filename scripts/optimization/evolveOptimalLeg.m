@@ -13,9 +13,9 @@ function [legDesignParameters, penaltyMin, output] = evolveOptimalLeg(actuatorPr
     linkLengths = initialLinkLengths;
     legDesignParameters = [linkLengths, transmissionGearRatio];
 
-    % If also optimizing joint spring parameters
+    % If also optimizing joint spring parameters at specified joints
     if springInParallelWithJoints
-        legDesignParameters = [legDesignParameters kSpringJoint.(EEselection)(1:linkCount+1)];
+        legDesignParameters = [legDesignParameters, kSpringJoint(1:linkCount+1), q0SpringJoint(1:linkCount+1)];
     end
 
     % If also optimizing spring parameters at AFE/DFE

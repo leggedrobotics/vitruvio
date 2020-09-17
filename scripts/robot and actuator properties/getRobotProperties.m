@@ -68,19 +68,6 @@ function robotProperties = getRobotProperties(robotSelection, transmissionMethod
     robot.yourRobot.transmissionGearRatio.AFE(1) = 1;  robot.yourRobot.transmissionGearRatio.AFE(2) = 1;
     robot.yourRobot.transmissionGearRatio.DFE(1) = 1;  robot.yourRobot.transmissionGearRatio.DFE(2) = 1;    
         
-    % Joint angle limits (used only in reachable positions plot, they do not impose any limits on the motion)
-    % q1 HAA, q2 HFE, q3 KFE, q4 AFE
-    robot.yourRobot.q1.minAngle = -pi;
-    robot.yourRobot.q1.maxAngle = pi;
-    robot.yourRobot.q2.minAngle = -2*pi;
-    robot.yourRobot.q2.maxAngle = 2*pi;
-    robot.yourRobot.q3.minAngle = -2*pi;
-    robot.yourRobot.q3.maxAngle = 2*pi;
-    robot.yourRobot.q4.minAngle = -pi;
-    robot.yourRobot.q4.maxAngle = pi;
-    robot.yourRobot.q5.minAngle = -pi;
-    robot.yourRobot.q5.maxAngle = pi;
-
     % Base dimensions used for visualization - visualized as a box
     robot.yourRobot.baseLength = 0.6;
     robot.yourRobot.baseWidth  = 0.24;
@@ -108,8 +95,8 @@ function robotProperties = getRobotProperties(robotSelection, transmissionMethod
     % Offset from nominal CoM position to base hip attachment for each leg.
     robot.ANYmalBear.xNom(1) = 0.225;
     robot.ANYmalBear.xNom(2) = 0.225;
-    robot.ANYmalBear.yNom(1) = 0.14;
-    robot.ANYmalBear.yNom(2) = 0.14;
+    robot.ANYmalBear.yNom(1) = 0.14; 
+    robot.ANYmalBear.yNom(2) = 0.14; 
     robot.ANYmalBear.zNom    = 0; % offset from CoM to HAA in z direction. Positive value means HAA above CoM.
     
     robot.ANYmalBear.nomHipPos.LF = [ robot.ANYmalBear.xNom(1),  robot.ANYmalBear.yNom(1), robot.ANYmalBear.zNom];
@@ -151,19 +138,6 @@ function robotProperties = getRobotProperties(robotSelection, transmissionMethod
     robot.ANYmalBear.transmissionGearRatio.AFE(1) = 1;  robot.ANYmalBear.transmissionGearRatio.AFE(2) = 1;
     robot.ANYmalBear.transmissionGearRatio.DFE(1) = 1;  robot.ANYmalBear.transmissionGearRatio.DFE(2) = 1;    
     
-    % joint angle limits
-    % q1 HAA, q2 HFE, q3 KFE, q4 AFE
-    robot.ANYmalBear.q1.minAngle = -pi;
-    robot.ANYmalBear.q1.maxAngle = pi;
-    robot.ANYmalBear.q2.minAngle = -2*pi;
-    robot.ANYmalBear.q2.maxAngle = 2*pi;
-    robot.ANYmalBear.q3.minAngle = -2*pi;
-    robot.ANYmalBear.q3.maxAngle = 2*pi;
-    robot.ANYmalBear.q4.minAngle = -pi;
-    robot.ANYmalBear.q4.maxAngle = pi;
-    robot.ANYmalBear.q5.minAngle = -pi;
-    robot.ANYmalBear.q5.maxAngle = pi;
-
      % Base dimensions used for visualization - visualized as a box
      robot.ANYmalBear.baseLength = 0.6;
      robot.ANYmalBear.baseWidth  = 0.24;
@@ -234,19 +208,6 @@ function robotProperties = getRobotProperties(robotSelection, transmissionMethod
     robot.universal.phalanges(1).radius = 0.015;
     robot.universal.phalanges(2).radius = 0.015;
 
-    % joint angle limits
-    % q1 HAA, q2 HFE, q3 KFE, q4 AFE
-    robot.universal.q1.minAngle = -pi;
-    robot.universal.q1.maxAngle = pi;
-    robot.universal.q2.minAngle = -pi/2;
-    robot.universal.q2.maxAngle = pi/2;
-    robot.universal.q3.minAngle = -pi;
-    robot.universal.q3.maxAngle = pi;
-    robot.universal.q4.minAngle = -pi;
-    robot.universal.q4.maxAngle = pi;
-    robot.universal.q5.minAngle = -pi;
-    robot.universal.q5.maxAngle = pi;
-    
      % Base dimensions used for visualization - visualized as a box
      robot.universal.baseWidth  = 0.4;
      robot.universal.baseLength = 0.75;
@@ -317,19 +278,6 @@ function robotProperties = getRobotProperties(robotSelection, transmissionMethod
     robot.massivo.phalanges(1).radius = 0.02;
     robot.massivo.phalanges(2).radius = 0.02;
 
-    % joint angle limits
-    % q1 HAA, q2 HFE, q3 KFE, q4 AFE
-    robot.massivo.q1.minAngle = -pi;
-    robot.massivo.q1.maxAngle = pi;
-    robot.massivo.q2.minAngle = -pi/2;
-    robot.massivo.q2.maxAngle = pi/2;
-    robot.massivo.q3.minAngle = -pi;
-    robot.massivo.q3.maxAngle = pi;
-    robot.massivo.q4.minAngle = -pi;
-    robot.massivo.q4.maxAngle = pi;
-    robot.massivo.q5.minAngle = -pi;
-    robot.massivo.q5.maxAngle = pi;
-  
      % Base dimensions used for visualization - visualized as a box
      robot.massivo.baseLength = 0.7;
      robot.massivo.baseWidth  = 0.7;
@@ -399,23 +347,10 @@ function robotProperties = getRobotProperties(robotSelection, transmissionMethod
     robot.centaur.phalanges(1).radius = 0.02;
     robot.centaur.phalanges(2).radius = 0.02;
 
-    % joint angle limits
-    % q1 HAA, q2 HFE, q3 KFE, q4 AFE
-    robot.centaur.q1.minAngle = -pi;
-    robot.centaur.q1.maxAngle = pi;
-    robot.centaur.q2.minAngle = -pi/2;
-    robot.centaur.q2.maxAngle = pi/2;
-    robot.centaur.q3.minAngle = -pi;
-    robot.centaur.q3.maxAngle = pi;
-    robot.centaur.q4.minAngle = -pi;
-    robot.centaur.q4.maxAngle = pi;
-    robot.centaur.q5.minAngle = -pi;
-    robot.centaur.q5.maxAngle = pi;
-
-     % Base dimensions used for visualization - visualized as a box
-     robot.centaur.baseLength = 0.7;
-     robot.centaur.baseWidth  = 0.5;
-     robot.centaur.baseHeight = 0.1;
+    % Base dimensions used for visualization - visualized as a box
+    robot.centaur.baseLength = 0.7;
+    robot.centaur.baseWidth  = 0.5;
+    robot.centaur.baseHeight = 0.1;
      
     %% Mini 
     robot.mini.mass.total = 10;
@@ -480,30 +415,71 @@ function robotProperties = getRobotProperties(robotSelection, transmissionMethod
     robot.mini.phalanges(1).radius = 0.015;
     robot.mini.phalanges(2).radius = 0.015;
 
-    % joint angle limits
-    % q1 HAA, q2 HFE, q3 KFE, q4 AFE
-    robot.mini.q1.minAngle = -pi;
-    robot.mini.q1.maxAngle = pi;
-    robot.mini.q2.minAngle = -pi/2;
-    robot.mini.q2.maxAngle = pi/2;
-    robot.mini.q3.minAngle = -pi;
-    robot.mini.q3.maxAngle = pi;
-    robot.mini.q4.minAngle = -pi;
-    robot.mini.q4.maxAngle = pi;
-    robot.mini.q5.minAngle = -pi;
-    robot.mini.q5.maxAngle = pi;
-
-     % Base dimensions used for visualization - visualized as a box
-     robot.mini.baseLength = 0.4;
-     robot.mini.baseWidth  = 0.2;
-     robot.mini.baseHeight = 0.1;
+    % Base dimensions used for visualization - visualized as a box
+    robot.mini.baseLength = 0.4;
+    robot.mini.baseWidth  = 0.2;
+    robot.mini.baseHeight = 0.1;
      
-     %% Compute link mass and inertia for selected robot
-     % Additional mass due to transmission
-     transmissionMass = getTransmissionProperties(transmissionMethod, actuateJointDirectly, robot, robotSelection, jointNames, linkNames, linkCount);
-        % Link mass [kg] and inertia [kg.m^2] based on cylindrical link
-        % with constant density. Density is dependent on link density and
-        % transmission mass.
+     %% Hopper
+    robot.hopper.mass.total = 40;
+    robot.hopper.legCount = 1;
+    
+    % Density of each link
+    robot.hopper.legDensity.hip(1)       = 900;  
+    robot.hopper.legDensity.thigh(1)     = 900;  
+    robot.hopper.legDensity.shank(1)     = 900;     
+    robot.hopper.legDensity.foot(1)      = 900;    
+    robot.hopper.legDensity.phalanges(1) = 900;     
+    
+    % End effector mass
+    robot.hopper.EE(1).mass = 0.1923;   
+
+    % Offset from CoM to each hip
+    robot.hopper.xNom = 0;
+    robot.hopper.yNom = 0;
+    robot.hopper.zNom = 0;
+
+    % row order:    LF LH RF RH
+    % column order: x, y, z
+    robot.hopper.nomHipPos.LF = [robot.hopper.xNom(1), robot.hopper.yNom(1), robot.hopper.zNom];
+
+    % link lengths [m]
+    % fore, hind
+    robot.hopper.hip(1).length   = 0.01;
+    robot.hopper.thigh(1).length = 0.5; 
+    robot.hopper.shank(1).length = 0.5; 
+    robot.hopper.foot(1).length  = 0.2;
+    robot.hopper.phalanges(1).length = 0.05;
+
+    % Transmission Ratio
+    % For remote and directly actuated joints
+    % GearRatio = input speed/ output speed
+    % Front legs                                        
+    robot.hopper.transmissionGearRatio.HAA(1) = 1;  
+    robot.hopper.transmissionGearRatio.HFE(1) = 1; 
+    robot.hopper.transmissionGearRatio.KFE(1) = 1;  
+    robot.hopper.transmissionGearRatio.AFE(1) = 1;  
+    robot.hopper.transmissionGearRatio.DFE(1) = 1;  
+        
+    % link radius [m]
+    % update these values
+    robot.hopper.hip(1).radius   = 0.015;
+    robot.hopper.thigh(1).radius = 0.015;
+    robot.hopper.shank(1).radius = 0.015;
+    robot.hopper.foot(1).radius  = 0.015;
+    robot.hopper.phalanges(1).radius = 0.015;
+    
+    % Base dimensions used for visualization - visualized as a box
+    robot.hopper.baseWidth  = 0.25;
+    robot.hopper.baseLength = 0.25;
+    robot.hopper.baseHeight = 0.4;
+          
+    %% Compute link mass and inertia for selected robot
+    % Additional mass due to transmission
+    transmissionMass = getTransmissionProperties(transmissionMethod, actuateJointDirectly, robot, robotSelection, jointNames, linkNames, linkCount);
+    % Link mass [kg] and inertia [kg.m^2] based on cylindrical link
+    % with constant density. Density is dependent on link density and
+    % transmission mass.
     for i = 1:linkCount+1
         if robot.(robotSelection).legCount > 2
             frontHindIndex = 2; % Robot has front and hind legs.

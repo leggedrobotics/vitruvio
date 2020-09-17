@@ -94,9 +94,13 @@ end
 % springs in parallel with the joints
 if springInParallelWithJoints
     for i = 1:linkCount+1  
-        upperBound(end+1) = optimizationProperties.bounds.upperBoundMultiplier.kSpringJoint.(jointNames(i,:))*kSpringJoint.(EEselection)(i);
-        lowerBound(end+1) = optimizationProperties.bounds.lowerBoundMultiplier.kSpringJoint.(jointNames(i,:))*kSpringJoint.(EEselection)(i);
+        upperBound(end+1) = optimizationProperties.bounds.upperBoundMultiplier.kSpringJoint.(jointNames(i,:)) * kSpringJoint(i);
+        lowerBound(end+1) = optimizationProperties.bounds.lowerBoundMultiplier.kSpringJoint.(jointNames(i,:)) * kSpringJoint(i);
     end
+    for i = 1:linkCount+1  
+        upperBound(end+1) = optimizationProperties.bounds.upperBoundOffset.q0SpringJoint.(jointNames(i,:)) + q0SpringJoint(i);
+        lowerBound(end+1) = optimizationProperties.bounds.lowerBoundOffset.q0SpringJoint.(jointNames(i,:)) + q0SpringJoint(i);
+    end    
 end
 
 % Ensure bounds ordered corrrectly such that lower bound <= upper bound.
@@ -144,14 +148,19 @@ if springInParallelWithJoints
     designParameterNames = [designParameterNames, ...
                             {'torsional spring constant at HAA'}, ...
                             {'torsional spring constant at HFE'}, ...
-                            {'torsional spring constant at KFE'}];
+                            {'torsional spring constant at KFE'}, ...
+                            {'nominal spring position at HAA'}, ...
+                            {'nominal spring position at HFE'}, ...
+                            {'nominal spring position at KFE'}];
     if linkCount > 2
         designParameterNames = [designParameterNames, ...
-                                {'torsional spring constant at AFE'}]; 
+                                {'torsional spring constant at AFE'}
+                                {'nominal spring position at AFE'}]; 
     end
     if linkCount > 3
         designParameterNames = [designParameterNames, ...
-                                {'torsional spring constant at DFE'}]; 
+                                {'torsional spring constant at DFE'}
+                                {'nominal spring position at DFE'}]; 
     end
 end
         
@@ -191,8 +200,8 @@ end
 %% Get meta parameters
 %[tempLeg.(EEselection).mechEnergy, tempLeg.metaParameters.mechEnergyPerCycle.(EEselection), tempLeg.(EEselection).elecEnergy, tempLeg.metaParameters.elecEnergyPerCycle.(EEselection)]  = computeEnergyConsumption(tempLeg.(EEselection).jointPower, tempLeg.(EEselection).electricalPower, dt);
 tempLeg.metaParameters.mechEnergyPerCycleTotal.(EEselection) = sum(tempLeg.metaParameters.mechEnergyPerCycle.(EEselection)(end,:));
-tempLeg.metaParameters.elecEnergyPerCycleTotal.(EEselection) = sum(tempLeg.metaParameters.elecEnergyPerCycle.(EEselection)(end,:));  
-[mechEnergyActiveOpt, mechEnergyPerCycleActiveOpt, ~, ~]  = computeEnergyConsumption(tempLeg.(EEselection).activePower, tempLeg.(EEselection).electricalPower, dt);
+tempLeg.metaParameters.elecEnergyPerCycleTotal.(EEselection) = sum(tempLeg.metaParameters.elecEnergyPerCycle.(EEselection)(end,:)); 
+tempLeg.metaParameters.mechEnergyActivePerCycleTotal.(EEselection) = sum(tempLeg.(EEselection).mechEnergyActive(end,:));
 
 %% Return the results of the optimization
 optimizationResults.rigidBodyModelSwingOpt          = tempLeg.(EEselection).rigidBodyModelSwing;
@@ -220,7 +229,7 @@ optimizationResults.actuatorqdotOpt                 = tempLeg.(EEselection).actu
 optimizationResults.actuatorTorqueOpt               = tempLeg.(EEselection).actuatorTorque;
 optimizationResults.penaltyMinOpt                   = penaltyMin;
 optimizationResults.linkMassOpt                     = tempLeg.linkMass;
-optimizationResults.totalLinkMassOpt                = sum(tempLeg.linkMass);
+optimizationResults.totalLinkMassOpt                = tempLeg.totalLinkMass;
 optimizationResults.deltaqMaxOpt                    = deltaqMaxOpt;
 optimizationResults.qdotMaxOpt                      = qdotMaxOpt;
 optimizationResults.jointTorqueMaxOpt               = jointTorqueMaxOpt;
@@ -234,5 +243,6 @@ optimizationResults.activePowerOpt                  = tempLeg.(EEselection).acti
 optimizationResults.passiveTorqueOpt                = tempLeg.(EEselection).passiveTorque;
 optimizationResults.passivePowerOpt                 = tempLeg.(EEselection).passivePower;
 optimizationResults.kSpringJointOpt                 = tempLeg.(EEselection).kSpringJoint;
-optimizationResults.mechEnergyActiveOpt             = mechEnergyActiveOpt;
-optimizationResults.mechEnergyPerCycleActiveOpt     = mechEnergyPerCycleActiveOpt;
+optimizationResults.q0SpringJointOpt                = tempLeg.(EEselection).q0SpringJoint;
+optimizationResults.mechEnergyActiveOpt             = tempLeg.(EEselection).mechEnergyActive;
+optimizationResults.mechEnergyActivePerCycleOpt     = tempLeg.metaParameters.mechEnergyActivePerCycleTotal.(EEselection);

@@ -10,7 +10,7 @@ close all;
 pathToTrajectoryData =  'pathToBagFile.bag';
 saveName = 'trajectoryDataFileName.mat';
 legCount = 4; % Specify number of legs from 1 to 4.
-m = 40;   % mass of the robot used in Towr
+m = 50;   % mass of the robot used in Towr
 
 %% Extract the desired 3D vectors from the bag
 bag_all = rosbag(pathToTrajectoryData);

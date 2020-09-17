@@ -6,8 +6,8 @@
 function [activeTorque, passiveTorque] = getActiveAndPassiveTorque(kSpringJoint, q0SpringJoint, Leg, EEselection, linkCount)
     qSpring = Leg.(EEselection).q(:,1:end-1); % spring angle = joint angle
 
-    % passive torque = kSpring * (q_spring-q_spring0)
-    passiveTorque = kSpringJoint.(EEselection)(1:linkCount+1).*(qSpring - q0SpringJoint.(EEselection));
+    % Hooke's Law
+    passiveTorque = -kSpringJoint(1:linkCount+1).*(qSpring - q0SpringJoint);
 
     % T_active = T_joint - T_passive
     activeTorque = Leg.(EEselection).jointTorque - passiveTorque;

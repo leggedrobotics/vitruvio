@@ -36,9 +36,9 @@
     stairViz     = [];
     
     groundGridlines = linspace(-1,99,101);
+    platformCoordinates = 0;
 
     myMap  = [65 105 225]/225; % Royal blue
-    myMap2 = [65 105 225]/225; % Royal blue (ground colour)
     
     for i = 1:legCount
         hipViz.(EEnames(i,:))       = [];
@@ -51,9 +51,9 @@
     
     % Axis limits - adjust manually based on size of robot
     if robotVisualization.oneLeg
-        xlimit = 2*[-0.2, 0.4];
-        ylimit = 2*[-0.3, 0.3];
-        zlimit = 2*[-0.55, 0.4];
+        xlimit = [-1, 1];
+        ylimit = [-0.7, 0.7];
+        zlimit = [-1.1, 1];
     else
         xlimit = [-1.05, 1.05];
         ylimit = [-1, 1];
@@ -208,9 +208,11 @@
         
     if robotVisualization.oneLeg  
         for i = 1:finalPlottingIndex
+            hold off
+            figure(f1);
             % Set frames = on to see the rigid body tree of the leg
             show(robot,config.(EEselection)(i,:), 'Frames', 'off');
-            grid off
+            grid on
             xlim([xlimit(1) xlimit(2)]);
             ylim([ylimit(1) ylimit(2)]);
             zlim([zlimit(1) zlimit(2)]);
@@ -284,7 +286,8 @@
                 [x5,y5,z5] = cylinder2P(robotProperties.phalanges(selectFrontHind).radius, 40,rDFE,rEE);
                 surf(x5, y5, z5, 'edgecolor','none')
             end
-
+            
+            hold off
             % Save to gif
             if createGif
                 if mod(i,2) % Save every 2nd frame into gif
@@ -299,7 +302,6 @@
                         imwrite(imind,cm, fileName,'gif','WriteMode','append'); 
                     end 
                 end  
-                hold off
             end
         end
    end
@@ -311,7 +313,8 @@
             figure(f1);
             grid off
             hold off
-            view([-20 5])
+            %view([0 0]) % Side view
+            view([-20 5]) % Sets view angle for 3D
             xlim([xlimit(1) xlimit(2)]);
             ylim([ylimit(1) ylimit(2)]);
             zlim([zlimit(1) zlimit(2)]);         
@@ -400,8 +403,8 @@
                     end
                     
                         %% Plot ground and stairs
-                        groundColor = myMap2;
-                        groundColorStairs =  myMap2;
+                        groundColor = myMap;
+                        groundColorStairs =  myMap;
                         delete(groundViz)
                         groundViz = patch(groundCoordinatesX(1,:), groundCoordinatesY(1,:), [0 0 0 0], groundColor, 'FaceAlpha', 0.4, 'LineStyle', '-', 'LineWidth', 0.5);
                         delete(stairViz);
@@ -477,6 +480,8 @@
                     hold off   
             
             %% Save gif and svg
+            if mod(i,200) == 0
+            end
             if createGif
                 if mod(i,3)==0 || i==1% Save every 3rd frame into gif
                       % Capture f1 as image and save to .gif

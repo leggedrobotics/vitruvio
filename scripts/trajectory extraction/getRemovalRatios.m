@@ -25,5 +25,11 @@ suggestedRemovalRatioEnd.massivo_stairs   = 0.5;
 suggestedRemovalRatioStart.centaur_walk = 0.2;
 suggestedRemovalRatioEnd.centaur_walk   = 0.2;
 
+suggestedRemovalRatioStart.centaur_stairs = 0.1;
+suggestedRemovalRatioEnd.centaur_stairs   = 0.4;
+
+suggestedRemovalRatioStart.mini_pronk = 0.2;
+suggestedRemovalRatioEnd.mini_pronk   = 0.2;
+
 removalRatioStart = suggestedRemovalRatioStart.(taskSelection);
 removalRatioEnd = suggestedRemovalRatioEnd.(taskSelection);
